@@ -3,6 +3,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import os
 from config import Config as setConfig
+import subprocess
+
 
 BTN_MIN_WIDTH 		= 100
 BTN_MAX_WIDTH 		= 200
@@ -51,7 +53,7 @@ class qScenario(QObject):
 		self.currentRecSeq = 0
 		self.currentRecCheck = False
 		self.imgRecSizes = [0,0,0,0,0] # color, ir, depth, rec time, num frames
-
+		
 
 	def updateRecImgSizes(self, imgsizes):
 		self.imgRecSizes[0] += imgsizes[0]
@@ -343,47 +345,59 @@ class qScenario(QObject):
 
 	def update(self):
 		self.viewInfo.setText(self.showinfo())
-		self.sizeInfo.setText(self.showSizeInfo())
+		#self.sizeInfo.setText(self.showSizeInfo())
 		QApplication.processEvents()
 
+	# fix 2021/12/22
+	def onchanged(self, text):
+		self.scorenum.setText(f'Score : {self.score_num.currentText()}')
+		self.scenarionum.setText(f'Scenario : {self.class_num.currentText()}')
+
+	def videoplay(self):
+
+		try:
+			p = subprocess.Popen(["/usr/bin/mpv", f"/home/etri_ai2/Desktop/video_box/{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"])
+		except:
+			print("not find video...")
 
 	def updateSize(self):
-		self.sizeInfo.setText(self.showSizeInfo())
+		# self.sizeInfo.setText(self.showSizeInfo())
+		pass
 
 
-	def updateImgMemoryInfo(self):
-		self.imgMemoryInfoDisp = f"[RGB]:{self.rgbdispsize}MB"
-		self.imgMemoryInfoDisp += f"\n[IR]:{self.irdispsize}MB"
-		self.imgMemoryInfoDisp += f"\n[Depth]:{self.depthdispsize}MB"
+	# def updateImgMemoryInfo(self):
+	# 	self.imgMemoryInfoDisp = f"[RGB]:{self.rgbdispsize}MB"
+	# 	self.imgMemoryInfoDisp += f"\n[IR]:{self.irdispsize}MB"
+	# 	self.imgMemoryInfoDisp += f"\n[Depth]:{self.depthdispsize}MB"
 		
 
 
 	def showinfo(self):
-		info 	 = f"<<< Scenario Setup >>>\n"
-		info 	+= f"[ID] {self.SubjectID}\n"
-		#info 	+= f"[ID Correction] {self.Correction}\n"
-		#info 	+= f"[Record Time] {self.MinRecordTime} sec\n"
-		#info 	+= f"[Record Frame] {self.MinRecordFrame} frames\n"
-		info 	+= f"[Record Start Time] {self.RECstartTime}\n"
+		info 	 = f"                   <<< add result>>>\n"
+		# info 	+= f"[ID] {self.SubjectID}\n"
+		# #info 	+= f"[ID Correction] {self.Correction}\n"
+		# #info 	+= f"[Record Time] {self.MinRecordTime} sec\n"
+		# #info 	+= f"[Record Frame] {self.MinRecordFrame} frames\n"
+		# info 	+= f"[Record Start Time] {self.RECstartTime}\n"
 		return info
 
-	def updateImgMemoryInfoRec(self):
-		self.imgMemoryInfoRec  = "[RGB]:{:.2f}MB".format(self.imgRecSizes[0])
-		self.imgMemoryInfoRec += "\n[IR]:{:.2f}MB".format(self.imgRecSizes[1])
-		self.imgMemoryInfoRec += "\n[Depth]:{:.2f}MB".format(self.imgRecSizes[2])
-		self.imgMemoryInfoRec += "\n[Rec. Time]:{:.2f}sec".format(self.imgRecSizes[3])
-		self.imgMemoryInfoRec += "\n[Frames]:{:4d}".format(self.imgRecSizes[4])
+	# def updateImgMemoryInfoRec(self):
+	# 	self.imgMemoryInfoRec  = "[RGB]:{:.2f}MB".format(self.imgRecSizes[0])
+	# 	self.imgMemoryInfoRec += "\n[IR]:{:.2f}MB".format(self.imgRecSizes[1])
+	# 	self.imgMemoryInfoRec += "\n[Depth]:{:.2f}MB".format(self.imgRecSizes[2])
+	# 	self.imgMemoryInfoRec += "\n[Rec. Time]:{:.2f}sec".format(self.imgRecSizes[3])
+	# 	self.imgMemoryInfoRec += "\n[Frames]:{:4d}".format(self.imgRecSizes[4])
 
 
-	def showSizeInfo(self):
-		self.updateImgMemoryInfo()
-		self.updateImgMemoryInfoRec()		
-		info 	 = f"<<< Img Info. >>>\n"
-		info    += self.imgMemoryInfoDisp
-		info 	+= f"\n\n<<< REC Info. >>>\n"
-		info    += self.imgMemoryInfoRec
+	# def showSizeInfo(self):
+	# 	self.updateImgMemoryInfo()
+	# 	self.updateImgMemoryInfoRec()		
+	# 	info 	 = f"<<< Img Info. >>>\n"
+	# 	info    += self.imgMemoryInfoDisp
+	# 	info 	+= f"\n\n<<< REC Info. >>>\n"
+	# 	info    += self.imgMemoryInfoRec
 
-		return info
+	# 	return info
 
 
 	def setRecordTime(self, t):
@@ -395,6 +409,31 @@ class qScenario(QObject):
 	def setCorrection(self):
 		self.Correction = int(self.CorrectionInput.text())
 		self.update()
+
+	def setcurrentRecordStep0(self):
+		self.currentRecSeq = 0
+		self.scenarionumv.setText(str(self.cBoxSSelect.currentIndex()+1))
+		self.scorenumv.setText(str(0))
+	
+	def setcurrentRecordStep1(self):
+		self.currentRecSeq = 1
+		self.scenarionumv.setText(str(self.cBoxSSelect.currentIndex()+1))
+		self.scorenumv.setText(str(1))
+
+	def setcurrentRecordStep2(self):
+		self.currentRecSeq = 2
+		self.scenarionumv.setText(str(self.cBoxSSelect.currentIndex()+1))
+		self.scorenumv.setText(str(2))
+
+	def setcurrentRecordStep3(self):
+		self.currentRecSeq = 3
+		self.scenarionumv.setText(str(self.cBoxSSelect.currentIndex()+1))
+		self.scorenumv.setText(str(3))
+
+	def setcurrentRecordStep4(self):
+		self.currentRecSeq = 4
+		self.scenarionumv.setText(str(self.cBoxSSelect.currentIndex()+1))
+		self.scorenumv.setText(str(4))
 
 	def getLayout(self):
 		HBlayoutMain = QHBoxLayout() 
@@ -431,6 +470,29 @@ class qScenario(QObject):
 		self.SubjectIDInput.setFixedSize(50,20)
 		
 		LayoutID.addWidget(self.SubjectIDInput)
+
+		LayoutRT = QHBoxLayout() 
+		LayoutRT.setAlignment(Qt.AlignTop)
+		LayoutRT.setAlignment(Qt.AlignLeft)
+		qLabelName = QLabel()
+		qLabelName.setText("min Record Time [sec.]:")
+		LayoutRT.addWidget(qLabelName)
+		self.RecordTimeInput = QLineEdit()
+		self.RecordTimeInput.setText(str(self.MinRecordTime))
+		self.RecordTimeInput.setFixedSize(50,20)
+		
+		LayoutRT.addWidget(self.RecordTimeInput)
+
+		LayoutRI = QHBoxLayout() 
+		LayoutRI.setAlignment(Qt.AlignTop)
+		LayoutRI.setAlignment(Qt.AlignLeft)
+		qLabelName = QLabel()
+		qLabelName.setText("min Record Frame [imgs]:")
+		LayoutRI.addWidget(qLabelName)
+		self.RecordFrameInput = QLineEdit()
+		self.RecordFrameInput.setText(str(self.MinRecordFrame))
+		self.RecordFrameInput.setFixedSize(50,20)
+		LayoutRI.addWidget(self.RecordFrameInput)
 
 		LayoutRST = QHBoxLayout() 
 		LayoutRST.setAlignment(Qt.AlignTop)
@@ -499,6 +561,8 @@ class qScenario(QObject):
 		HVlayoutMain.addWidget(LayoutRecordStart, 10)
 		HVlayoutMain.addLayout(LayoutLocale, 10)
 		HVlayoutMain.addLayout(LayoutID, 10)
+		#HVlayoutMain.addLayout(LayoutRT, 10)
+		#HVlayoutMain.addLayout(LayoutRI, 10)
 		HVlayoutMain.addLayout(LayoutRST, 10)
 		HVlayoutMain.addLayout(LayoutSRST, 10)
 
@@ -535,6 +599,11 @@ class qScenario(QObject):
 		LayoutSE.setAlignment(Qt.AlignTop)
 		LayoutSE.setAlignment(Qt.AlignRight)
 
+		self.cnt = QPushButton()
+		self.cnt.setCheckable(False)
+		self.cnt.setText('Print CNT')
+		self.cnt.setMinimumHeight(40)
+		LayoutSE.addWidget(self.cnt)
 
 		self.end = QPushButton()
 		self.end.setCheckable(False)
@@ -554,9 +623,85 @@ class qScenario(QObject):
 
 		HVlayoutMain.addWidget(LayoutSave)
 
+		# self.cBoxSSelect = QComboBox()
+		# for i in range(0,14):
+		# 	seq = recordconfig.scenario[i]
+		# 	sname = f"[No.{i+1}] "
+		# 	for s in seq:
+		# 		sname += f"{s}-"
+		# 	self.cBoxSSelect.addItem(sname[:-1])
+
+		# fixed combobox
+		classlabel = QLabel()
+		classlabel.setText("class:")
+		#LayoutViewers.addWidget(classlabel, alignment=Qt.AlignTop)
+
+		self.class_num = QComboBox()
+		[self.class_num.addItem(f"{i}") for i in range(1, 15)]
+		self.class_num.activated[str].connect(self.onchanged)
+
+		#LayoutViewers.addWidget(self.class_num, alignment=Qt.AlignTop)
+
+		scorelabel = QLabel()
+		scorelabel.setText("score:")
+		#LayoutViewers.addWidget(scorelabel, alignment=Qt.AlignTop)
+
+		self.score_num = QComboBox()
+		[self.score_num.addItem(f"{i}") for i in range(5)]
+		self.score_num.activated[str].connect(self.onchanged)
+
+		#LayoutViewers.addWidget(self.score_num, alignment=Qt.AlignTop)		
+
+
+		LayoutScenario = QVBoxLayout()
+		LayoutScenario.setAlignment(Qt.AlignTop)
+		qLabelName = QLabel()
+		qLabelName.setText("Select Scenario")
+		LayoutScenario.addWidget(qLabelName,1)
+		
+		# fix
+		LayoutScenario.addWidget(self.class_num,1)
+		LayoutScenario.addWidget(self.score_num,1)
+
+		HVlayoutMain.addLayout(LayoutScenario, 2)
+
+		LayoutScenarioNum = QHBoxLayout()
+		LayoutScenarioNum.setAlignment(Qt.AlignTop)
+		LayoutScenarioNum.setAlignment(Qt.AlignRight)
+
+		# qLabelName = QLabel()
+		# qLabelName.setText("Select Scenario Number")
+		# LayoutScenario.addWidget(qLabelName,1)
+
 		LayoutSV = QHBoxLayout() 
 		LayoutSV.setAlignment(Qt.AlignTop)
 		LayoutSV.setAlignment(Qt.AlignRight)
+
+		# scenario update txt label /fix 2021/12/22
+		self.scenarionum = QLabel()
+		self.scenarionum.setText('Scenario : ')
+		LayoutSV.addWidget(self.scenarionum)
+
+		# score update txt label /fix 2021/12/22
+		self.scorenum = QLabel()
+		self.scorenum.setText(str('Score : '))
+		LayoutSV.addWidget(self.scorenum)
+
+		# # socre name label /fix 2021/12/22
+		#self.scorenum = QLabel()
+		# self.scorenum.setText(f'Score : ')
+		# LayoutSV.addWidget(self.scorenum)
+		# score update txt
+		#self.scorenumv = QLabel()
+		# self.scorenumv.setText('Scenario : ')
+		# LayoutSV.addWidget(self.scorenumv)
+
+
+		# self.overw = QPushButton()
+		# self.overw.setCheckable(False)
+		# self.overw.setText('OVERWRITE')
+		# self.overw.setMinimumHeight(40)
+		# LayoutSV.addWidget(self.overw)
 
 		self.save = QPushButton()
 		self.save.setCheckable(False)
@@ -564,13 +709,41 @@ class qScenario(QObject):
 		self.save.setMinimumHeight(40)
 		LayoutSV.addWidget(self.save)
 
+		HVlayoutMain.addLayout(LayoutScenarioNum,10)
 		HVlayoutMain.addLayout(LayoutSV,10)
 
+		# self.recordseqbtn0 = QPushButton(str(0))
+		# self.recordseqbtn0.setMinimumHeight(40)
+		# self.recordseqbtn1 = QPushButton(str(1))
+		# self.recordseqbtn1.setMinimumHeight(40)
+		# self.recordseqbtn2 = QPushButton(str(2))
+		# self.recordseqbtn2.setMinimumHeight(40)
+		# self.recordseqbtn3 = QPushButton(str(3))
+		# self.recordseqbtn3.setMinimumHeight(40)
+
+		self.videoplaybtn = QPushButton('Video Play')
+		self.videoplaybtn.setMinimumHeight(40)
+		
+		# LayoutScenarioNum.addWidget(self.recordseqbtn0)
+		# self.recordseqbtn0.clicked.connect(self.setcurrentRecordStep0)
+		# LayoutScenarioNum.addWidget(self.recordseqbtn1)
+		# self.recordseqbtn1.clicked.connect(self.setcurrentRecordStep1)
+		# LayoutScenarioNum.addWidget(self.recordseqbtn2)
+		# self.recordseqbtn2.clicked.connect(self.setcurrentRecordStep2)
+		# LayoutScenarioNum.addWidget(self.recordseqbtn3)
+		# self.recordseqbtn3.clicked.connect(self.setcurrentRecordStep3)
+
+		LayoutScenarioNum.addWidget(self.videoplaybtn)
+		self.videoplaybtn.clicked.connect(self.videoplay)
+
+
+		
 		qlabel_dummy = QLabel()
 		HVlayoutMain.addWidget(qlabel_dummy, 90)
 		
 		HBlayoutMain.addLayout(HVlayoutMain,30)
 
+		# Todo: add result 
 		LayoutInfo = QVBoxLayout()
 
 		self.viewInfo = QLabel()
@@ -580,17 +753,23 @@ class qScenario(QObject):
 		self.viewInfo.setMinimumHeight(30)
 
 
-		self.sizeInfo = QLabel()
-		self.sizeInfo.setAlignment(Qt.AlignLeft)
-		self.sizeInfo.setScaledContents(True)
-		self.sizeInfo.setText(self.showSizeInfo())
-		self.sizeInfo.setMinimumHeight(50)
+		# self.sizeInfo = QLabel()
+		# self.sizeInfo.setAlignment(Qt.AlignLeft)
+		# self.sizeInfo.setScaledContents(True)
+		# self.sizeInfo.setText(self.showSizeInfo())
+		# self.sizeInfo.setMinimumHeight(50)
 
+		# result label
 		LayoutInfo.addWidget(self.viewInfo,10)
-		LayoutInfo.addWidget(self.sizeInfo,20)	
+		# LayoutInfo.addWidget(self.sizeInfo,20)	
+		
+		# result label
 		HBlayoutMain.addLayout(LayoutInfo,20)	
 
+		#self.class_num.currentIndexChanged.connect(self.qmain.updateScenarioNo)
 		self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
+		self.RecordTimeInput.returnPressed.connect(self.setMinRecordTime)
+		self.RecordFrameInput.returnPressed.connect(self.setMinRecordFrame)
 		self.RECstartTimeInput.returnPressed.connect(self.setRECstartTime)
 		self.set10.clicked.connect(self.set10s)
 		self.set20.clicked.connect(self.set20s)
@@ -600,5 +779,9 @@ class qScenario(QObject):
 		self.set00.clicked.connect(self.set00s)
 		self.setN10.clicked.connect(self.setN10s)
 		self.setN20.clicked.connect(self.setN20s)
+		self.cnt.clicked.connect(self.qmain.pnt)
+		
+		# self.overw.clicked.connect(self.qmain.overwrite)
+		# self.MaxRangeInput.returnPressed.connect(self.maxRangeChanged)
 
 		return HBlayoutMain	

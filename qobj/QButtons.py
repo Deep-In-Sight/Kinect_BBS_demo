@@ -47,6 +47,9 @@ class qButtons(QObject):
 		self.BtnCalib.setMinimumHeight(ICON_MIN_HEIGHT)
 		self.BtnCalib.setToolTip('Play Azure Kinect & Run Calibration')
 
+
+		
+		
 		self.temp = QLabel()
 		self.temp.setText('	')
 
@@ -82,11 +85,18 @@ class qButtons(QObject):
 
 		self.option.currentIndexChanged.connect(self.qmain.optionChanged)
 
+		self.cameranum = QComboBox()
+		self.cameranum.addItem("a")
+		self.cameranum.addItem("e")
+		self.cameranum.currentIndexChanged.connect(self.qmain.cameraChanged)
+
+
 		self.BtnCalib.clicked.connect(self.qmain.updateOnPlay)
 		self.BtnCalib.clicked.connect(self.qmain.calibration2)
 
 		self.BtnPlay.clicked.connect(self.qmain.updateOnPlay)
 		self.BtnPlay.clicked.connect(self.qmain.displayKinect)
+
 
 	# @pyqtSlot()	
 	# def updateBtnPlay(self):
@@ -101,6 +111,8 @@ class qButtons(QObject):
 		HBlayoutEdits.addWidget(self.curtimeLabel)
 		HBlayoutEdits.addWidget(self.BtnCalib)
 		HBlayoutEdits.addWidget(self.LbFPS)
+		# fix 2021/12/23
+		HBlayoutEdits.addWidget(self.cameranum)
 		HBlayoutEdits.addWidget(self.option)
 		HBlayoutEdits.addWidget(self.temp)
 		HBlayoutEdits.addWidget(self.capturetimeal)
@@ -108,5 +120,5 @@ class qButtons(QObject):
 		HBlayoutEdits.addWidget(self.temp)
 		HBlayoutEdits.addWidget(self.endtimeal)
 		HBlayoutEdits.addWidget(self.endtime)
-		
+
 		return HBlayoutEdits

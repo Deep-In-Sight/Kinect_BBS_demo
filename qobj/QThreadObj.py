@@ -12,7 +12,6 @@ import os
 import cv2
 import pwd
 
-
 import pickle
 
 WAIT = 0.01
@@ -27,7 +26,7 @@ def do_save_multiproc(path_root, data, idx0, Locale, ID):
 
 class qThreadRecord(QThread):
 	
-	def __init__(self, k4a, bt, LbFPS, qScenario, PWD):
+	def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num):
 		super().__init__()
 		self.stackColor = []
 		self.stackIR = []
@@ -38,9 +37,10 @@ class qThreadRecord(QThread):
 		self.isRun = False
 		self.LbFPS = LbFPS
 		self.qScenario = qScenario
-		self.Ncpu = 16
+		self.Ncpu = 2
 		self.pic_Count = 0
 		self.PWD = PWD
+		self.camera_num = camera_num
 
 	def setRun(self, Run):
 		self.isRun = Run
@@ -131,11 +131,12 @@ class qThreadRecord(QThread):
 	def get_color(self):
 		return self.stackColor
 
+	# todo data tree  
 	def save_multiproc(self):
 		Ncpu = self.Ncpu
 		self.stackColor = np.array(self.stackColor)
 		pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-		uid = pwd.getpwnam("hoseung").pw_uid
+		uid = pwd.getpwnam("etri_ai2").pw_uid
 		os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
 
 		#self.stackJoint = pd.DataFrame(self.stackJoint)
@@ -143,18 +144,30 @@ class qThreadRecord(QThread):
 		#self.stackJoint.to_csv(f"{self.path_bt}/bodytracking_data.csv")
 
 		idx = list(range(self.pic_Count));
-		idx = np.array_split(idx, Ncpu);
+		#idx = np.array_split(idx, Ncpu);
 
-		for i in range(int(Ncpu)):
-			idx[i] = idx[i].tolist()
+		#for i in range(int(Ncpu)):
+		#	idx[i] = idx[i].tolist()
 
+		print(len(self.stackColor))
 		# queues = [Queue() for i in range(Ncpu)]
-		args = [(self.path_save, self.stackColor[idx[i]], idx[i][0], self.Locale, self.SubjectID) for i in range(Ncpu)]
-		jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
+		t0 = time.time()
+		#print(self.path_save)
+		#args = [(self.path_save, self.stackColor[idx[i]], idx[i][0], self.Locale, self.SubjectID) for i in range(Ncpu)]
+		#jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
+		#c(path_root, data, idx0, Locale, ID
+		if self.camera_num == 1 :
+			self.camera_num = 'a_'
+		else:
+			self.camera_num = 'e_'
 
-		for j in jobs: 
-			j.start(); 
-		for j in jobs: 
-			j.join();	
+		for i, color in enumerate(self.stackColor):
+		    cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{self.camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
 
+		#print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
+
+		# for j in jobs: 
+		# 	j.start(); 
+		# for j in jobs: 
+		# 	j.join();	
 
