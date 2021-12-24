@@ -35,6 +35,7 @@ import time
 
 ENABLE_PYK4A = True
 from ..pykinect_azure import pykinect
+from . import image as imgutil
 
 pykinect.initialize_libraries(track_body=True)
 
@@ -46,6 +47,31 @@ def getIcon(path):
     app_icon.addFile(os.path.join(path, '48x48.png'),   QSize(48,48))
     app_icon.addFile(os.path.join(path, '256x256.png'), QSize(256,256))
     return app_icon
+
+
+
+def get_layout(mylabel):
+    VBlayoutMain = QVBoxLayout()
+    VBlayoutMain.setAlignment(Qt.AlignTop)
+    VBlayoutMain.setAlignment(Qt.AlignLeft)
+    #VBlayoutMain.addWidget(QLabelImgView)
+    VBlayoutMain.addWidget(mylabel)
+    #VBlayoutMain.addLayout(HBlayout)
+    return VBlayoutMain
+
+
+def load_image():
+    fn_img = "/home/hoseung/Work/Kinect_BBS_demo/G1/000/RGB/a_0001.jpg"
+    img = cv2.imread(fn_img)
+    #img = imgutil.rgb2gray(img)
+    img = cv2.resize(img, (640, 360))
+    img = img[:,:,::-1]
+    img = np.array(img).astype(np.uint8)
+    height, width, channel = img.shape
+    bytesPerLine = 3 * width
+    pixmap   = QPixmap(QImage(img, width, height, bytesPerLine, QImage.Format_RGB888))
+    return pixmap
+
 
 
 class QMyMainWindow(QWidget):
@@ -72,6 +98,8 @@ class QMyMainWindow(QWidget):
 
         self.PWD = os.getcwd()
         self.imgviwerRGB = PhotoViewer(self,"RGB", ENABLE_PYK4A)
+        
+        #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
         self.qScenario = qScenario(self, self.PWD)
         self.config = setConfig() # to be added
@@ -239,6 +267,15 @@ class QMyMainWindow(QWidget):
         
         LayoutViewers.addLayout(self.imgviwerRGB.getLayout(),1)
         LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
+        #LayoutViewers.addLayout(self.imgviwerIRtest.getLayout(),1)
+        #
+        qlabel_confirm = QLabel()
+        
+        qlabel_confirm.setPixmap(load_image())
+        
+        #qlabel_confirm.set_layout()
+
+        LayoutViewers.addLayout(get_layout(qlabel_confirm))
         LayoutViewers.addLayout(QVBoxLayout(),7)
 
 

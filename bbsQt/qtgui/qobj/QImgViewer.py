@@ -4,7 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtPrintSupport import *
 #from PIL import ImageQt, Image
-import qtgui.qobj.image as imgutil
+from . import image as imgutil
 import cv2
 
 

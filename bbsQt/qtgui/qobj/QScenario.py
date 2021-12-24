@@ -731,8 +731,6 @@ class qScenario(QObject):
 
 		LayoutScenarioNum.addWidget(self.videoplaybtn)
 		self.videoplaybtn.clicked.connect(self.videoplay)
-
-
 		
 		qlabel_dummy = QLabel()
 		HVlayoutMain.addWidget(qlabel_dummy, 90)

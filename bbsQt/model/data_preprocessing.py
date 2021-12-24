@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 
-from BBS_pp_utils import json_to_arr
-import BBS_pp_utils as bbpp
+#from .BBS_pp_utils import json_to_arr
+from . import BBS_pp_utils as bbpp
 
 class Coord2name():
     
