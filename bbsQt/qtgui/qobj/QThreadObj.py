@@ -137,7 +137,10 @@ class qThreadRecord(QThread):
         self.stackColor = np.array(self.stackColor)
         pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         #print("is e_sk set?0", e_sk.is_set())
-        q1.put(self.stackJoint)
+        #self.stackJoint = 
+        #arr = pickle.load(open("/home/hoseung/Work/data/BBS/npy_a/1/0/031/a_031_1_0_0.npy", "rb"))
+        #q1.put({"skeleont":arr})
+        q1.put({"skeleton": np.arange(10)})
         #print("is q1 empty?", q1.empty())
         e_sk.set()
         #print("is e_sk set?1", e_sk.is_set())

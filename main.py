@@ -36,9 +36,32 @@ def run_temp_qt(q1, lock, e_sk):
     print("Loaded and put skeleton")
     e_sk.set()
 
+from fase import HEAAN as he
+
+def encrypt(scheme, val, parms):
+    print("[ENCRYPT] 1")
+    ctxt = he.Ciphertext()#logp, logq, n)
+    print("[ENCRYPT] 2")
+    vv = np.zeros(parms.n) # Need to initialize to zero or will cause "unbound"
+    print("[ENCRYPT] 3")
+    vv[:len(val)] = val
+    print("[ENCRYPT] 4")
+    print(vv[:len(val)])
+    scheme.encrypt(ctxt, he.Double(vv), 
+					parms.n, parms.logp, parms.logq)
+    print("[ENCRYPT] 5")
+    del vv
+    return ctxt
+
+
 def run_encryptor(q1, lock, e_key, e_sk, e_enc, key_path="./"):
+    key_path = '/home/hoseung/Work/Kinect_BBS_demo/'
     henc = HEAAN_Encryptor(e_key, lock, key_path)
-    henc.start_encrypt_loop(q1, e_sk, e_enc)
+    #print(henc.prams.n)
+    start_encrypt_loop(henc, q1, e_sk, e_enc)
+
+
+
 
     
 def main():
@@ -67,6 +90,7 @@ def main():
     p_socekt = mplti.Process(target=comm.run, args=(q1, lock, e_enc, e_quit), daemon=False)
     p_socekt.start()
 
+    
     p_enc = mplti.Process(target=run_encryptor, args=(q1, lock, e_key, e_sk, e_enc), daemon=False)
     p_enc.start()
 
