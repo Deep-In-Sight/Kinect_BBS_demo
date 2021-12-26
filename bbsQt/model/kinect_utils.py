@@ -2,7 +2,7 @@ import numpy as np
 
 ORG_KNT_TYPEs = ["PELVIS", "SPINE_NAVAL", "SPINE_CHEST", "NECK", "CLAVICLE_LEFT", "SHOULDER_LEFT", "ELBOW_LEFT",
                     "WRIST_LEFT", "HAND_LEFT", "HANDTIP_LEFT", "THUMB_LEFT", "CLAVICLE_RIGHT", "SHOULDER_RIGHT", "ELBOW_RIGHT",
-                    "WRIST_RIGHT", "HAND_RIFHT", "HANDTIP_RIGHT", "THUMB_LEFT", "HIP_LEFT", "KNEE_LEFT", "ANKLE_LEFT", "ROOT_LEFT",
+                    "WRIST_RIGHT", "HAND_RIGHT", "HANDTIP_RIGHT", "THUMB_LEFT", "HIP_LEFT", "KNEE_LEFT", "ANKLE_LEFT", "ROOT_LEFT",
                     "HIP_RIGHT", "KNEE_RIGHT", "ANKLE_RIGHT", "FOOT_RIGHT", "HEAD", "NOSE", "EYE_LEFT", "EAR_LEFT","EYE_RIGHT", "EAR_RIGHT"]
 
 K2M = {"SHOULDER_LEFT":"l_shoulder",
@@ -24,7 +24,7 @@ def get_a_skel(tdict, this_person):
         tdict["x"+this_joint[0]] = this_joint[1]
         tdict["y"+this_joint[0]] = this_joint[2]
         
-import BBS_pp_utils as bbpp
+from . import BBS_pp_utils as bbpp
 def kinect2mobile_direct(klist):
     """fills mobile_skeleton array with KINECT_BBS skeleton 
        directly from kinect application
@@ -76,3 +76,40 @@ def kinect2mobile_direct(klist):
     
     return marr
 
+
+def skeleton_to_arr_direct(skeleton):
+    """
+    convert a skeleton (of a person!) into a recarr.
+    
+    앞, 뒤로 비는 프레임은 삭제. 
+    중간에 비는 프레임은.. 음.. 
+    """
+    # remove preceeding non-detections
+    while True:
+        if len(skeleton[0]) ==0:
+            skeleton.pop(0)
+        else:
+            break
+
+    # remove trailing non-detections
+    while True:
+        if len(skeleton[-1]) ==0:
+            skeleton.pop(-1)
+        else:
+            break
+
+    n_points = len(skeleton)
+
+    arr = np.zeros(n_points, dtype=bbpp.get_dtypes(skeleton="KINECT"))
+
+    for i, this_frame in enumerate(skeleton):
+        arr['frame'][i] = i+1
+        if len(this_frame) > 0: # We will assume only one person in a skeleton.
+            for this_person in this_frame:
+                if len(this_person) > 0:
+                    for s in this_person:
+                        if len(s) > 0:
+                            arr['x'+s[0]][i] = s[1]
+                            arr['y'+s[0]][i] = s[2]
+                    
+    return arr
