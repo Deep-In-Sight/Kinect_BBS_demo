@@ -3,6 +3,7 @@ import selectors
 import json
 import io
 import struct
+import tarfile
 
 request_search = {
     "morpheus": "Follow the white rabbit. \U0001f430",
@@ -12,11 +13,22 @@ request_search = {
 
 BLOCKSIZE = 2**16
 
+
+def untar(fn_tar):
+    if fn_tar.endswith("tar.gz"):
+        tar = tarfile.open(fn_tar, "r:gz")
+        tar.extractall()
+        members = tar.getmembers()
+        tar.close()
+        return members
 class Message:
-    def __init__(self, selector, sock, addr):
+    def __init__(self, selector, sock, addr, e_key, e_enc, e_ans):
         self.selector = selector
         self.sock = sock
         self.addr = addr
+        self.e_key = e_key
+        self.e_enc = e_enc
+        self.e_ans = e_ans
         self._recv_buffer = b""
         self._send_buffer = b""
         self._jsonheader_len = None
@@ -105,7 +117,26 @@ class Message:
         }
         return response
 
-    def _create_response_binary_content(self):
+    def _create_response_key(self):
+        #action = self.request.get("action")
+        #if action == "set":
+            #query = self.request.get("value")
+            #answer = request_search.get(query) or f'No match for "{query}".'
+        self.e_key.set()
+        self.e_ans.wait()
+        print("_create_response_key,  e_ans is set")
+        content = {"result": "Evaluator is ready"}
+        #else:
+        #    content = {"result": f'Error: invalid action "{action}".'}
+        content_encoding = "utf-8"
+        response = {
+            "content_bytes": self._json_encode(content, content_encoding),
+            "content_type": "text/json",
+            "content_encoding": content_encoding,
+        }
+        return response
+
+    def _create_response_ctext(self):
         response = {
             "content_bytes": b"First 10 bytes of request: "
             + self.request[:10],
@@ -118,6 +149,7 @@ class Message:
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
+            print("[process_events], EVENT_WRITE")
             self.write()
 
     def read(self):
@@ -136,6 +168,7 @@ class Message:
 
     def write(self):
         if self.request:
+            print("[write] self.response_created", self.response_created)
             if not self.response_created:
                 self.create_response()
 
@@ -193,10 +226,15 @@ class Message:
             return #  ???
         data = self._recv_buffer[:content_len]
         self._recv_buffer = self._recv_buffer[content_len:]
-        if self.jsonheader["content-type"] == "text/json":
-            encoding = self.jsonheader["content-encoding"]
-            self.request = self._json_decode(data, encoding)
-            print("received request", repr(self.request), "from", self.addr)
+        if self.jsonheader["content-type"] == "key":
+            self.request = data
+            # fn_file = self.jsonheader['note']
+            # fn_list = untar(fn_file)
+            # print("received file", fn_list, "from", self.addr)
+
+            #encoding = self.jsonheader["content-encoding"]
+            #self.request = self._json_decode(data, encoding)
+            #print("received request", repr(self.request), "from", self.addr)
         elif "file" in self.jsonheader["content-type"]:
             self.request = data
             print(self.jsonheader.keys())
@@ -215,17 +253,28 @@ class Message:
         # Set selector to listen for write events, we're done reading.
         self._set_selector_events_mask("w")
 
+    #def _create
+
     def create_response(self):
-        if self.jsonheader["content-type"] == "text/json":
-            response = self._create_response_json_content()
-        if "file" in self.jsonheader["content-type"]:
+        print("in create_response")
+        if self.jsonheader["content-type"] == "key":
+            # Save received file
+            with open(self.jsonheader['note'], "wb") as f:
+                f.write(self.request)
+            # Untar received file
+            fn_file = self.jsonheader['note']
+            fn_list = untar(fn_file)
+            print("received file", fn_list, "from", self.addr)
+
+            response = self._create_response_key()
+        elif "ctxt" in self.jsonheader["content-type"]:            
+            response = self._create_response_ctext()
+        elif "file" in self.jsonheader["content-type"]:
             with open(self.jsonheader['note'], "wb") as f:
                 f.write(self.request)
             print("writing file done")
             response = self._make_prediction()
-        else:
-            # Binary or unknown content-type
-            response = self._create_response_binary_content()
+        
         message = self._create_message(**response)
         self.response_created = True
         self._send_buffer += message

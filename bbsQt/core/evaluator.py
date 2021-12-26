@@ -29,7 +29,7 @@ def key_found(key_path):
 
 
 class HEAAN_Evaluator():
-    def __init__(self, e_key, lock, key_path):
+    def __init__(self, e_key, lock, key_path, e_ans):
         lock.acquire()# 이렇게 하는건가? 
 
         logq = 540
@@ -54,15 +54,8 @@ class HEAAN_Evaluator():
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.loadLeftRotKey(1)
         print("[Encryptor] HEAAN is ready")
+        e_ans.set()
 
-        # # Check HEAAN
-        # val = np.arange(10)
-        # ctxt = encrypt(self.scheme, val, self.parms)
-        # print(ctxt.n, ctxt.logp, ctxt.logq)
-        # del ctxt
-        # lock.release()
-
-    
 
     def _quick_check(self):
         scheme = self.scheme
@@ -74,5 +67,5 @@ class HEAAN_Evaluator():
         #sk = q1.get()
         pass
 
-
-    
+    def start_encrypt_loop(self, q1, e_enc, e_ans):
+        pass
