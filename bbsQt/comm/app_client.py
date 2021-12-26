@@ -11,10 +11,10 @@ sel = selectors.DefaultSelector()
 
 
 def create_request(action, value):
-    if action == "search":
+    if action == "share_key":
         return dict(
-            type="text/json",
-            encoding="utf-8",
+            type="key",
+            encoding="binary",
             content=dict(action=action, value=value),
         )
     # File sender
@@ -44,28 +44,31 @@ def start_connection(host, port, request):
 
 
 def run_share_key(q_text, e_key, lock, debug=True):
-    host = '127.0.0.1'
+    #host = '127.0.0.1'
+    host = '10.100.82.55'
     port = 2345
-    action = "transfer"
+    action = "share_key"
 
     e_key.wait()
     if debug: print("[comm] HEAAN keys are ready")
     fn_dict = q_text.get()
-    key_path = fn_dict['root_path']    
+    #key_path = fn_dict['root_path']    
 
     fn_tar = fn_dict['keys_to_share']
-    #print("[comm] found a encrypted data file:", fn_enc)
+    print("[comm] sending gzipped key file:", fn_tar)
     if os.path.isfile(fn_tar):
-        print("communicator found HEAAN keys:", fn_tar)
+        print("[comm] found HEAAN keys:", fn_tar)
         #e_enc.clear()
 
     # File transfer request 
     
     if debug: print("[comm] sending keys", fn_tar)
+    print("fn_dict", fn_dict)
     
+    # fn_tar = "./keys2.tar.gz"
     ans = share_key(host, port, action, fn_tar)
-
-    q_text.put(ans)
+    print("run_share_key done")
+    #q_text.put(ans)
 
 
 def share_key(host, port, action, fn_key, debug=True):
@@ -107,6 +110,7 @@ def share_key(host, port, action, fn_key, debug=True):
         print("caught keyboard interrupt, exiting")
     finally:
         sel.close()
+        print("connection closed.")
 
     
     ans = {'answer':"good"}
@@ -135,7 +139,7 @@ def query(queue, lock, e_enc, e_quit):
     action = "transfer"
 
 
-    e_enc.wait()
+    #e_enc.wait()
     print("[comm] Ciphertext ready")
     fn_dict = queue.get()
 

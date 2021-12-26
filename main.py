@@ -40,19 +40,23 @@ def run_qt_app(q1, q_text, lock, e_sk,):
 
 
 def run_encryptor(q1, q_text, lock, e_key, e_sk, e_enc, key_path="./"):
-    key_path = '/home/hoseung/Work/Kinect_BBS_demo/'
+    key_path = './'
     henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
     #print(henc.prams.n)
+    #e_key.wait()
+    app_client.run_share_key(q_text, e_key, lock)
     henc.start_encrypt_loop(q1, e_sk, e_enc)
 
 
 
 def run_communicator(e_key, q1, q_text, e_enc, e_quit, lock):
     # 1. send keys to server and do quick check
-    e_key.wait()
-    app_client.run_share_key(q_text, e_key, lock)
-    e_enc.wait()
-    app_client.query(q1, lock, e_enc, e_quit)
+    #e_key.wait()
+    #app_client.run_share_key(q_text, e_key, lock)
+    while True:
+        e_enc.wait()
+        print("[run_comm] e_enc passed. Ctxt is ready")
+        app_client.query(q1, lock, e_enc, e_quit)
 
 
     

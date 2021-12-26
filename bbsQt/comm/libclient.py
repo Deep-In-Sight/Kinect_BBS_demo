@@ -154,6 +154,15 @@ class Message:
                 "content_type": content_type,
                 "content_encoding": content_encoding,
             }
+        elif "key" == content_type: # 
+            f= open(content['value'], 'rb')
+            req = {
+                "note":content['value'],
+                "content_bytes":f.read(),
+                "content_type":content_type,
+                "content_encoding": content_encoding,
+            }
+            f.close()
         elif "file" in content_type: # file_xx_key, file_ctxt, ...
             f= open(content, 'rb')
             req = {

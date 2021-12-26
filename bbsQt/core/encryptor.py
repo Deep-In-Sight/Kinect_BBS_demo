@@ -124,7 +124,7 @@ class HEAAN_Encryptor():
                 raise LookupError("Can't find skeleton in queue")    
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
             if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
-            fn = f"/home/hoseung/Work/Kinect_BBS_demo/ctx_{i}.dat"
+            fn = f"ctx_{i}.dat"
             ctx1 = encrypt(scheme, sk['skeleton'][0], self.parms)
 
             #val = np.arange(10)
@@ -139,7 +139,7 @@ class HEAAN_Encryptor():
             if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
             e_enc.set() # Tell encryption is done and file is ready
             del ctx1 
-
-            time.sleep(1)
+            print("is e_enc set?", e_enc.is_set())
+            #time.sleep(1)
             if debug: print("[Encryptor] Waiting...")
 
