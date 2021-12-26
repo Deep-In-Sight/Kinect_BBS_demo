@@ -14,6 +14,11 @@ import pwd
 
 import pickle
 
+
+
+from bbsQt.model import kinect_utils as ku 
+from bbsQt.model import rec_utils as ru
+
 WAIT = 0.01
 
 def do_save_multiproc(path_root, data, idx0, Locale, ID):
@@ -136,11 +141,21 @@ class qThreadRecord(QThread):
         #Ncpu = self.Ncpu
         self.stackColor = np.array(self.stackColor)
         pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
+        #skeleton =  skeleton_to_arr_direct(self.stackJoint)
+        scene = ku.kinect2mobile_direct(self.stackJoint)
+
+        nframe = 10 
+        sub = ru.smoothed_frame_N(scene, nframe=nframe, shift=1)
+        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+
+
+
+
         #print("is e_sk set?0", e_sk.is_set())
         #self.stackJoint = 
         #arr = pickle.load(open("/home/hoseung/Work/data/BBS/npy_a/1/0/031/a_031_1_0_0.npy", "rb"))
         #q1.put({"skeleont":arr})
-        q1.put({"skeleton": np.arange(10)})
+        q1.put({"skeleton": skeleton})
         #print("is q1 empty?", q1.empty())
         e_sk.set()
         #print("is e_sk set?1", e_sk.is_set())

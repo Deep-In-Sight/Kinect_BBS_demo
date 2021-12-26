@@ -25,7 +25,7 @@ def get_a_skel(tdict, this_person):
         tdict["y"+this_joint[0]] = this_joint[2]
         
 from . import BBS_pp_utils as bbpp
-def kinect2mobile_direct(klist):
+def kinect2mobile_direct(klist, remove_zeros=True):
     """fills mobile_skeleton array with KINECT_BBS skeleton 
        directly from kinect application
        
@@ -37,19 +37,34 @@ def kinect2mobile_direct(klist):
        KINECT_BBS names are different from 
     """
     
-    K2M = {"SHOULDER_LEFT":"l_shoulder",
-           "SHOULDER_RIGHT":"r_shoulder",
-           "ELBOW_LEFT":"l_elbow", 
-           "ELBOW_RIGHT":"r_elbow", 
-           "WRIST_LEFT":"l_hand", 
-           "WRIST_RIGHT":"r_hand",
-           "HIP_LEFT":"l_hip", 
-           "HIP_RIGHT":"r_hip", 
-           "KNEE_LEFT":"l_knee", 
-           "KNEE_RIGHT":"r_knee",
-           "ANKLE_LEFT":"l_foot", 
-           "ANKLE_RIGHT":"r_foot",
-           "NOSE":"head"} # Assume Kinect nose == common head
+    # K2M = {"SHOULDER_LEFT":"l_shoulder",
+    #        "SHOULDER_RIGHT":"r_shoulder",
+    #        "ELBOW_LEFT":"l_elbow", 
+    #        "ELBOW_RIGHT":"r_elbow", 
+    #        "WRIST_LEFT":"l_hand", 
+    #        "WRIST_RIGHT":"r_hand",
+    #        "HIP_LEFT":"l_hip", 
+    #        "HIP_RIGHT":"r_hip", 
+    #        "KNEE_LEFT":"l_knee", 
+    #        "KNEE_RIGHT":"r_knee",
+    #        "ANKLE_LEFT":"l_foot", 
+    #        "ANKLE_RIGHT":"r_foot",
+    #        "NOSE":"head"} # Assume Kinect nose == common head
+
+    if remove_zeros:
+        # remove preceeding non-detections
+        while True:
+            if len(klist[0]) ==0:
+                klist.pop(0)
+            else:
+                break
+
+        # remove trailing non-detections
+        while True:
+            if len(klist[-1]) ==0:
+                klist.pop(-1)
+            else:
+                break
 
     mdtype = bbpp.get_dtypes(skeleton="COMMON")
     marr = np.zeros(len(klist), dtype=mdtype)
@@ -77,39 +92,39 @@ def kinect2mobile_direct(klist):
     return marr
 
 
-def skeleton_to_arr_direct(skeleton):
-    """
-    convert a skeleton (of a person!) into a recarr.
+# def skeleton_to_arr_direct(skeleton):
+#     """
+#     convert a skeleton (of a person!) into a recarr.
     
-    앞, 뒤로 비는 프레임은 삭제. 
-    중간에 비는 프레임은.. 음.. 
-    """
-    # remove preceeding non-detections
-    while True:
-        if len(skeleton[0]) ==0:
-            skeleton.pop(0)
-        else:
-            break
+#     앞, 뒤로 비는 프레임은 삭제. 
+#     중간에 비는 프레임은.. 음.. 
+#     """
+#     # remove preceeding non-detections
+#     while True:
+#         if len(skeleton[0]) ==0:
+#             skeleton.pop(0)
+#         else:
+#             break
 
-    # remove trailing non-detections
-    while True:
-        if len(skeleton[-1]) ==0:
-            skeleton.pop(-1)
-        else:
-            break
+#     # remove trailing non-detections
+#     while True:
+#         if len(skeleton[-1]) ==0:
+#             skeleton.pop(-1)
+#         else:
+#             break
 
-    n_points = len(skeleton)
+#     n_points = len(skeleton)
 
-    arr = np.zeros(n_points, dtype=bbpp.get_dtypes(skeleton="KINECT"))
+#     arr = np.zeros(n_points, dtype=bbpp.get_dtypes(skeleton="KINECT"))
 
-    for i, this_frame in enumerate(skeleton):
-        arr['frame'][i] = i+1
-        if len(this_frame) > 0: # We will assume only one person in a skeleton.
-            for this_person in this_frame:
-                if len(this_person) > 0:
-                    for s in this_person:
-                        if len(s) > 0:
-                            arr['x'+s[0]][i] = s[1]
-                            arr['y'+s[0]][i] = s[2]
+#     for i, this_frame in enumerate(skeleton):
+#         arr['frame'][i] = i+1
+#         if len(this_frame) > 0: # We will assume only one person in a skeleton.
+#             for this_person in this_frame:
+#                 if len(this_person) > 0:
+#                     for s in this_person:
+#                         if len(s) > 0:
+#                             arr['x'+s[0]][i] = s[1]
+#                             arr['y'+s[0]][i] = s[2]
                     
-    return arr
+#     return arr

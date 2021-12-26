@@ -98,7 +98,7 @@ def main():
     # ## signal quit()  
     p_qt.start()
 
-    e_key.set()
+    #e_key.set()
 
     e_quit.wait()
     p_socket.join()
