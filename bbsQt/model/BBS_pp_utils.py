@@ -107,13 +107,6 @@ def get_dtypes(skeleton = "COCO",
     dtypes = np.dtype(dtypes)
     return dtypes
 
-# def get_dtypes(ignored_joints = ["left_eye", "right_eye", "left_ear", "right_ear"]):
-#     dtypes = [(dim_+cc, float) for cc in COCO_JOINTS for dim_ in ['x','y'] if cc not in ignored_joints]
-#     dtypes = [("frame", int)] + dtypes
-#     dtypes = np.dtype(dtypes)
-#     return dtypes
-
-
 def json_to_arr(fn, dtypes, credit_threshold = 0.5, maxp=4):
     """Returns list of skeleton arrays. 
     * Identity NOT fixed, yet. 

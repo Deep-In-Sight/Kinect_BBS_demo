@@ -28,9 +28,13 @@ def run_qt_app(q1, lock, e_sk,):
     #e_quit.wait()
     #quit
 
+
+from bbsQt.model.kinect_utils import skeleton_to_arr_direct
+
 def run_temp_qt(q1, lock, e_sk):
     fn = "/home/hoseung/Work/Kinect_BBS_demo/G1/000/BT/bodytracking_data.pickle"
     skeleton = pickle.load(open(fn, "rb"))
+    skeleton = skeleton_to_arr_direct(skeleton)
     time.sleep(5)
     q1.put({"skeleton":skeleton})
     print("Loaded and put skeleton")
@@ -39,14 +43,9 @@ def run_temp_qt(q1, lock, e_sk):
 from fase import HEAAN as he
 
 def encrypt(scheme, val, parms):
-    print("[ENCRYPT] 1")
     ctxt = he.Ciphertext()#logp, logq, n)
-    print("[ENCRYPT] 2")
     vv = np.zeros(parms.n) # Need to initialize to zero or will cause "unbound"
-    print("[ENCRYPT] 3")
     vv[:len(val)] = val
-    print("[ENCRYPT] 4")
-    print(vv[:len(val)])
     scheme.encrypt(ctxt, he.Double(vv), 
 					parms.n, parms.logp, parms.logq)
     print("[ENCRYPT] 5")
@@ -58,7 +57,7 @@ def run_encryptor(q1, lock, e_key, e_sk, e_enc, key_path="./"):
     key_path = '/home/hoseung/Work/Kinect_BBS_demo/'
     henc = HEAAN_Encryptor(e_key, lock, key_path)
     #print(henc.prams.n)
-    start_encrypt_loop(henc, q1, e_sk, e_enc)
+    henc.start_encrypt_loop(q1, e_sk, e_enc)
 
 
 
@@ -87,8 +86,8 @@ def main():
     e_quit = multiprocessing.Event()
     e_quit.clear()
 
-    p_socekt = mplti.Process(target=comm.run, args=(q1, lock, e_enc, e_quit), daemon=False)
-    p_socekt.start()
+    p_socket = mplti.Process(target=comm.run, args=(q1, lock, e_enc, e_quit), daemon=False)
+    p_socket.start()
 
     
     p_enc = mplti.Process(target=run_encryptor, args=(q1, lock, e_key, e_sk, e_enc), daemon=False)
@@ -102,10 +101,14 @@ def main():
     e_key.set()
 
     e_quit.wait()
-    p_socekt.close()
+    p_socket.join()
+    p_socket.close()
+    p_enc.join()
     p_enc.close()
+    p_qt.join()
     p_qt.close()
-    #sys.exit()
+    
+    sys.exit()
     #e_quit.wait()
     
     
