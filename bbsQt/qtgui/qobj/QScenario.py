@@ -56,7 +56,6 @@ class qScenario(QObject):
 		self.currentRecSeq = 0
 		self.currentRecCheck = False
 		self.imgRecSizes = [0,0,0,0,0] # color, ir, depth, rec time, num frames
-		
 
 	def updateRecImgSizes(self, imgsizes):
 		self.imgRecSizes[0] += imgsizes[0]
@@ -347,7 +346,7 @@ class qScenario(QObject):
 		self.RECEndTimeInput.setText(str(settime))
 
 	def update(self):
-		self.viewInfo.setText(self.showinfo())
+		#self.viewInfo.setText(self.showinfo())
 		#self.sizeInfo.setText(self.showSizeInfo())
 		QApplication.processEvents()
 
@@ -751,7 +750,7 @@ class qScenario(QObject):
 		LayoutInfo = QVBoxLayout()
 
 		self.viewInfo = QLabel()
-		self.viewInfo.setAlignment(Qt.AlignLeft)
+		self.viewInfo.setAlignment(Qt.AlignCenter)
 		self.viewInfo.setScaledContents(True)
 		self.viewInfo.setText(self.showinfo())
 		self.viewInfo.setMinimumHeight(30)

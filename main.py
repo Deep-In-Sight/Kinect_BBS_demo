@@ -97,7 +97,7 @@ def main():
 
     #p_qt = mplti.Process(target=run_temp_qt, args=(q1, lock, e_sk), daemon=True) # 임시
     p_qt = mplti.Process(target=run_qt_app, 
-                        args=(q1, q_answer, lock, e_sk), daemon=False) # 진짜
+                        args=(q1, q_answer, lock, e_sk, e_ans), daemon=False) # 진짜
     # ## signal quit()  
     p_qt.start()
 

@@ -34,7 +34,7 @@ WAIT = 0.01
 
 class qThreadRecord(QThread):
     
-    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, ):
+    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
         super().__init__()
         self.stackColor = []
         self.stackIR = []
@@ -51,6 +51,10 @@ class qThreadRecord(QThread):
         self.camera_num = camera_num
         self.q1 = q1
         self.e_sk = e_sk
+
+        self.e_ans = e_ans
+        self.q_answer = q_answer
+
         self.p_save0 = partial(self.select_sk, skindex=0)
         self.p_save1 = partial(self.select_sk, skindex=1)
         self.p_save2 = partial(self.select_sk, skindex=2)
@@ -165,9 +169,7 @@ class qThreadRecord(QThread):
         #skarr  = ku.kinect2mobile_direct(self.stackJoint[maxframe_idx])
         self.skarr  = ku.kinect2mobile_direct_lists(self.stackJoint)
 
-        self.rgblist = self.stackColor
-        print(len(self.rgblist))
-        self.sk_viewer(self.skarr, self.rgblist, maxframe_idx, 1)
+        self.sk_viewer(self.skarr, self.stackColor, maxframe_idx, 1)
 
         skimage = self.load_image(maxframe_idx)
         
@@ -241,6 +243,15 @@ class qThreadRecord(QThread):
         self.e_sk.set()
         print("is e_sk set?1", self.e_sk.is_set())
         
+        self.e_ans.wait()
+        		#self.viewInfo.setText(self.showinfo())
+        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(15)
+        self.qScenario.viewInfo.setFont(font)
+
+        self.e_ans.clear()
         #uid = pwd.getpwnam("etri_ai2").pw_uid
         #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
 
@@ -251,12 +262,14 @@ class qThreadRecord(QThread):
         leg = ['r_foot', 'r_knee', 'r_hip', 'l_hip', 'l_knee', 'l_foot']
         ii = [left_arms, right_arms, body, leg]
 
-        print(json_to_arr_list[0].dtype)
         #print(json_to_arr_list.shape)
 
         fig, ax = plt.subplots(figsize=(16,9))
         #im = plt.imread(jpg_list[idx])
         im = jpg_list[idx]
+        
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+
         ax.imshow(im, zorder=1)
         for color_idx, i in enumerate(json_to_arr_list):
             if color_idx == 0: 
@@ -266,18 +279,20 @@ class qThreadRecord(QThread):
             else:
                 color = 'tab:green'
             for j in ii:
-                ax.plot([i['x'+sa][idx] for sa in j if i['x'+sa][idx] !=0], [i['y'+sa][idx] for sa in j if i['x'+sa][idx] !=0], color=color)
+                ax.plot([i['x'+sa][idx]*1.4 for sa in j if i['x'+sa][idx] !=0], [i['y'+sa][idx]*1.2 for sa in j if i['x'+sa][idx] !=0], color=color, lw=5)
+                ax.axes.xaxis.set_visible(False)
+                ax.axes.yaxis.set_visible(False)        
         if save == 1:
             os.makedirs('image', exist_ok=True)
-            plt.savefig(f'image/img_00{idx}.jpg')
+            plt.savefig(f'image/img_00{idx}.jpg', bbox_inches='tight')
         #plt.show()
 
     def load_image(self, idx):
         fn_img = f'image/img_00{idx}.jpg'
         img = cv2.imread(fn_img)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         #img = imgutil.rgb2gray(img)
-        img = cv2.resize(img, (480, 270))
-        img = img[:,:,::-1]
+        img = cv2.resize(img, (270, 270))
         img = np.array(img).astype(np.uint8)
         height, width, channel = img.shape
         bytesPerLine = 3 * width

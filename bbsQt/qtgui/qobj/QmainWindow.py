@@ -77,8 +77,7 @@ def load_image():
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    #update_e_ans = pyqtSignal()
-    def __init__(self, q1, e_sk, q_answer ): #### 여기가 아닌가?
+    def __init__(self, q1, e_sk, q_answer, e_ans): #### 여기가 아닌가?
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -93,7 +92,8 @@ class QMyMainWindow(QWidget):
         self.increasing_alpha = True
         self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
 
-        #self.e_ans = e_ans
+        self.q_answer = q_answer
+        self.e_ans = e_ans
         self.recordReady = False
         
         # add 2021/12/23 
@@ -141,7 +141,7 @@ class QMyMainWindow(QWidget):
         else:
             self.pyK4A = None
 
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex(), self.q1, self.e_sk, )
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex(), self.q1, self.e_sk, self.e_ans, self.q_answer)
 
         self.setLayout()
         self.initplot()
@@ -164,10 +164,6 @@ class QMyMainWindow(QWidget):
 
         # self.startRecord.connect(self.moveCheckerCoord)
         self.startRecord.connect(self.recordImages)
-        
-
-    # def test_run(self):
-    #     self.update_e_ans.emit()
 
     def st(self):
         self.btn.endtime.setText("F")
@@ -451,7 +447,7 @@ class QMyMainWindow(QWidget):
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex() ,self.q1, self.e_sk, )
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex() ,self.q1, self.e_sk, self.e_ans, self.q_answer)
     # todo class and score
     @pyqtSlot()
     def updateScenarioNo(self):
