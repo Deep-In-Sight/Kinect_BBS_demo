@@ -76,7 +76,7 @@ def load_image():
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk, q_text, e_ans): #### 여기가 아닌가?
+    def __init__(self, q1, e_sk, q_answer): #### 여기가 아닌가?
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -101,7 +101,7 @@ class QMyMainWindow(QWidget):
         
         #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
-        self.qScenario = qScenario(self, self.PWD)
+        self.qScenario = qScenario(self, self.PWD, q_answer)
         self.config = setConfig() # to be added
         #self.qSkeleton = qSkeleton()
 

@@ -108,7 +108,7 @@ class HEAAN_Encryptor():
         #sk = q1.get()
         pass
 
-    def start_encrypt_loop(self, q1, q_text, e_sk, e_enc, e_ans, e_enc_ans, debug=True):
+    def start_encrypt_loop(self, q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, debug=True):
         """
         When skeleton is ready (e_sk), get the skeleton from q1, 
         encrypt, and store it as ctx_{i}.dat file. 
@@ -168,7 +168,7 @@ class HEAAN_Encryptor():
             e_enc_ans.clear()
             i+=1
             ## text를 넣고 QT가 받아가게 해야함. 어떻게 할까? 
-            #q_text.put(ans_str)
+            q_answer.put(ans_str)
             #e_ans.set()
 
 

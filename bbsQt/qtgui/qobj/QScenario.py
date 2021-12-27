@@ -28,11 +28,12 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 
 
 class qScenario(QObject):
-	def __init__(self, qmain, pwd):
+	def __init__(self, qmain, pwd, q_answer):
 		super(qScenario, self).__init__(qmain)
 		self.obj = ""
 		self.PWD = pwd
 		self.qmain = qmain	
+		self.q_answer = q_answer
 
 		self.ScenarioNo = 0
 		self.SubjectID = 0
@@ -374,7 +375,9 @@ class qScenario(QObject):
 
 
 	def showinfo(self):
-		info 	 = f"                   <<< add result>>>\n"
+		if not self.q_answer.empty():
+			self.text_answer = self.q_text.get()
+		info 	 = f" {self.text_answer}   <<< add result>>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"
 		# #info 	+= f"[Record Time] {self.MinRecordTime} sec\n"

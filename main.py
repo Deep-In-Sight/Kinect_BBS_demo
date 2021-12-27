@@ -13,10 +13,10 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
 
-def run_qt_app(q1, q_text, lock, e_sk, e_ans):
+def run_qt_app(q1, q_answer, lock, e_sk, e_ans):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
-    imageEditor = QMyMainWindow(q1, e_sk, q_text, e_ans) ### 여기가 아닌가? 
+    imageEditor = QMyMainWindow(q1, e_sk, q_answer, e_ans) ### 여기가 아닌가? 
     imageEditor.show()
     quit = app.exec_()
     #sys.exit(app.exec_())
@@ -24,13 +24,13 @@ def run_qt_app(q1, q_text, lock, e_sk, e_ans):
     #quit
 
 
-def run_encryptor(q1, q_text, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
+def run_encryptor(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
     key_path = './'
     henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
     #print(henc.prams.n)
     #e_key.wait()
     app_client.run_share_key(q_text, e_key, lock)
-    henc.start_encrypt_loop(q1, q_text, e_sk, e_enc, e_ans, e_enc_ans)
+    henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 
 
 
@@ -60,6 +60,7 @@ def main():
 
     q1 = ctx.Queue(maxsize=8)
     q_text = ctx.Queue(maxsize=8)
+    q_answer = ctx.Queue(maxsize=8)
 
     # Key existence
     e_key = multiprocessing.Event()
@@ -91,12 +92,12 @@ def main():
 
     
     p_enc = mplti.Process(target=run_encryptor, 
-                    args=(q1, q_text, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock), daemon=False)
+                    args=(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock), daemon=False)
     p_enc.start()
 
     #p_qt = mplti.Process(target=run_temp_qt, args=(q1, lock, e_sk), daemon=True) # 임시
     p_qt = mplti.Process(target=run_qt_app, 
-                        args=(q1, q_text, lock, e_sk, e_ans), daemon=False) # 진짜
+                        args=(q1, q_answer, lock, e_sk, e_ans), daemon=False) # 진짜
     # ## signal quit()  
     p_qt.start()
 
