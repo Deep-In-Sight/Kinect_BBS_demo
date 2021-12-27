@@ -77,7 +77,8 @@ def load_image():
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk, q_answer): #### 여기가 아닌가?
+    #update_e_ans = pyqtSignal()
+    def __init__(self, q1, e_sk, q_answer ): #### 여기가 아닌가?
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -92,8 +93,9 @@ class QMyMainWindow(QWidget):
         self.increasing_alpha = True
         self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
 
+        #self.e_ans = e_ans
         self.recordReady = False
-
+        
         # add 2021/12/23 
         #self.cameraindex = 0
 
@@ -103,6 +105,7 @@ class QMyMainWindow(QWidget):
         #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
         self.qScenario = qScenario(self, self.PWD, q_answer)
+
         self.config = setConfig() # to be added
         #self.qSkeleton = qSkeleton()
 
@@ -161,7 +164,11 @@ class QMyMainWindow(QWidget):
 
         # self.startRecord.connect(self.moveCheckerCoord)
         self.startRecord.connect(self.recordImages)
-    
+        
+
+    # def test_run(self):
+    #     self.update_e_ans.emit()
+
     def st(self):
         self.btn.endtime.setText("F")
 

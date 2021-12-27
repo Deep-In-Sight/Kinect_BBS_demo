@@ -13,10 +13,10 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
 
-def run_qt_app(q1, q_answer, lock, e_sk ):
+def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
-    imageEditor = QMyMainWindow(q1, e_sk, q_answer) ### 여기가 아닌가? 
+    imageEditor = QMyMainWindow(q1, e_sk, q_answer, e_ans) ### 여기가 아닌가? 
     imageEditor.show()
     quit = app.exec_()
     #sys.exit(app.exec_())

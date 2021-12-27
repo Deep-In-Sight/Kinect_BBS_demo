@@ -169,6 +169,6 @@ class HEAAN_Encryptor():
             i+=1
             ## text를 넣고 QT가 받아가게 해야함. 어떻게 할까? 
             q_answer.put(ans_str)
-            #e_ans.set()
+            
 
 

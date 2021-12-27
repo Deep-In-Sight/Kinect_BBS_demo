@@ -33,7 +33,7 @@ class qScenario(QObject):
 		self.obj = ""
 		self.PWD = pwd
 		self.qmain = qmain	
-        
+
 		self.text_answer = ""
 		self.q_answer = q_answer
 
@@ -378,7 +378,7 @@ class qScenario(QObject):
 
 	def showinfo(self):
 		if not self.q_answer.empty():
-			self.text_answer = self.q_text.get()
+			self.text_answer = self.q_answer.get()
 		info 	 = f" {self.text_answer}   <<< add result>>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"
