@@ -12,6 +12,10 @@ ICON_MIN_HEIGHT 	= 32
 
 recordconfig = setConfig()
 
+bin_player = "/usr/bin/mpv", 
+dir_video = "/home/etri_ai2/Desktop/video_box/"
+get_video_name = lambda self: dir_video+f"{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"
+
 def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 	btn = QPushButton()
 	btn.setCheckable(True)
@@ -352,9 +356,10 @@ class qScenario(QObject):
 	def videoplay(self):
 
 		try:
-			p = subprocess.Popen(["/usr/bin/mpv", f"/home/etri_ai2/Desktop/video_box/{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"])
+			#p = subprocess.Popen(["/usr/bin/mpv", f"/home/etri_ai2/Desktop/video_box/{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"])
+			p = subprocess.Popen([bin_player, get_video_name(self)])
 		except:
-			print("not find video...")
+			print("cannot find video...")
 
 	def updateSize(self):
 		# self.sizeInfo.setText(self.showSizeInfo())

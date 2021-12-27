@@ -3,8 +3,17 @@ import selectors
 import json
 import io
 import struct
+import tarfile
 
 BLOCKSIZE = 2**16
+
+def untar(fn_tar):
+    if fn_tar.endswith("tar.gz"):
+        tar = tarfile.open(fn_tar, "r:gz")
+        tar.extractall()
+        members = tar.getnames()
+        tar.close()
+        return members
 
 class Message:
     def __init__(self, selector, sock, addr, request):
@@ -93,9 +102,9 @@ class Message:
 
     def process_events(self, mask):
         if mask & selectors.EVENT_READ:
-            self.read()
+            return self.read()
         if mask & selectors.EVENT_WRITE:
-            self.write()
+            return self.write()
 
     def read(self):
         self._read()
@@ -110,7 +119,7 @@ class Message:
         if self.jsonheader:
             if self.response is None:
                 # client processes 'response', server processes 'request'
-                self.process_response()
+                return self.process_response()
 
     def write(self):
         if not self._request_queued:
@@ -122,6 +131,7 @@ class Message:
             if not self._send_buffer:
                 # Set selector to listen for read events, we're done writing.
                 self._set_selector_events_mask("r")
+        return "done"
 
     def close(self):
         print("closing connection to", self.addr)
@@ -148,12 +158,30 @@ class Message:
         content = self.request["content"]
         content_type = self.request["type"]
         content_encoding = self.request["encoding"]
-        if content_type == "text/json":
+        # if content_type == "text/json":
+        #     req = {
+        #         "content_bytes": self._json_encode(content, content_encoding),
+        #         "content_type": content_type,
+        #         "content_encoding": content_encoding,
+        #     }
+        if content_type == "ctxt":
+            f= open(content, 'rb')
             req = {
-                "content_bytes": self._json_encode(content, content_encoding),
-                "content_type": content_type,
+                "note":content,
+                "content_bytes":f.read(),
+                "content_type":content_type,
                 "content_encoding": content_encoding,
             }
+            f.close()
+        elif "key" == content_type: # 
+            f= open(content, 'rb')
+            req = {
+                "note":content,
+                "content_bytes":f.read(),
+                "content_type":content_type,
+                "content_encoding": content_encoding,
+            }
+            f.close()
         elif "file" in content_type: # file_xx_key, file_ctxt, ...
             f= open(content, 'rb')
             req = {
@@ -203,11 +231,25 @@ class Message:
             return
         data = self._recv_buffer[:content_len]
         self._recv_buffer = self._recv_buffer[content_len:]
-        if self.jsonheader["content-type"] == "text/json":
-            encoding = self.jsonheader["content-encoding"]
-            self.response = self._json_decode(data, encoding)
-            print("received response", repr(self.response), "from", self.addr)
-            self._process_response_json_content()
+        # if self.jsonheader["content-type"] == "text/json":
+        #     encoding = self.jsonheader["content-encoding"]
+        #     self.response = self._json_decode(data, encoding)
+        #     print("received response", repr(self.response), "from", self.addr)
+        #     self._process_response_json_content()
+        if self.jsonheader["content-type"] == "ctxt":
+            # Save received file
+            with open(self.jsonheader['note'], "wb") as f:
+                f.write(data)
+            # Untar received file
+            fn_file = self.jsonheader['note']
+            fn_list = untar(fn_file)
+            print("received ANSWER files", fn_list, "from", self.addr)
+            self.close()
+            return fn_list
+        elif self.jsonheader["content-type"] == "key":
+            # Save received file
+            response = self.jsonheader['note']
+            return response
         else:
             # Binary or unknown content-type
             self.response = data
@@ -216,5 +258,6 @@ class Message:
                 self.addr,
             )
             self._process_response_binary_content()
+            self.close()
         # Close when response has been processed
-        self.close()
+        
