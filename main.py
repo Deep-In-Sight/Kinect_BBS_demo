@@ -13,51 +13,44 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
 
-def run_qt_app(q1, q_text, lock, e_sk,):
-    """
-    QT 프로그램이 q1과 e_sk (이벤트 오브젝트)를 받아서 skeleton 데이터를 q1에 넣고, e_sk를 .set()해서 
-    HEAAN_Encryptor에 Skeleton이 준비되었다고 신호를 주고싶은데, 어디로 q1과 e_sk를 넣어줘야할지 모르겠음. 
-    """
+def run_qt_app(q1, q_text, lock, e_sk, e_ans):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
-    imageEditor = QMyMainWindow(q1, e_sk) ### 여기가 아닌가? 
+    imageEditor = QMyMainWindow(q1, e_sk, q_text, e_ans) ### 여기가 아닌가? 
     imageEditor.show()
-    print("!@#@!@$")
     quit = app.exec_()
     #sys.exit(app.exec_())
     #e_quit.wait()
     #quit
 
 
-# def run_temp_qt(q1, lock, e_sk):
-#     fn = "/home/hoseung/Work/Kinect_BBS_demo/G1/000/BT/bodytracking_data.pickle"
-#     skeleton = pickle.load(open(fn, "rb"))
-#     skeleton = skeleton_to_arr_direct(skeleton)
-#     time.sleep(5)
-#     q1.put({"skeleton":skeleton})
-#     print("Loaded and put skeleton")
-#     e_sk.set()
-
-
-def run_encryptor(q1, q_text, lock, e_key, e_sk, e_enc, key_path="./"):
+def run_encryptor(q1, q_text, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
     key_path = './'
     henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
     #print(henc.prams.n)
     #e_key.wait()
     app_client.run_share_key(q_text, e_key, lock)
-    henc.start_encrypt_loop(q1, e_sk, e_enc)
+    henc.start_encrypt_loop(q1, q_text, e_sk, e_enc, e_ans, e_enc_ans)
 
 
 
-def run_communicator(e_key, q1, q_text, e_enc, e_quit, lock):
+def run_communicator(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock):
     # 1. send keys to server and do quick check
     #e_key.wait()
     #app_client.run_share_key(q_text, e_key, lock)
     while True:
         e_enc.wait()
         print("[run_comm] e_enc passed. Ctxt is ready")
-        app_client.query(q1, lock, e_enc, e_quit)
-
+        fn_dict = q1.get()
+        
+        answer = app_client.query(fn_dict, lock, e_enc, e_quit)
+        
+        print("[run_comm] ", answer)
+        # ENCRYPTED answer
+        q_text.put(answer['filename']) # put encrypted answer filename
+        print("Prediction file names are ready")
+        e_enc_ans.set()
+        print("e_enc_ans set")
 
     
 def main():
@@ -80,19 +73,30 @@ def main():
     e_enc = multiprocessing.Event()
     e_enc.clear()
 
+    # answer saved
+    e_ans = multiprocessing.Event()
+    e_ans.clear()
+
+    # answer saved
+    e_enc_ans = multiprocessing.Event()
+    e_enc_ans.clear()
+
     # Quit the application
     e_quit = multiprocessing.Event()
     e_quit.clear()
 
-    p_socket = mplti.Process(target=run_communicator, args=(e_key, q1, q_text, e_enc, e_quit, lock), daemon=False)
+    p_socket = mplti.Process(target=run_communicator, 
+    args=(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock), daemon=False)
     p_socket.start()
 
     
-    p_enc = mplti.Process(target=run_encryptor, args=(q1, q_text, lock, e_key, e_sk, e_enc), daemon=False)
+    p_enc = mplti.Process(target=run_encryptor, 
+                    args=(q1, q_text, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock), daemon=False)
     p_enc.start()
 
     #p_qt = mplti.Process(target=run_temp_qt, args=(q1, lock, e_sk), daemon=True) # 임시
-    p_qt = mplti.Process(target=run_qt_app, args=(q1, q_text, lock, e_sk), daemon=False) # 진짜
+    p_qt = mplti.Process(target=run_qt_app, 
+                        args=(q1, q_text, lock, e_sk, e_ans), daemon=False) # 진짜
     # ## signal quit()  
     p_qt.start()
 

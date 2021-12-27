@@ -30,9 +30,13 @@ def key_found(key_path):
     return np.all(all_found)
 
 def decrypt(scheme, secretKey, enc, parms):
+    print("a")
     featurized = scheme.decrypt(secretKey, enc)
+    print("b")
     arr = np.zeros(parms.n, dtype=np.complex128)
+    print("c")
     featurized.__getarr__(arr)
+    print("d")
     return arr.real
 
 def encrypt(scheme, val, parms):
@@ -104,7 +108,7 @@ class HEAAN_Encryptor():
         #sk = q1.get()
         pass
 
-    def start_encrypt_loop(self, q1, e_sk, e_enc, debug=True):
+    def start_encrypt_loop(self, q1, q_text, e_sk, e_enc, e_ans, e_enc_ans, debug=True):
         """
         When skeleton is ready (e_sk), get the skeleton from q1, 
         encrypt, and store it as ctx_{i}.dat file. 
@@ -124,12 +128,9 @@ class HEAAN_Encryptor():
                 raise LookupError("Can't find skeleton in queue")    
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
             if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
-            fn = f"ctx_{i}.dat"
+            fn = f"ctx_a{sk['action']:02d}_{i}.dat"
             ctx1 = encrypt(scheme, sk['skeleton'][0], self.parms)
 
-            #val = np.arange(10)
-            #print(self.parms.n, self.parms.logp, self.parms.logq)
-            #ctx1 = encrypt(scheme, val, self.parms)
             print(ctx1.n, ctx1.logp, ctx1.logq)
             if debug: print("[Encryptor] Ctxt encrypted")
             he.SerializationUtils.writeCiphertext(ctx1, fn)
@@ -138,8 +139,36 @@ class HEAAN_Encryptor():
             q1.put({"fn_enc_skeleton": fn})
             if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
             e_enc.set() # Tell encryption is done and file is ready
-            del ctx1 
-            print("is e_enc set?", e_enc.is_set())
+            
+            
             #time.sleep(1)
-            if debug: print("[Encryptor] Waiting...")
+            if debug: print("[Encryptor] Waiting for prediction...")
+
+            # Decrypt
+            e_enc_ans.wait()
+            preds = []
+            fn_preds = q_text.get()
+            print("fn_preds", fn_preds)
+            for fn_ctx in fn_preds:
+                print("[encryptor] make an empty ctxt")
+                ctx_pred = he.Ciphertext(ctx1.logp, ctx1.logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
+                print("[encryptor] load ctxt", fn_ctx)
+                he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
+                print("[encryptor] decrypt ctxt", ctx_pred)
+                dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
+                print("[encryptor] append decrypted ctxt")
+                preds.append(np.sum(dec))
+                print("[encryptor] decrypted prediction array", dec[:10])
+                del ctx_pred
+            del ctx1 
+
+            print("preds", preds)
+            ans_str = f"Predicted score: {np.argmax(preds)}"
+            print(ans_str)
+            e_enc_ans.clear()
+            i+=1
+            ## text를 넣고 QT가 받아가게 해야함. 어떻게 할까? 
+            #q_text.put(ans_str)
+            #e_ans.set()
+
 

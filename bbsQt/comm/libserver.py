@@ -228,13 +228,6 @@ class Message:
         self._recv_buffer = self._recv_buffer[content_len:]
         if self.jsonheader["content-type"] == "key":
             self.request = data
-            # fn_file = self.jsonheader['note']
-            # fn_list = untar(fn_file)
-            # print("received file", fn_list, "from", self.addr)
-
-            #encoding = self.jsonheader["content-encoding"]
-            #self.request = self._json_decode(data, encoding)
-            #print("received request", repr(self.request), "from", self.addr)
         elif "file" in self.jsonheader["content-type"]:
             self.request = data
             print(self.jsonheader.keys())

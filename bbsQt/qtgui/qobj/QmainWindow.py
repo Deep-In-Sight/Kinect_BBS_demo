@@ -64,7 +64,7 @@ def load_image():
     fn_img = "/home/hoseung/Work/Kinect_BBS_demo/G1/000/RGB/a_0001.jpg"
     img = cv2.imread(fn_img)
     #img = imgutil.rgb2gray(img)
-    img = cv2.resize(img, (640, 360))
+    img = cv2.resize(img, (480, 270))
     img = img[:,:,::-1]
     img = np.array(img).astype(np.uint8)
     height, width, channel = img.shape
@@ -76,7 +76,7 @@ def load_image():
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk): #### 여기가 아닌가?
+    def __init__(self, q1, e_sk, q_text, e_ans): #### 여기가 아닌가?
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -227,10 +227,10 @@ class QMyMainWindow(QWidget):
 
             self.qthreadrec.setRun(False)
 
-            self.qthreadrec.mkd(self.Locale, self.qScenario.SubjectID)
+            self.qthreadrec.mkd(self.Locale, self.qScenario.SubjectID, self.ScenarioNo)
 
-            #print("Main Windows: is q1 empty?", self.q1.empty())
-            #print("Main Windows: is e_sk set?", self.e_sk.is_set())
+            print("Main Windows: is q1 empty?", self.q1.empty())
+            print("Main Windows: is e_sk set?", self.e_sk.is_set())
             self.qthreadrec.save_multiproc(self.q1, self.e_sk)
 
             while self.qthreadrec.is_recoding():

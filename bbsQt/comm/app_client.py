@@ -15,12 +15,19 @@ def create_request(action, value):
         return dict(
             type="key",
             encoding="binary",
-            content=dict(action=action, value=value),
+            content=value,
+            action=action,
         )
     # File sender
     elif action == "transfer":
         return dict(
             type="file",
+            encoding='binary',
+            content=value  # file name
+        )
+    elif action == "query":
+        return dict(
+            type="ctxt",
             encoding='binary',
             content=value  # file name
         )
@@ -72,23 +79,10 @@ def run_share_key(q_text, e_key, lock, debug=True):
 
 
 def share_key(host, port, action, fn_key, debug=True):
-    # print("sending file to server.. ")
-    # time.sleep(3)
-
-    # ans = {'answer':"good"}
-    # print("got a response from server")
-    # queue.put(ans)
-
-    # while .... client에서 signal 받으면 끄기
-    # print("Sending quit signal.......................")
-    # e_quit.set()
-
-
-    #host, port = sys.argv[1], int(sys.argv[2])
-    #action, value = sys.argv[3], sys.argv[4]
     #host = '10.100.82.55'
     request = create_request(action, fn_key)
     start_connection(host, port, request)
+    
     
     try:
         while True:
@@ -96,7 +90,7 @@ def share_key(host, port, action, fn_key, debug=True):
             for key, mask in events:
                 message = key.data
                 try:
-                    message.process_events(mask)
+                    answer = message.process_events(mask)
                 except Exception:
                     print(
                         "main: error: exception for",
@@ -114,34 +108,18 @@ def share_key(host, port, action, fn_key, debug=True):
 
     
     ans = {'answer':"good"}
-    print("[comm] got a response from server")
+    print("[comm] server Evaluator is ready. You can send a query")
     return ans
     
 
 
-def query(queue, lock, e_enc, e_quit):
-    # print("sending file to server.. ")
-    # time.sleep(3)
-
-    # ans = {'answer':"good"}
-    # print("got a response from server")
-    # queue.put(ans)
-
-    # while .... client에서 signal 받으면 끄기
-    # print("Sending quit signal.......................")
-    # e_quit.set()
-
-
-    #host, port = sys.argv[1], int(sys.argv[2])
-    #action, value = sys.argv[3], sys.argv[4]
+def query(fn_dict, lock, e_enc, e_quit):
     host = '10.100.82.55'
     port = 2345
-    action = "transfer"
+    action = "query"
 
-
-    #e_enc.wait()
     print("[comm] Ciphertext ready")
-    fn_dict = queue.get()
+    #fn_dict = queue.get()
 
     fn_enc = fn_dict['fn_enc_skeleton']
     #print("[comm] found a encrypted data file:", fn_enc)
@@ -159,7 +137,7 @@ def query(queue, lock, e_enc, e_quit):
             for key, mask in events:
                 message = key.data
                 try:
-                    message.process_events(mask)
+                    answer_list = message.process_events(mask)
                 except Exception:
                     print(
                         "main: error: exception for",
@@ -175,6 +153,6 @@ def query(queue, lock, e_enc, e_quit):
         sel.close()
 
 
-    ans = {'answer':"good"}
+    ans = {'filename':answer_list}
     print("got a response from server")
-    queue.put(ans)
+    return ans

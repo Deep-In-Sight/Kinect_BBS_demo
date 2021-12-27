@@ -21,12 +21,12 @@ from bbsQt.model import rec_utils as ru
 
 WAIT = 0.01
 
-def do_save_multiproc(path_root, data, idx0, Locale, ID):
-    i = 0
-    print(path_root)
-    for color in data:
-        cv2.imwrite(f"./{Locale}/{str(ID).zfill(3)}/RGB/{str((i+idx0) + 1).zfill(4)}.jpg", color)
-        i = i + 1
+# def do_save_multiproc(path_root, data, idx0, Locale, ID):
+#     i = 0
+#     print(path_root)
+#     for color in data:
+#         cv2.imwrite(f"./{Locale}/{str(ID).zfill(3)}/RGB/{str((i+idx0) + 1).zfill(4)}.jpg", color)
+#         i = i + 1
 
 
 class qThreadRecord(QThread):
@@ -66,9 +66,10 @@ class qThreadRecord(QThread):
         self.k4a = k4a
         self.bt = bt
 
-    def mkd(self, Locale, SubjectID):
+    def mkd(self, Locale, SubjectID, ScenarioNo):
         self.Locale = Locale
         self.SubjectID = SubjectID
+        self.ScenarioNo = ScenarioNo
         
         self.path_color = f"{self.PWD}/{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB"
         self.path_bt = f"{self.PWD}/{self.Locale}/{str(self.SubjectID).zfill(3)}/BT"
@@ -138,24 +139,16 @@ class qThreadRecord(QThread):
 
     # todo data tree  
     def save_multiproc(self, q1, e_sk):
-        #Ncpu = self.Ncpu
         self.stackColor = np.array(self.stackColor)
-        pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        #skeleton =  skeleton_to_arr_direct(self.stackJoint)
+        #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         scene = ku.kinect2mobile_direct(self.stackJoint)
 
         nframe = 10 
         sub = ru.smoothed_frame_N(scene, nframe=nframe, shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
-
-
-
-        #print("is e_sk set?0", e_sk.is_set())
-        #self.stackJoint = 
-        #arr = pickle.load(open("/home/hoseung/Work/data/BBS/npy_a/1/0/031/a_031_1_0_0.npy", "rb"))
-        #q1.put({"skeleont":arr})
-        q1.put({"skeleton": skeleton})
+        q1.put({"action":self.ScenarioNo,
+                "skeleton": skeleton})
         #print("is q1 empty?", q1.empty())
         e_sk.set()
         #print("is e_sk set?1", e_sk.is_set())
@@ -185,9 +178,3 @@ class qThreadRecord(QThread):
             cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{self.camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
 
         #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
-
-        # for j in jobs: 
-        #     j.start(); 
-        # for j in jobs: 
-        #     j.join();    
-
