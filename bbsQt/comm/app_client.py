@@ -51,15 +51,15 @@ def start_connection(host, port, request):
 
 
 def run_share_key(q_text, e_key, lock, debug=True):
-    #host = '127.0.0.1'
-    host = '10.100.82.55'
+    host = '127.0.0.1'
+    #host = '10.100.82.55'
     port = 2345
     action = "share_key"
 
     e_key.wait()
     if debug: print("[comm] HEAAN keys are ready")
     fn_dict = q_text.get()
-    #key_path = fn_dict['root_path']    
+    #key_path = fn_dict[R'root_path']    
 
     fn_tar = fn_dict['keys_to_share']
     print("[comm] sending gzipped key file:", fn_tar)
@@ -114,7 +114,7 @@ def share_key(host, port, action, fn_key, debug=True):
 
 
 def query(fn_dict, lock, e_enc, e_quit):
-    host = '10.100.82.55'
+    host = '127.0.0.1' #'10.100.82.55'
     port = 2345
     action = "query"
 

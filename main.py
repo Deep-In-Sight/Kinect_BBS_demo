@@ -13,10 +13,10 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
 
-def run_qt_app(q1, q_answer, lock, e_sk, e_ans):
+def run_qt_app(q1, q_answer, lock, e_sk ):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
-    imageEditor = QMyMainWindow(q1, e_sk, q_answer, e_ans) ### 여기가 아닌가? 
+    imageEditor = QMyMainWindow(q1, e_sk, q_answer) ### 여기가 아닌가? 
     imageEditor.show()
     quit = app.exec_()
     #sys.exit(app.exec_())
@@ -97,7 +97,7 @@ def main():
 
     #p_qt = mplti.Process(target=run_temp_qt, args=(q1, lock, e_sk), daemon=True) # 임시
     p_qt = mplti.Process(target=run_qt_app, 
-                        args=(q1, q_answer, lock, e_sk, e_ans), daemon=False) # 진짜
+                        args=(q1, q_answer, lock, e_sk), daemon=False) # 진짜
     # ## signal quit()  
     p_qt.start()
 

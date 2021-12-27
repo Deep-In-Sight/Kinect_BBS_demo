@@ -4,7 +4,7 @@ import selectors
 import traceback
 from . import libserver
 
-HOST = "10.100.82.55"
+HOST = '127.0.0.1'#"10.100.82.55"
 PORT = 2345
 sel = selectors.DefaultSelector()
 

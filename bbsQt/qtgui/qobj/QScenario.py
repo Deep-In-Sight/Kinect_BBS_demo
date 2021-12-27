@@ -28,11 +28,13 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 
 
 class qScenario(QObject):
-	def __init__(self, qmain, pwd, q_answer):
+	def __init__(self, qmain, pwd, q_answer, ):
 		super(qScenario, self).__init__(qmain)
 		self.obj = ""
 		self.PWD = pwd
 		self.qmain = qmain	
+        
+		self.text_answer = ""
 		self.q_answer = q_answer
 
 		self.ScenarioNo = 0

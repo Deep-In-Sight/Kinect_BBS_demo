@@ -1,5 +1,7 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtPrintSupport import *
 #from datetime import datetime
 import multiprocessing as mp
 #import matplotlib.pyplot as plt
@@ -11,9 +13,10 @@ import pandas as pd
 import os
 import cv2
 import pwd
-
+from functools import partial
 import pickle
 
+import matplotlib.pyplot as plt 
 
 
 from bbsQt.model import kinect_utils as ku 
@@ -31,7 +34,7 @@ WAIT = 0.01
 
 class qThreadRecord(QThread):
     
-    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num):
+    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, ):
         super().__init__()
         self.stackColor = []
         self.stackIR = []
@@ -46,6 +49,12 @@ class qThreadRecord(QThread):
         self.pic_Count = 0
         self.PWD = PWD
         self.camera_num = camera_num
+        self.q1 = q1
+        self.e_sk = e_sk
+        self.p_save0 = partial(self.select_sk, skindex=0)
+        self.p_save1 = partial(self.select_sk, skindex=1)
+        self.p_save2 = partial(self.select_sk, skindex=2)
+
 
     def setRun(self, Run):
         self.isRun = Run
@@ -137,25 +146,54 @@ class qThreadRecord(QThread):
     def get_color(self):
         return self.stackColor
 
+
+
     # todo data tree  
-    def save_multiproc(self, q1, e_sk):
+    def save_multiproc(self):
         self.stackColor = np.array(self.stackColor)
+        # 모든 스켈레톤이 다있는 프레임 
+        maxValue = len(self.stackJoint[0])
+        maxframe_idx = 0
+        for idx, i in enumerate(range(1, len(self.stackJoint))):
+            if maxValue < len(self.stackJoint[i]):
+                maxValue = len(self.stackJoint[i])
+                maxframe_idx = idx
+        
+        
+        print('maxperson', maxValue)
+        print('maxframe idx',maxframe_idx)
+        #skarr  = ku.kinect2mobile_direct(self.stackJoint[maxframe_idx])
+        self.skarr  = ku.kinect2mobile_direct_lists(self.stackJoint)
+
+        self.rgblist = self.stackColor
+        print(len(self.rgblist))
+        self.sk_viewer(self.skarr, self.rgblist, maxframe_idx, 1)
+
+        skimage = self.load_image(maxframe_idx)
+        
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        scene = ku.kinect2mobile_direct(self.stackJoint)
+        
+        # todo 
+        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
 
-        nframe = 10 
-        sub = ru.smoothed_frame_N(scene, nframe=nframe, shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+        # print(f'skeleton index : {skindex}')
+        # scene = ku.kinect2mobile_direct(self.stackJoint)
 
-        q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        #print("is q1 empty?", q1.empty())
-        e_sk.set()
+        # nframe = 10 
+        # sub = ru.smoothed_frame_N(scene, nframe=nframe, shift=1)
+        # skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+
+        # q1.put({"action":self.ScenarioNo,
+        #         "skeleton": skeleton})
+        # #print("is q1 empty?", q1.empty())
+        # e_sk.set()
         #print("is e_sk set?1", e_sk.is_set())
         
         #uid = pwd.getpwnam("etri_ai2").pw_uid
         #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
 
+
+        ## IMAGE SAVE 
         idx = list(range(self.pic_Count))
         #idx = np.array_split(idx, Ncpu);
 
@@ -178,3 +216,70 @@ class qThreadRecord(QThread):
             cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{self.camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
 
         #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
+
+        # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
+        return skimage
+
+
+    # add 2021.12.27  
+    def select_sk(self,  skindex):
+        self.stackColor = np.array(self.stackColor)
+        #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
+        
+        # todo 
+        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
+
+        print(f'skeleton index : {skindex}')
+        #scene = ku.kinect2mobile_direct(self.stackJoint)
+        nframe = 10 
+        sub = ru.smoothed_frame_N(self.skarr[skindex], nframe=nframe, shift=1)
+        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+
+        self.q1.put({"action":self.ScenarioNo,
+                "skeleton": skeleton})
+        print("is q1 empty?", self.q1.empty())
+        self.e_sk.set()
+        print("is e_sk set?1", self.e_sk.is_set())
+        
+        #uid = pwd.getpwnam("etri_ai2").pw_uid
+        #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
+
+    def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
+        left_arms = ['l_shoulder', 'l_elbow', 'l_hand']
+        right_arms = ['head', 'r_shoulder',  'r_elbow', 'r_hand']
+        body = ['head','l_shoulder', 'r_shoulder', 'r_hip', 'l_hip', 'l_shoulder']
+        leg = ['r_foot', 'r_knee', 'r_hip', 'l_hip', 'l_knee', 'l_foot']
+        ii = [left_arms, right_arms, body, leg]
+
+        print(json_to_arr_list[0].dtype)
+        #print(json_to_arr_list.shape)
+
+        fig, ax = plt.subplots(figsize=(16,9))
+        #im = plt.imread(jpg_list[idx])
+        im = jpg_list[idx]
+        ax.imshow(im, zorder=1)
+        for color_idx, i in enumerate(json_to_arr_list):
+            if color_idx == 0: 
+                color = 'tab:blue'
+            elif color_idx == 1:
+                color = 'tab:orange'
+            else:
+                color = 'tab:green'
+            for j in ii:
+                ax.plot([i['x'+sa][idx] for sa in j if i['x'+sa][idx] !=0], [i['y'+sa][idx] for sa in j if i['x'+sa][idx] !=0], color=color)
+        if save == 1:
+            os.makedirs('image', exist_ok=True)
+            plt.savefig(f'image/img_00{idx}.jpg')
+        #plt.show()
+
+    def load_image(self, idx):
+        fn_img = f'image/img_00{idx}.jpg'
+        img = cv2.imread(fn_img)
+        #img = imgutil.rgb2gray(img)
+        img = cv2.resize(img, (480, 270))
+        img = img[:,:,::-1]
+        img = np.array(img).astype(np.uint8)
+        height, width, channel = img.shape
+        bytesPerLine = 3 * width
+        pixmap   = QPixmap(QImage(img, width, height, bytesPerLine, QImage.Format_RGB888))
+        return pixmap
