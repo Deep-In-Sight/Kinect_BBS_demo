@@ -16,12 +16,12 @@ def run_evaluator(q1, q_text, lock, e_key, e_enc, e_ans, key_path="./"):
     e_key.wait()
     henc = HEAAN_Evaluator(e_key, lock, key_path, e_ans)
     #print(henc.prams.n)
-    henc.start_encrypt_loop(q1, e_enc, e_ans)
+    henc.start_evaluate_loop(q1, q_text, e_enc, e_ans)
 
 
 def run_communicator(e_key, q_text, e_enc, e_ans, lock):
     # 1. send keys to server and do quick check
-    app_server.run_server(e_key, e_enc, e_ans, lock)
+    app_server.run_server(q_text, e_key, e_enc, e_ans, lock)
     #e_enc.wait()
     #app_server.query(q1, lock, e_enc, e_quit)
 

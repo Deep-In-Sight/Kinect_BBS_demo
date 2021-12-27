@@ -2,17 +2,18 @@ import sys
 import socket
 import selectors
 import traceback
-
 from . import libserver
 
+HOST = "10.100.82.55"
+PORT = 2345
 sel = selectors.DefaultSelector()
 
 
-def accept_wrapper(sock, e_key, e_enc, e_ans):
+def accept_wrapper(sock, q_text, e_key, e_enc, e_ans):
     conn, addr = sock.accept()  # Should be ready to read
     print("accepted connection from", addr)
     conn.setblocking(False)
-    message = libserver.Message(sel, conn, addr, e_key, e_enc, e_ans)
+    message = libserver.Message(sel, conn, addr, q_text, e_key, e_enc, e_ans)
     sel.register(conn, selectors.EVENT_READ, data=message)
 
 
@@ -22,16 +23,18 @@ def accept_wrapper(sock, e_key, e_enc, e_ans):
 
 #host, port = sys.argv[1], int(sys.argv[2])
 
-def run_server(e_key, e_enc, e_ans, lock):
-    host = "10.100.82.55"
-    port = 2345
+def run_server(q_text, e_key, e_enc, e_ans, lock):
+    """
+    The resultant prediction file name is assumed.
+    """
+
 
     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Avoid bind() exception: OSError: [Errno 48] Address already in use
     lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    lsock.bind((host, port))
+    lsock.bind((HOST, PORT))
     lsock.listen()
-    print("listening on", (host, port))
+    print("listening on", (HOST, PORT))
     lsock.setblocking(False)
     sel.register(lsock, selectors.EVENT_READ, data=None)
 
@@ -41,7 +44,7 @@ def run_server(e_key, e_enc, e_ans, lock):
             for key, mask in events:
                 if key.data is None:
                     # read and register incoming message
-                    accept_wrapper(key.fileobj, e_key, e_enc, e_ans) 
+                    accept_wrapper(key.fileobj, q_text, e_key, e_enc, e_ans) 
                 else:
                     message = key.data
                     try:
