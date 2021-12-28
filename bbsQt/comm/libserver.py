@@ -269,16 +269,23 @@ class Message:
 
     def create_response(self):
         print("[libserver] in create_response")
+        # if self.jsonheader["content-type"] == "key":
+        #     # Save received file
+        #     with open(self.jsonheader['note'], "wb") as f:
+        #         f.write(self.request)
+        #     # Untar received file
+        #     fn_file = self.jsonheader['note']
+        #     fn_list = untar(fn_file)
+        #     print("[libserver] received file", fn_list, "from", self.addr)
+
+        #     response = self._create_response_key()
         if self.jsonheader["content-type"] == "key":
-            # Save received file
-            with open(self.jsonheader['note'], "wb") as f:
-                f.write(self.request)
             # Untar received file
             fn_file = self.jsonheader['note']
             fn_list = untar(fn_file)
             print("[libserver] received file", fn_list, "from", self.addr)
 
-            response = self._create_response_key()
+            response = self._create_response_key()            
         elif self.jsonheader["content-type"] == "ctxt":
             filename =self.jsonheader['note'] 
             with open(filename, "wb") as f:
