@@ -4,7 +4,7 @@ import json
 import io
 import struct
 import tarfile
-from bbsQt.constants import DIR_KEY_SERVER, HOST, PORT, S_ACCOUNT, S_PASSWORD
+from bbsQt.constants import DIR_KEY_SERVER, HOST, S_ACCOUNT, S_PASSWORD, SCP_PORT
 
 BLOCKSIZE = 2**16
 
@@ -20,12 +20,13 @@ def createSSHClient(server, port, user, password):
     client.connect(server, port, user, password)
     return client
 
-ssh = createSSHClient(HOST, PORT, S_ACCOUNT, S_PASSWORD)
+ssh = createSSHClient(HOST, SCP_PORT, S_ACCOUNT, S_PASSWORD)
 scp = SCPClient(ssh.get_transport())
 
 
 def send_scp(fn):
     scp.put(fn, DIR_KEY_SERVER)
+    print("put", fn, "to", DIR_KEY_SERVER)
 
 
 def untar(fn_tar):
@@ -109,6 +110,9 @@ class Message:
         }
         jsonheader_bytes = self._json_encode(jsonheader, "utf-8")
         message_hdr = struct.pack(">H", len(jsonheader_bytes))
+        print(message_hdr)
+        print(jsonheader_bytes)
+        print(content_bytes)
         message = message_hdr + jsonheader_bytes + content_bytes
         return message
 
@@ -179,12 +183,16 @@ class Message:
         content = self.request["content"]
         content_type = self.request["type"]
         content_encoding = self.request["encoding"]
-        # if content_type == "text/json":
-        #     req = {
-        #         "content_bytes": self._json_encode(content, content_encoding),
-        #         "content_type": content_type,
-        #         "content_encoding": content_encoding,
-        #     }
+        if content_type == "text/json":
+            #print(content)
+            #print(content_type)
+            #print(content_encoding)
+            req = {
+                "content_bytes": self._json_encode(content, content_encoding),
+                "content_type": content_type,
+                "content_encoding": content_encoding,
+                "note":content,
+            }
         if content_type == "ctxt":
             f= open(content, 'rb')
             req = {
@@ -195,15 +203,15 @@ class Message:
             }
             f.close()
         elif "key" == content_type: # 
-            #f= open(content, 'rb')
-            send_scp(content)
+            f= open("empty.dat", 'rb')
+            #send_scp(content)
             req = {
                 "note":content,
-                "content_bytes":content,
+                "content_bytes":f.read(),
                 "content_type":content_type,
                 "content_encoding": content_encoding,
             }
-            #f.close()
+            f.close()
         elif "file" in content_type: # file_xx_key, file_ctxt, ...
             f= open(content, 'rb')
             req = {
@@ -215,6 +223,7 @@ class Message:
             f.close()
         else:
             req = {
+                "note":content,
                 "content_bytes": content,
                 "content_type": content_type,
                 "content_encoding": content_encoding,
@@ -253,11 +262,12 @@ class Message:
             return
         data = self._recv_buffer[:content_len]
         self._recv_buffer = self._recv_buffer[content_len:]
-        # if self.jsonheader["content-type"] == "text/json":
-        #     encoding = self.jsonheader["content-encoding"]
-        #     self.response = self._json_decode(data, encoding)
-        #     print("received response", repr(self.response), "from", self.addr)
-        #     self._process_response_json_content()
+        if self.jsonheader["content-type"] == "text/json":
+            print("JSON CONTENT")
+            encoding = self.jsonheader["content-encoding"]
+            self.response = self._json_decode(data, encoding)
+            print("received response", repr(self.response), "from", self.addr)
+            self._process_response_json_content()
         if self.jsonheader["content-type"] == "ctxt":
             # Save received file
             with open(self.jsonheader['note'], "wb") as f:

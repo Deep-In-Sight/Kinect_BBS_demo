@@ -39,3 +39,7 @@ elif location == "ETRI":
     PORT = 6543
     
 #    return HOST, PORT
+DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo/server/"
+S_ACCOUNT = 'etri_ai2'
+S_PASSWORD = 'etri_ai2'
+SCP_PORT = 22

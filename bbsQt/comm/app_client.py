@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os 
+import subprocess
 #import sys
 import socket
 import selectors
@@ -7,24 +8,24 @@ import traceback
 
 from . import libclient
 from bbsQt.constants import HOST, PORT
+from bbsQt.constants import DIR_KEY_SERVER, HOST, S_ACCOUNT, S_PASSWORD, SCP_PORT
 
 sel = selectors.DefaultSelector()
 
 
 def create_request(action, value):
     if action == "share_key":
-        # return dict(
-        #     type="key",
-        #     encoding="binary",
-        #     content=value,
-        #     action=action,
-        # )
         return dict(
             type="key",
-            encoding="utf-8",
+            encoding="binary",
             content=value,
             action=action,
         )
+        # return dict(
+        #     type="text/json",
+        #     encoding="utf-8",
+        #     content=dict(action=action, value=value),
+        # )
     # File sender
     elif action == "transfer":
         return dict(
@@ -65,6 +66,8 @@ def start_connection(host, port, request):
     sel.register(sock, events, data=message)
 
 
+
+
 def run_share_key(q_text, e_key, lock, debug=True):
     #host = '127.0.0.1'
     #host = '10.100.82.55'
@@ -83,7 +86,8 @@ def run_share_key(q_text, e_key, lock, debug=True):
         #e_enc.clear()
 
     # File transfer request 
-    
+    subprocess.call(["/home/hoseung/anaconda3/envs/newbbs/bin/python", "send_key.py", "serkey"])
+    print("___________")
     if debug: print("[comm] sending keys", fn_tar)
     print("[comm] fn_dict", fn_dict)
     

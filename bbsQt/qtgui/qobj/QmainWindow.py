@@ -140,7 +140,7 @@ class QMyMainWindow(QWidget):
         else:
             self.pyK4A = None
         
-        print("[QMAIN]", self.btn.cameranum.currentIndex())
+        #print("[QMAIN]", self.btn.cameranum.currentIndex())
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
                                         self.PWD, self.btn.cameranum.currentIndex(), 
                                         self.q1, self.e_sk, self.e_ans, self.q_answer)
