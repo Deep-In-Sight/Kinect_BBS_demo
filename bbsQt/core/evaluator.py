@@ -1,4 +1,3 @@
-from bbsQt.core.encryptor import encrypt
 import numpy as np
 import os
 import tarfile
@@ -6,8 +5,10 @@ import pickle
 import torch
 
 import fase
-fase.USE_FPGA = False
+fase.USE_FPGA = True
 from fase.core.heaan import he
+#from fase import heaan_loader
+#he = heaan_loader.load()
 from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 from time import time
 from fase import hnrf as hnrf
@@ -17,9 +18,13 @@ from fase.hnrf import heaan_nrf
 
 from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS
 
-# FN_KEYS = ["ENCRYPTION.txt",
-#            "MULTIPLICATION.txt",
-#            "ROTATION_1.txt"]
+def encrypt(scheme, val, parms):
+    ctxt = he.Ciphertext()#logp, logq, n)
+    vv = np.zeros(parms.n) # Need to initialize to zero or will cause "unbound"
+    vv[:len(val)] = val
+    scheme.encrypt(ctxt, he.Double(vv), parms.n, parms.logp, parms.logq)
+    del vv
+    return ctxt
 
 class Param():
     def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
@@ -144,7 +149,7 @@ class HEAAN_Evaluator():
 
     def start_evaluate_loop(self, q1, q_text, e_enc, e_ans, tar=True):
         """
-        filename : ctxt_a05_{i}.dat, wherer a05 means action #5.
+        filename : ctxt_a05_{i}.dat, where a05 means action #5.
         """
         while True:
             e_enc.wait()
