@@ -1,10 +1,20 @@
 from bbsQt.core.encryptor import encrypt
-from fase import HEAAN
-import fase.HEAAN as he
 import numpy as np
 import os
 import tarfile
 import pickle
+import torch
+
+import fase
+fase.USE_FPGA = False
+from fase.core.heaan import he
+from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
+from time import time
+from fase import hnrf as hnrf
+from fase.hnrf.tree import NeuralTreeMaker
+from fase.hnrf import heaan_nrf 
+#from fase.hnrf.heaan_nrf import HomomorphicModel 
+
 from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS
 
 # FN_KEYS = ["ENCRYPTION.txt",
@@ -38,6 +48,16 @@ def compress_files(fn_tar, fn_list):
             tar.add(name)
 
 
+def print_binary(s):
+    return ' '.join(map('{:02X}'.format, s))
+
+def show_file_content(fn):
+    with open(fn, 'rb') as fbin:
+        line = fbin.read(100)
+        print("file in binary format", line)
+        print("file in HEX", print_binary(line))
+
+
 class HEAAN_Evaluator():
     def __init__(self, lock, key_path, e_ans):
         lock.acquire()# 이렇게 하는건가? 
@@ -58,17 +78,51 @@ class HEAAN_Evaluator():
         self.scheme = he.Scheme(self.ring, True, key_path)
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.loadLeftRotKey(1)
+        
+        self.load_models()
         print("[Encryptor] HEAAN is ready")
-
-        models = []
-        for i in range(1,15):
-            model = BBS_Evaluator_model(action=i, 
-                    trained_model_path='./trained_models/')
-            models.append((f"{i}",model))
-        self.models = dict(models)
+        # models = []
+        # for i in range(1,15):
+        #     model = BBS_Evaluator_model(action=i, 
+        #             trained_model_path='./trained_models/')
+        #     models.append((f"{i}",model))
+        # self.models = dict(models)
         print(self.models)
         e_ans.set()
 
+    def load_models(self):
+        print("[Evaluator] Loading trained NRF models")
+        dilatation_factor = 10
+        polynomial_degree = 10
+
+        my_tm_tanh = NeuralTreeMaker(torch.tanh, 
+                            use_polynomial=True,
+                            dilatation_factor=dilatation_factor, 
+                            polynomial_degree=polynomial_degree)
+
+
+        t0 = time()
+        allmodels = []
+        for action in range(1,2):
+            Nmodel = pickle.load(open(f"models/trained_NRF_{action}.pickle", "rb"))
+            h_rf = HomomorphicNeuralRandomForest(Nmodel)
+            print("[EVAL.model_loader] HRF loaded for class", action)
+            nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
+                                                                self.scheme,
+                                                                self.parms,
+                                                                my_tm_tanh.coeffs,
+                                                                do_reduction = False
+                                                                )
+            print("[EVAL.model_loader] HNRF model loaded for class", action)
+            #featurizer = heaan_nrf.HomomorphicTreeFeaturizer(h_rf.return_comparator(),
+            #            self.scheme, self.parms)
+            #print("[EVAL.model_loader] featurizer loaded for class", action)
+            #model = {f"evaluator":nrf_evaluator,
+            #         f"featurizer":featurizer}
+            allmodels.append((f"{action}",nrf_evaluator))
+        self.models = dict(allmodels)
+
+        print(f"generating 14 models took {time() - t0:.2f}")
 
     def _quick_check(self):
         scheme = self.scheme
@@ -79,11 +133,14 @@ class HEAAN_Evaluator():
         #sk = q1.get()
         pass
 
-    def run_model(self, cc, data):
+    def run_model(self, cc, ctx):
         print("Running model for class", cc)
         model = self.models[f"{cc}"]
-        #return model.predict(data)
-        return self.predict(data)
+        #featurizer = self.models[f"{cc}"]['featurizer']
+        print("[Evaluator] running model...")
+        #ctx = featurizer.encrypt(data)
+        return model(ctx)
+        #return self.predict(data)
 
     def start_evaluate_loop(self, q1, q_text, e_enc, e_ans, tar=True):
         """
@@ -96,8 +153,9 @@ class HEAAN_Evaluator():
             print(fn_data)
             action = int(fn_data.split("ctx_a")[1][:2])
             print("[evaluator] action class:", action)
-            ctx = he.Ciphertext()
+            ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
+            show_file_content(fn_data)
             e_enc.clear()
             preds = self.run_model(action, ctx)
 
@@ -109,30 +167,11 @@ class HEAAN_Evaluator():
             if tar:
                 fn_tar = FN_PREDS#"preds.tar.gz"
                 compress_files(fn_tar, fn_preds)
-                q_text.put({"root_path":'./', 
-                        "keys_to_share":fn_tar})
+                q_text.put({"root_path":'./',  # Not using root path
+                        "filename":fn_tar})
             e_ans.set()
 
-
-    def predict(self, ctx):
-        Nscore = 5
-        preds = []
-        for i in range(Nscore):
-            pp = np.random.rand(self.parms.n)
-            ctx = encrypt(self.scheme, pp, self.parms)
-            preds.append(ctx)
-        return preds
-
-class BBS_Evaluator_model():
-    """ All 14 models share the same context. 
-        Only 
-    """
-    def __init__(self, action, trained_model_path="./"):
-        #Nmodel = pickle.load(trained_model_path+f"bbs_trained_{action}.pickle")
-        #self.evaluator = N
-        pass
-    
-    def predict(self, ctxt):
+    def predict_test(self, ctx):
         Nscore = 5
         preds = []
         for i in range(Nscore):
