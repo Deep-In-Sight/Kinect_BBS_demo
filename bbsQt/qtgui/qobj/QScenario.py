@@ -378,7 +378,7 @@ class qScenario(QObject):
 	def showinfo(self):
 		if not self.q_answer.empty():
 			self.text_answer = self.q_answer.get()
-		info 	 = f" {self.text_answer}   <<< add result>>>\n"
+		info 	 = f" {self.text_answer} <<< Waiting for prediction... >>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"
 		# #info 	+= f"[Record Time] {self.MinRecordTime} sec\n"
