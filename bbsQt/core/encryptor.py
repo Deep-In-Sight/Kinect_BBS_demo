@@ -207,25 +207,19 @@ class HEAAN_Encryptor():
             
 
             featurizer = self.featurizers[action]
-            print(len(sk['skeleton']))
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            #print(len(sk['skeleton']))
+            print("+++++++++++++++  SKELETON POINTS  ++++++++++++++++")
             print(sk['skeleton'])
-
             
             print("Featurizing skeleton...")
             t0 = time()
             
             ##### 스켈레톤 하나만 선정해서 들어오는데 리스트에 싸여있을 이유가 없음... [0] 없애자. 
             rav_sub = sk['skeleton'][0]
-            pickle.dump(rav_sub, open("tmp.pickle", "wb"))
-            print("rav_sub shape == (180,)? ", rav_sub.shape)
+            
             scaled = sc.transform(rav_sub.reshape(1,-1))
-            print("scaled.shape", scaled.shape)
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            print(scaled)
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            print(scaled[0])
             ctx1 = featurizer.encrypt(scaled[0])
+            pickle.dump(scaled[0], open("scaled.pickle", "wb"))
             print(f"Featurizing done in {time() - t0:.2f}s")
             print(ctx1.n, ctx1.logp, ctx1.logq)
             if debug: print("[Encryptor] Ctxt encrypted")
@@ -263,6 +257,36 @@ class HEAAN_Encryptor():
                 print("[encryptor] decrypted prediction array", dec[:10])
                 del ctx_pred
             del ctx1 
+
+
+            ##########################
+            with open("params.txt", "r") as ll:
+                s = ll.readline().split(" ")
+                llogp1, llogq1, ln1 = int(s[0]),int(s[1]),int(s[2])
+                s = ll.readline().split(" ")
+                llogp2, llogq2, ln2 = int(s[0]),int(s[1]),int(s[2])
+                s = ll.readline().split(" ")
+                llogp3, llogq3, ln3 = int(s[0]),int(s[1]),int(s[2])
+            
+            ctx = he.Ciphertext(llogp1, llogq1, ln1) # 나중에 오는 애는 logq가 다를 수도 있음
+            print("[encryptor] b1_ctxt", ctx)
+            he.SerializationUtils.readCiphertext(ctx, "b1_ctx.dat")
+            print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
+            del ctx
+            
+            ctx = he.Ciphertext(llogp2, llogq2, ln2) # 나중에 오는 애는 logq가 다를 수도 있음
+            print("[encryptor] compare_after_activation", ctx)
+            he.SerializationUtils.readCiphertext(ctx, "compare_after_add.dat")
+            print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
+            del ctx
+
+            ctx = he.Ciphertext(llogp3, llogq3, ln3) # 나중에 오는 애는 logq가 다를 수도 있음
+            print("[encryptor] compare_after_activation", ctx)
+            he.SerializationUtils.readCiphertext(ctx, "compare_after_activation.dat")
+            print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
+            del ctx
+
+            ###########################
 
             print("preds", preds)
             ans_str = f"Predicted score: {np.argmax(preds)}"
