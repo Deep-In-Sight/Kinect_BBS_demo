@@ -13,9 +13,15 @@ sel = selectors.DefaultSelector()
 
 def create_request(action, value):
     if action == "share_key":
+        # return dict(
+        #     type="key",
+        #     encoding="binary",
+        #     content=value,
+        #     action=action,
+        # )
         return dict(
             type="key",
-            encoding="binary",
+            encoding="utf-8",
             content=value,
             action=action,
         )
@@ -26,6 +32,12 @@ def create_request(action, value):
             encoding='binary',
             content=value  # file name
         )
+    # elif action == "query":
+    #     return dict(
+    #         type="ctxt",
+    #         encoding='binary',
+    #         content=value  # file name
+    #     )
     elif action == "query":
         return dict(
             type="ctxt",

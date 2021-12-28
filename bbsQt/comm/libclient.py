@@ -4,8 +4,29 @@ import json
 import io
 import struct
 import tarfile
+from bbsQt.constants import DIR_KEY_SERVER, HOST, PORT, S_ACCOUNT, S_PASSWORD
 
 BLOCKSIZE = 2**16
+
+import paramiko
+from scp import SCPClient
+#from datetime import datetime
+#from datetime import timedelta
+
+def createSSHClient(server, port, user, password):
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(server, port, user, password)
+    return client
+
+ssh = createSSHClient(HOST, PORT, S_ACCOUNT, S_PASSWORD)
+scp = SCPClient(ssh.get_transport())
+
+
+def send_scp(fn):
+    scp.put(fn, DIR_KEY_SERVER)
+
 
 def untar(fn_tar):
     if fn_tar.endswith("tar.gz"):
@@ -174,14 +195,15 @@ class Message:
             }
             f.close()
         elif "key" == content_type: # 
-            f= open(content, 'rb')
+            #f= open(content, 'rb')
+            send_scp(content)
             req = {
                 "note":content,
-                "content_bytes":f.read(),
+                "content_bytes":content,
                 "content_type":content_type,
                 "content_encoding": content_encoding,
             }
-            f.close()
+            #f.close()
         elif "file" in content_type: # file_xx_key, file_ctxt, ...
             f= open(content, 'rb')
             req = {
