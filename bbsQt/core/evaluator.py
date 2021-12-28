@@ -116,7 +116,8 @@ class HEAAN_Evaluator():
                                                                 self.scheme,
                                                                 self.parms,
                                                                 my_tm_tanh.coeffs,
-                                                                do_reduction = False
+                                                                do_reduction = False,
+                                                                save_check=True
                                                                 )
             print("[EVAL.model_loader] HNRF model loaded for class", action)
             
