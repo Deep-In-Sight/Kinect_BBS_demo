@@ -6,6 +6,7 @@ import selectors
 import traceback
 
 from . import libclient
+from bbsQt.constants import HOST, PORT
 
 sel = selectors.DefaultSelector()
 
@@ -53,9 +54,9 @@ def start_connection(host, port, request):
 
 
 def run_share_key(q_text, e_key, lock, debug=True):
-    host = '127.0.0.1'
+    #host = '127.0.0.1'
     #host = '10.100.82.55'
-    port = 2345
+    #port = 2345
     action = "share_key"
 
     e_key.wait()
@@ -75,7 +76,7 @@ def run_share_key(q_text, e_key, lock, debug=True):
     print("[comm] fn_dict", fn_dict)
     
     # fn_tar = "./keys2.tar.gz"
-    ans = share_key(host, port, action, fn_tar)
+    ans = share_key(HOST, PORT, action, fn_tar)
     print("[comm] run_share_key done \n")
     #q_text.put(ans)
 
@@ -117,8 +118,6 @@ def share_key(host, port, action, fn_key, debug=True):
 
 
 def query(fn_dict, lock):
-    host = '127.0.0.1' #'10.100.82.55'
-    port = 2345
     action = "query"
 
     print("[comm] Ciphertext ready")
@@ -132,7 +131,7 @@ def query(fn_dict, lock):
 
     # File transfer request 
     request = create_request(action, fn_enc)
-    start_connection(host, port, request)
+    start_connection(HOST, PORT, request)
 
     try:
         while True:
