@@ -139,10 +139,10 @@ class Message:
         }
         return response
 
-    def _create_response_ctext(self):
+    def _create_response_ctext(self, fn):
         self.e_ans.wait()
         print("_create_response_ctext,  e_ans is set")
-        content = "preds.tar.gz"
+        content = fn
         f = open(content, 'rb')
         response = {
             "note":content,
@@ -286,7 +286,9 @@ class Message:
             print("[libserver] saving query ctxt done")
             self.q_text.put(filename)
             self.e_enc.set()
-            response = self._create_response_ctext()
+            self.e_ans.wait()# Wait for evaluator's answer
+            output_file = self.q_text.get()
+            response = self._create_response_ctext(output_file["filename"])
             
         elif "file" in self.jsonheader["content-type"]:
             with open(self.jsonheader['note'], "wb") as f:
