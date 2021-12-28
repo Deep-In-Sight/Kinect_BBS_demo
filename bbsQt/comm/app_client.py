@@ -41,12 +41,14 @@ def create_request(action, value):
 
 def start_connection(host, port, request):
     addr = (host, port)
-    print("starting connection to", addr)
+    print("[comm] starting connection to", addr)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     sock.connect_ex(addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = libclient.Message(sel, sock, addr, request)
+    #################################################
+    print(sel, sock, events, message) #############
     sel.register(sock, events, data=message)
 
 
@@ -70,11 +72,11 @@ def run_share_key(q_text, e_key, lock, debug=True):
     # File transfer request 
     
     if debug: print("[comm] sending keys", fn_tar)
-    print("fn_dict", fn_dict)
+    print("[comm] fn_dict", fn_dict)
     
     # fn_tar = "./keys2.tar.gz"
     ans = share_key(host, port, action, fn_tar)
-    print("run_share_key done")
+    print("[comm] run_share_key done \n")
     #q_text.put(ans)
 
 
@@ -99,12 +101,13 @@ def share_key(host, port, action, fn_key, debug=True):
                     message.close()
             # Check for a socket being monitored to continue.
             if not sel.get_map():
+                print("[share key] Breaking while loop")
                 break
     except KeyboardInterrupt:
         print("caught keyboard interrupt, exiting")
     finally:
-        sel.close()
-        print("connection closed.")
+        #sel.close()
+        print("[comm] connection closed.")
 
     
     ans = {'answer':"good"}
@@ -113,7 +116,7 @@ def share_key(host, port, action, fn_key, debug=True):
     
 
 
-def query(fn_dict, lock, e_enc, e_quit):
+def query(fn_dict, lock):
     host = '127.0.0.1' #'10.100.82.55'
     port = 2345
     action = "query"
@@ -124,8 +127,8 @@ def query(fn_dict, lock, e_enc, e_quit):
     fn_enc = fn_dict['fn_enc_skeleton']
     #print("[comm] found a encrypted data file:", fn_enc)
     if os.path.isfile(fn_enc):
-        print("communicator found ciphertext file:", fn_enc)
-        e_enc.clear()
+        print("[comm] communicator found ciphertext file:", fn_enc)
+        #e_enc.clear()
 
     # File transfer request 
     request = create_request(action, fn_enc)
@@ -150,9 +153,10 @@ def query(fn_dict, lock, e_enc, e_quit):
     except KeyboardInterrupt:
         print("caught keyboard interrupt, exiting")
     finally:
-        sel.close()
+        #sel.close() 
+        pass
 
 
     ans = {'filename':answer_list}
-    print("got a response from server")
+    print("[comm] got a response from server")
     return ans

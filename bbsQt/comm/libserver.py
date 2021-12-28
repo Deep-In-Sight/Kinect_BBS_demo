@@ -126,7 +126,7 @@ class Message:
             #answer = request_search.get(query) or f'No match for "{query}".'
         self.e_key.set()
         self.e_ans.wait()
-        print("_create_response_key,  e_ans is set")
+        print("[_create_response_key] e_ans is set")
         content = {"result": "Evaluator is ready"}
         #else:
         #    content = {"result": f'Error: invalid action "{action}".'}
@@ -182,7 +182,7 @@ class Message:
         self._write()
 
     def close(self):
-        print("closing connection to", self.addr)
+        print("[libserver] closing connection to", self.addr)
         try:
             self.selector.unregister(self.sock)
         except Exception as e:
