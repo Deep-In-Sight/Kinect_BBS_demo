@@ -160,7 +160,7 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True):
     new_marr = []
     for i, mm in enumerate(marrs):
         if np.sum(mm['frame']) >= 0:
-            print("check", i, np.sum(mm['frame']))
+            #print("check", i, np.sum(mm['frame']))
             new_marr.append(mm)
 
     return new_marr

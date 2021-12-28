@@ -10,9 +10,9 @@ from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_client
 from bbsQt.core.encryptor import HEAAN_Encryptor
 
-from PyQt5.QtWidgets import QApplication#, QMainWindow
+from PyQt5.QtWidgets import QApplication
 
-TEST=True
+TEST=False
 
 def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     app = QApplication(sys.argv)

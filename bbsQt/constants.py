@@ -12,6 +12,21 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
 
 location = ['DI', 'ETRI', 'local'][0]
 
+NFRAMES={'1':8,
+         '2':10,
+         '3':10,
+         '4':10,
+         '5':10,
+         '6':10,
+         '7':10,
+         '8':10,
+         '9':10,
+         '10':10,
+         '11':10,
+         '12':10,
+         '13':10,
+         '14':10}
+
 #def set_tcp(location):
 if location == "DI":
     HOST = '10.100.82.55'
