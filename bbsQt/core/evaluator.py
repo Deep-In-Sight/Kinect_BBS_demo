@@ -119,11 +119,7 @@ class HEAAN_Evaluator():
                                                                 do_reduction = False
                                                                 )
             print("[EVAL.model_loader] HNRF model loaded for class", action)
-            #featurizer = heaan_nrf.HomomorphicTreeFeaturizer(h_rf.return_comparator(),
-            #            self.scheme, self.parms)
-            #print("[EVAL.model_loader] featurizer loaded for class", action)
-            #model = {f"evaluator":nrf_evaluator,
-            #         f"featurizer":featurizer}
+            
             allmodels.append((f"{action}",nrf_evaluator))
         self.models = dict(allmodels)
 
