@@ -33,7 +33,8 @@ def merge_main_npy(main_list, prefix=""):
                                       ])
 
     for i, (ss, mp) in enumerate(zip(scene, main_person)):
-        cam, ID, class_name, score,_ = ss.split("_")
+        print(ss.split("_"))
+        cam, ID, class_name, score = ss.split("_")
         main[i]['cam'] = cam
         main[i]['ID'] = int(ID)
         main[i]['class'] = int(class_name)

@@ -7,12 +7,15 @@ import pandas as pd
 import shutil
 
 
+from bbsQt.model import rec_utils as ru
+from bbsQt.constants import NFRAMES
+
 #from PIL import Image
 #import random
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
-from PyQt5.QtGui import QPixmap, QIcon, QImage
+from PyQt5.QtGui import QPixmap, QIcon, QImage, QFont
 from PyQt5.QtPrintSupport import *
 
 from ..config import Config as setConfig
@@ -72,7 +75,7 @@ def load_image():
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk, q_answer, e_ans): #### 여기가 아닌가?
+    def __init__(self, q1, e_sk, q_answer, e_ans):
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -128,15 +131,19 @@ class QMyMainWindow(QWidget):
             self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
             self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
 
-                # Start cameras using modified configuration
+            # Start cameras using modified configuration
+            print("INIT, device index", self.btn.cameranum.currentIndex())
             self.device = pykinect.start_device(device_index=self.btn.cameranum.currentIndex(), config=self.device_config)
 
             # Initialize the body tracker
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex(), self.q1, self.e_sk, self.e_ans, self.q_answer)
+        
+        print("[QMAIN]", self.btn.cameranum.currentIndex())
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
+                                        self.PWD, self.btn.cameranum.currentIndex(), 
+                                        self.q1, self.e_sk, self.e_ans, self.q_answer)
 
         self.setLayout()
         self.initplot()
@@ -249,6 +256,7 @@ class QMyMainWindow(QWidget):
             self.btn.endtime.setText("F")
 
             print("Saving images done.")    
+            print("SAVE, device index", self.btn.cameranum.currentIndex())
 
             self.device = pykinect.start_device(device_index=self.btn.cameranum.currentIndex(), config=self.device_config)
             self.bodyTracker = pykinect.start_body_tracker()
@@ -315,9 +323,9 @@ class QMyMainWindow(QWidget):
         LayoutMain.addLayout(self.qScenario.getLayout(),49)
 
         # # add 2021.12.27  skindexbox connect 
-        self.skindexbtn0.clicked.connect(self.qthreadrec.p_save0)
-        self.skindexbtn1.clicked.connect(self.qthreadrec.p_save1)
-        self.skindexbtn2.clicked.connect(self.qthreadrec.p_save2)
+        self.skindexbtn0.clicked.connect(self.select_sk0)
+        self.skindexbtn1.clicked.connect(self.select_sk1)
+        self.skindexbtn2.clicked.connect(self.select_sk2)
 
         self.qScenario.end.clicked.connect(self.end)
         self.qScenario.save.clicked.connect(self.save)
@@ -326,6 +334,77 @@ class QMyMainWindow(QWidget):
     #     self.scatter2.set_offsets([[x,y]])            
     #     # plt.draw()
 
+    def select_sk0(self):
+        skindex =0
+        #print(f'[Qthread obj] skeleton index : {skindex}')
+        sub = ru.smoothed_frame_N(self.qthreadrec.skarr[skindex], 
+                                 nframe=NFRAMES[f'{self.ScenarioNo}'], 
+                                 shift=1)
+        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+
+        self.q1.put({"action":self.ScenarioNo,
+                "skeleton": skeleton})
+        print("[Qthread obj] is q1 empty?", self.q1.empty())
+        self.e_sk.set()
+        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+        
+        self.e_ans.wait()
+        		#self.viewInfo.setText(self.showinfo())
+        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(15)
+        self.qScenario.viewInfo.setFont(font)
+
+        self.e_ans.clear()
+    
+    def select_sk1(self):
+        skindex =1
+        #print(f'[Qthread obj] skeleton index : {skindex}')
+        sub = ru.smoothed_frame_N(self.qthreadrec.skarr[skindex], 
+                                 nframe=NFRAMES[f'{self.ScenarioNo}'], 
+                                 shift=1)
+        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+
+        self.q1.put({"action":self.ScenarioNo,
+                "skeleton": skeleton})
+        print("[Qthread obj] is q1 empty?", self.q1.empty())
+        self.e_sk.set()
+        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+        
+        self.e_ans.wait()
+        		#self.viewInfo.setText(self.showinfo())
+        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(15)
+        self.qScenario.viewInfo.setFont(font)
+
+        self.e_ans.clear()
+
+    def select_sk2(self):
+        skindex =2
+        #print(f'[Qthread obj] skeleton index : {skindex}')
+        sub = ru.smoothed_frame_N(self.qthreadrec.skarr[skindex], 
+                                 nframe=NFRAMES[f'{self.ScenarioNo}'], 
+                                 shift=1)
+        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+
+        self.q1.put({"action":self.ScenarioNo,
+                "skeleton": skeleton})
+        print("[Qthread obj] is q1 empty?", self.q1.empty())
+        self.e_sk.set()
+        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+        
+        self.e_ans.wait()
+        		#self.viewInfo.setText(self.showinfo())
+        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(15)
+        self.qScenario.viewInfo.setFont(font)
+
+        self.e_ans.clear()
 
 
     def resetRecordInterface(self):
@@ -427,7 +506,7 @@ class QMyMainWindow(QWidget):
         self.device.close()
         self.bodyTracker.destroy()
         #self.qthreadrec.quit()
-        print(self.btn.cameranum.currentIndex())
+        print("camera changed", self.btn.cameranum.currentIndex())
         #self.cameraindex = self.btn.cameranum.currentIndex()
         if ENABLE_PYK4A:
             # Modify camera configuration
@@ -435,14 +514,20 @@ class QMyMainWindow(QWidget):
             self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
             self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
 
-                # Start cameras using modified configuration
+            # Start cameras using modified configuration
+            print("CAMERA CHANGED, device index", self.btn.cameranum.currentIndex())
             self.device = pykinect.start_device(device_index=self.btn.cameranum.currentIndex(), config=self.device_config)
 
             # Initialize the body tracker
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex() ,self.q1, self.e_sk, self.e_ans, self.q_answer)
+        #self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
+                    #           self.PWD, self.btn.cameranum.currentIndex(),
+                    #           self.q1, self.e_sk, self.e_ans, self.q_answer)
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
+                                self.PWD, self.btn.cameranum.currentIndex(), 
+                                self.q1, self.e_sk, self.e_ans, self.q_answer)
     # todo class and score
     @pyqtSlot()
     def updateScenarioNo(self):
