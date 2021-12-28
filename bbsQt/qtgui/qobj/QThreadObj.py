@@ -164,8 +164,8 @@ class qThreadRecord(QThread):
                 maxframe_idx = idx
         
         
-        print('maxperson', maxValue)
-        print('maxframe idx',maxframe_idx)
+        print('[Qthread obj] maxperson', maxValue)
+        print('[Qthread obj] maxframe idx',maxframe_idx)
         #skarr  = ku.kinect2mobile_direct(self.stackJoint[maxframe_idx])
         self.skarr  = ku.kinect2mobile_direct_lists(self.stackJoint)
 
@@ -202,7 +202,7 @@ class qThreadRecord(QThread):
         #for i in range(int(Ncpu)):
         #idx[i] = idx[i].tolist()
 
-        print("Number of frames", len(self.stackColor))
+        print("[Qthread obj] Number of frames", len(self.stackColor))
         # queues = [Queue() for i in range(Ncpu)]
         t0 = time.time()
         #print(self.path_save)
@@ -231,7 +231,7 @@ class qThreadRecord(QThread):
         # todo 
         #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
 
-        print(f'skeleton index : {skindex}')
+        print(f'[Qthread obj] skeleton index : {skindex}')
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         nframe = 10 
         sub = ru.smoothed_frame_N(self.skarr[skindex], nframe=nframe, shift=1)
@@ -239,9 +239,9 @@ class qThreadRecord(QThread):
 
         self.q1.put({"action":self.ScenarioNo,
                 "skeleton": skeleton})
-        print("is q1 empty?", self.q1.empty())
+        print("[Qthread obj] is q1 empty?", self.q1.empty())
         self.e_sk.set()
-        print("is e_sk set?1", self.e_sk.is_set())
+        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
         
         self.e_ans.wait()
         		#self.viewInfo.setText(self.showinfo())
