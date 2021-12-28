@@ -279,7 +279,9 @@ class qThreadRecord(QThread):
             else:
                 color = 'tab:green'
             for j in ii:
-                ax.plot([i['x'+sa][idx]*1.4 for sa in j if i['x'+sa][idx] !=0], [i['y'+sa][idx]*1.2 for sa in j if i['x'+sa][idx] !=0], color=color, lw=5)
+                ax.plot([i['x'+sa][idx]*1.4 for sa in j if i['x'+sa][idx] !=0], 
+                        [i['y'+sa][idx]*1.2 for sa in j if i['x'+sa][idx] !=0],
+                        color=color, lw=10)
                 ax.axes.xaxis.set_visible(False)
                 ax.axes.yaxis.set_visible(False)        
         if save == 1:
