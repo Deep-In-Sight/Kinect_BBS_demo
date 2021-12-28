@@ -1,10 +1,7 @@
 import multiprocessing
-import pickle
 import sys
-import os
 import multiprocessing as mplti
 from time import time
-import bbsQt
 
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_server
@@ -100,12 +97,14 @@ def main():
     sys.exit()
     #e_quit.wait()
     
-    
-    
-
 
 if __name__ == '__main__':
-	main()
+
+    # if len(sys.argv) != 2:
+    #     print("usage:", sys.argv[0], "choose one: [DI, ETRI, local]")
+    #     sys.exit(1)
+    # location = sys.argv[1]
+    main()
 
     # while True:
     #     qq = q1.get()
