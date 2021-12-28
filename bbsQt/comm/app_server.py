@@ -4,14 +4,14 @@ import selectors
 import traceback
 from . import libserver
 
-HOST = "10.100.82.55"
+HOST = '127.0.0.1'#"10.100.82.55"
 PORT = 2345
 sel = selectors.DefaultSelector()
 
 
 def accept_wrapper(sock, q_text, e_key, e_enc, e_ans):
     conn, addr = sock.accept()  # Should be ready to read
-    print("accepted connection from", addr)
+    print("[server comm] accepted connection from", addr)
     conn.setblocking(False)
     message = libserver.Message(sel, conn, addr, q_text, e_key, e_enc, e_ans)
     sel.register(conn, selectors.EVENT_READ, data=message)
@@ -55,6 +55,7 @@ def run_server(q_text, e_key, e_enc, e_ans, lock):
                             f"{message.addr}:\n{traceback.format_exc()}",
                         )
                         message.close()
+                        print("[server comm] message closed")
     except KeyboardInterrupt:
         print("caught keyboard interrupt, exiting")
     finally:

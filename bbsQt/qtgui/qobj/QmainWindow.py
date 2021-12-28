@@ -26,6 +26,8 @@ from datetime import datetime
 
 #import qobj.QSkeleton
 import time
+
+from bbsQt.qtgui.qobj import QButtons
 #import matplotlib.pyplot as plt
 #import src.image as imgutil
 
@@ -73,10 +75,9 @@ def load_image():
     return pixmap
 
 
-
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk, q_answer): #### 여기가 아닌가?
+    def __init__(self, q1, e_sk, q_answer, e_ans): #### 여기가 아닌가?
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -91,8 +92,10 @@ class QMyMainWindow(QWidget):
         self.increasing_alpha = True
         self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
 
+        self.q_answer = q_answer
+        self.e_ans = e_ans
         self.recordReady = False
-
+        
         # add 2021/12/23 
         #self.cameraindex = 0
 
@@ -102,6 +105,7 @@ class QMyMainWindow(QWidget):
         #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
         self.qScenario = qScenario(self, self.PWD, q_answer)
+
         self.config = setConfig() # to be added
         #self.qSkeleton = qSkeleton()
 
@@ -137,7 +141,7 @@ class QMyMainWindow(QWidget):
         else:
             self.pyK4A = None
 
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex())
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex(), self.q1, self.e_sk, self.e_ans, self.q_answer)
 
         self.setLayout()
         self.initplot()
@@ -160,7 +164,7 @@ class QMyMainWindow(QWidget):
 
         # self.startRecord.connect(self.moveCheckerCoord)
         self.startRecord.connect(self.recordImages)
-    
+
     def st(self):
         self.btn.endtime.setText("F")
 
@@ -193,7 +197,7 @@ class QMyMainWindow(QWidget):
                                  self.qScenario.Correction)
             
             self.stackPoints.to_csv(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/BT/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}/points_data.csv")
-            self.qthreadrec.save_multiproc(self.q1, self.e_sk)
+            self.qthreadrec.save_multiproc()
 
             while self.qthreadrec.is_recoding():
                 time.sleep(2)
@@ -231,7 +235,10 @@ class QMyMainWindow(QWidget):
 
             print("Main Windows: is q1 empty?", self.q1.empty())
             print("Main Windows: is e_sk set?", self.e_sk.is_set())
-            self.qthreadrec.save_multiproc(self.q1, self.e_sk)
+            
+            # skimage 를 뽑고 이걸 skimage label 넣는다. 
+            skimage = self.qthreadrec.save_multiproc()
+            self.skimageLabel.setPixmap(skimage)
 
             while self.qthreadrec.is_recoding():
                 time.sleep(2)
@@ -268,14 +275,40 @@ class QMyMainWindow(QWidget):
         LayoutViewers.addLayout(self.imgviwerRGB.getLayout(),1)
         LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
         #LayoutViewers.addLayout(self.imgviwerIRtest.getLayout(),1)
-        #
-        qlabel_confirm = QLabel()
         
-        qlabel_confirm.setPixmap(load_image())
+        self.skimageLabel = QLabel()
         
-        #qlabel_confirm.set_layout()
+        self.skimageLabel.setPixmap(load_image())
+        
+        # add 2021.12.27 skindexbtn
+        self.skindexbtn0 = QPushButton()
+        self.skindexbtn0.setCheckable(False)
+        self.skindexbtn0.setText('blue')
+        self.skindexbtn0.setMinimumHeight(40)
 
-        LayoutViewers.addLayout(get_layout(qlabel_confirm))
+        self.skindexbtn1 = QPushButton()
+        self.skindexbtn1.setCheckable(False)
+        self.skindexbtn1.setText('orange')
+        self.skindexbtn1.setMinimumHeight(40)
+
+        self.skindexbtn2 = QPushButton()
+        self.skindexbtn2.setCheckable(False)
+        self.skindexbtn2.setText('green')
+        self.skindexbtn2.setMinimumHeight(40)
+        #skimageLabel.set_layout()
+        
+        # add 2021.12.27 skbtnlayout
+        skBBoxLayout = QVBoxLayout()
+
+        # sk select viewr
+        LayoutViewers.addLayout(get_layout(self.skimageLabel))
+
+        
+        skBBoxLayout.addWidget(self.skindexbtn0)
+        skBBoxLayout.addWidget(self.skindexbtn1)
+        skBBoxLayout.addWidget(self.skindexbtn2)
+        LayoutViewers.addLayout(skBBoxLayout)
+
         LayoutViewers.addLayout(QVBoxLayout(),7)
 
 
@@ -285,6 +318,11 @@ class QMyMainWindow(QWidget):
         LayoutMain.addLayout(LayoutViewers,39)
         LayoutMain.addLayout(LayoutFunctions,1)
         LayoutMain.addLayout(self.qScenario.getLayout(),49)
+
+        # # add 2021.12.27  skindexbox connect 
+        self.skindexbtn0.clicked.connect(self.qthreadrec.p_save0)
+        self.skindexbtn1.clicked.connect(self.qthreadrec.p_save1)
+        self.skindexbtn2.clicked.connect(self.qthreadrec.p_save2)
 
         self.qScenario.end.clicked.connect(self.end)
         self.qScenario.save.clicked.connect(self.save)
@@ -409,7 +447,7 @@ class QMyMainWindow(QWidget):
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex())
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, self.PWD, self.btn.cameranum.currentIndex() ,self.q1, self.e_sk, self.e_ans, self.q_answer)
     # todo class and score
     @pyqtSlot()
     def updateScenarioNo(self):

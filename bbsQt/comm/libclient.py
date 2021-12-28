@@ -247,8 +247,10 @@ class Message:
             self.close()
             return fn_list
         elif self.jsonheader["content-type"] == "key":
+            
             # Save received file
             response = self.jsonheader['note']
+            self.close()
             return response
         else:
             # Binary or unknown content-type

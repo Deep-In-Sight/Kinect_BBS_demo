@@ -28,11 +28,13 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 
 
 class qScenario(QObject):
-	def __init__(self, qmain, pwd, q_answer):
+	def __init__(self, qmain, pwd, q_answer, ):
 		super(qScenario, self).__init__(qmain)
 		self.obj = ""
 		self.PWD = pwd
 		self.qmain = qmain	
+
+		self.text_answer = ""
 		self.q_answer = q_answer
 
 		self.ScenarioNo = 0
@@ -54,7 +56,6 @@ class qScenario(QObject):
 		self.currentRecSeq = 0
 		self.currentRecCheck = False
 		self.imgRecSizes = [0,0,0,0,0] # color, ir, depth, rec time, num frames
-		
 
 	def updateRecImgSizes(self, imgsizes):
 		self.imgRecSizes[0] += imgsizes[0]
@@ -345,7 +346,7 @@ class qScenario(QObject):
 		self.RECEndTimeInput.setText(str(settime))
 
 	def update(self):
-		self.viewInfo.setText(self.showinfo())
+		#self.viewInfo.setText(self.showinfo())
 		#self.sizeInfo.setText(self.showSizeInfo())
 		QApplication.processEvents()
 
@@ -376,8 +377,8 @@ class qScenario(QObject):
 
 	def showinfo(self):
 		if not self.q_answer.empty():
-			self.text_answer = self.q_text.get()
-		info 	 = f" {self.text_answer}   <<< add result>>>\n"
+			self.text_answer = self.q_answer.get()
+		info 	 = f" {self.text_answer} <<< Waiting for prediction... >>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"
 		# #info 	+= f"[Record Time] {self.MinRecordTime} sec\n"
@@ -749,7 +750,7 @@ class qScenario(QObject):
 		LayoutInfo = QVBoxLayout()
 
 		self.viewInfo = QLabel()
-		self.viewInfo.setAlignment(Qt.AlignLeft)
+		self.viewInfo.setAlignment(Qt.AlignCenter)
 		self.viewInfo.setScaledContents(True)
 		self.viewInfo.setText(self.showinfo())
 		self.viewInfo.setMinimumHeight(30)

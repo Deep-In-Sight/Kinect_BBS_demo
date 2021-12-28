@@ -38,7 +38,7 @@ def compress_files(fn_tar, fn_list):
 
 
 class HEAAN_Evaluator():
-    def __init__(self, e_key, lock, key_path, e_ans):
+    def __init__(self, lock, key_path, e_ans):
         lock.acquire()# 이렇게 하는건가? 
 
         logq = 540
@@ -55,7 +55,6 @@ class HEAAN_Evaluator():
 
         self.ring = he.Ring()
         
-        e_key.wait()
         if not key_found(key_path):
             self.get_keys()
         

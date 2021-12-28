@@ -55,8 +55,9 @@ def compress_files(fn_tar, fn_list):
 
 
 class HEAAN_Encryptor():
-    def __init__(self, q_text, e_key, lock, key_path, debug=True, tar=True):
-        lock.acquire()# 이렇게 하는건가? 
+    def __init__(self, q_text, e_key, lock, key_path, 
+                debug=True, tar=True, test=False):
+        #lock.acquire()# 이렇게 하는건가? 
 
         logq = 540
         logp = 30
@@ -67,7 +68,6 @@ class HEAAN_Encryptor():
         self.key_path = key_path
         if debug: print("[ENCRYPTOR] key path", key_path)
 
-        do_reduction = False
         is_serialized = True
 
         self.ring = he.Ring()
@@ -78,7 +78,12 @@ class HEAAN_Encryptor():
         self.scheme.addLeftRotKey(self.secretKey, 1)
 
         if tar:
-            fn_tar = "keys.tar.gz"
+            if test:
+                # Very small file for test purpose
+                # Real files should had been passed to the server in advance.
+                fn_tar = "test.tar.gz"
+            else:
+                fn_tar = "keys.tar.gz"
             compress_files(fn_tar, [key_path+'serkey/'+fn for fn in FN_KEYS])
             q_text.put({"root_path":key_path, 
                        "keys_to_share":fn_tar})
@@ -96,7 +101,7 @@ class HEAAN_Encryptor():
         # del ctxt
 
 
-        lock.release()
+        #lock.release()
 
     def _quick_check(self):
         scheme = self.scheme
@@ -117,13 +122,12 @@ class HEAAN_Encryptor():
     
         i=0
         while True:
-            e_sk.wait()
+            e_sk.wait()  ## FLOW CONTROL
             print("[Encryptor] good to go") 
-            sk = q1.get()
+            sk = q1.get()  ## FLOW CONTROL
             
-            e_sk.clear() # reset skeleton event
+            e_sk.clear()  ## FLOW CONTROL: reset skeleton event
             
-            if debug: print("[Encryptor] e_enc set?", e_enc.is_set())
             if not 'skeleton' in sk.keys():
                 raise LookupError("Can't find skeleton in queue")    
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
@@ -136,18 +140,16 @@ class HEAAN_Encryptor():
             he.SerializationUtils.writeCiphertext(ctx1, fn)
             if debug: print("[Encryptor] Ctxt wrote")
 
-            q1.put({"fn_enc_skeleton": fn})
+            q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
             if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
-            e_enc.set() # Tell encryption is done and file is ready
+            e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
             
-            
-            #time.sleep(1)
             if debug: print("[Encryptor] Waiting for prediction...")
 
-            # Decrypt
-            e_enc_ans.wait()
+            # Decrypt answer
+            e_enc_ans.wait()  ## FLOW CONTROL
             preds = []
-            fn_preds = q_text.get()
+            fn_preds = q_text.get()  ## FLOW CONTROL
             print("fn_preds", fn_preds)
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
@@ -165,10 +167,12 @@ class HEAAN_Encryptor():
             print("preds", preds)
             ans_str = f"Predicted score: {np.argmax(preds)}"
             print(ans_str)
-            e_enc_ans.clear()
+            e_enc_ans.clear()  ## FLOW CONTROL
+            
+            # 복호화된 결과 QT로 전송
+            q_answer.put(ans_str)  ## FLOW CONTROL
+            e_ans.set()  ## FLOW CONTROL
+
             i+=1
-            ## text를 넣고 QT가 받아가게 해야함. 어떻게 할까? 
-            q_answer.put(ans_str)
-            #e_ans.set()
 
 

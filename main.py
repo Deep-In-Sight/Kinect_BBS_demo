@@ -12,8 +12,9 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
+TEST=True
 
-def run_qt_app(q1, q_answer, lock, e_sk, e_ans):
+def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
     imageEditor = QMyMainWindow(q1, e_sk, q_answer, e_ans) ### 여기가 아닌가? 
@@ -23,34 +24,32 @@ def run_qt_app(q1, q_answer, lock, e_sk, e_ans):
     #e_quit.wait()
     #quit
 
-
 def run_encryptor(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
-    key_path = './'
-    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
-    #print(henc.prams.n)
-    #e_key.wait()
-    app_client.run_share_key(q_text, e_key, lock)
+    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path, test=TEST)
+     #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
-
 
 
 def run_communicator(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock):
     # 1. send keys to server and do quick check
-    #e_key.wait()
-    #app_client.run_share_key(q_text, e_key, lock)
+    e_key.wait()
+    app_client.run_share_key(q_text, e_key, lock)
+
     while True:
+        print("[run comm] waiting for ctxt.....")
         e_enc.wait()
         print("[run_comm] e_enc passed. Ctxt is ready")
         fn_dict = q1.get()
+        print("[run_comm] file name:", fn_dict)
+        answer = app_client.query(fn_dict, lock)
+        e_enc.clear()
         
-        answer = app_client.query(fn_dict, lock, e_enc, e_quit)
-        
-        print("[run_comm] ", answer)
+        print("[run_comm] got an answer", answer)
         # ENCRYPTED answer
         q_text.put(answer['filename']) # put encrypted answer filename
-        print("Prediction file names are ready")
+        print("[run_comm] Prediction file names are ready")
         e_enc_ans.set()
-        print("e_enc_ans set")
+        print("[run_comm] e_enc_ans set")
 
     
 def main():
@@ -87,7 +86,7 @@ def main():
     e_quit.clear()
 
     p_socket = mplti.Process(target=run_communicator, 
-    args=(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock), daemon=False)
+            args=(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock), daemon=False)
     p_socket.start()
 
     
