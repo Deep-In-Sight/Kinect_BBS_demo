@@ -4,10 +4,11 @@ import numpy as np
 import os 
 import time
 import tarfile
+from bbsQt.constants import FN_KEYS, HEAAN_CONTEXT_PARAMS
 
-FN_KEYS = ["ENCRYPTION.txt",
-           "MULTIPLICATION.txt",
-           "ROTATION_1.txt"]
+# FN_KEYS = ["ENCRYPTION.txt",
+#            "MULTIPLICATION.txt",
+#            "ROTATION_1.txt"]
 
 class Param():
     def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
@@ -59,9 +60,9 @@ class HEAAN_Encryptor():
                 debug=True, tar=True, test=False):
         #lock.acquire()# 이렇게 하는건가? 
 
-        logq = 540
-        logp = 30
-        logn = 14
+        logq = HEAAN_CONTEXT_PARAMS['logq']#540
+        logp = HEAAN_CONTEXT_PARAMS['logp']#30
+        logn = HEAAN_CONTEXT_PARAMS['logn']#14
         n = 1*2**logn
 
         self.parms = Param(n=n, logp=logp, logq=logq)

@@ -5,10 +5,11 @@ import numpy as np
 import os
 import tarfile
 import pickle
+from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS
 
-FN_KEYS = ["ENCRYPTION.txt",
-           "MULTIPLICATION.txt",
-           "ROTATION_1.txt"]
+# FN_KEYS = ["ENCRYPTION.txt",
+#            "MULTIPLICATION.txt",
+#            "ROTATION_1.txt"]
 
 class Param():
     def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
@@ -40,18 +41,14 @@ def compress_files(fn_tar, fn_list):
 class HEAAN_Evaluator():
     def __init__(self, lock, key_path, e_ans):
         lock.acquire()# 이렇게 하는건가? 
-
-        logq = 540
-        logp = 30
-        logn = 14
+        logq = HEAAN_CONTEXT_PARAMS['logq']#540
+        logp = HEAAN_CONTEXT_PARAMS['logp']#30
+        logn = HEAAN_CONTEXT_PARAMS['logn']#14
         n = 1*2**logn
 
         self.parms = Param(n=n, logp=logp, logq=logq)
         self.key_path = key_path
         print("[ENCRYPTOR] key path", key_path)
-
-        do_reduction = False
-        is_serialized = True
 
         self.ring = he.Ring()
         
@@ -110,7 +107,7 @@ class HEAAN_Evaluator():
                 he.SerializationUtils.writeCiphertext(pred, fn)
                 fn_preds.append(fn)
             if tar:
-                fn_tar = "preds.tar.gz"
+                fn_tar = FN_PREDS#"preds.tar.gz"
                 compress_files(fn_tar, fn_preds)
                 q_text.put({"root_path":'./', 
                         "keys_to_share":fn_tar})
