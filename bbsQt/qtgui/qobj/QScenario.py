@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import * 
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QApplication, QPushButton, QHBoxLayout, QVBoxLayout, QComboBox, QLabel, QLineEdit
+from PyQt5.QtCore import QTime, QObject, Qt, pyqtSlot
+from PyQt5.QtGui import QFont, QIcon
 import os
 from ..config import Config as setConfig
 import subprocess
@@ -377,7 +377,8 @@ class qScenario(QObject):
 
 	def showinfo(self):
 		if not self.q_answer.empty():
-			self.text_answer = self.q_answer.get()
+			answer = f'Action #{self.ScenarioNo} \n'+ self.q_answer.get()
+			self.text_answer = answer
 		info 	 = f" {self.text_answer} <<< Waiting for prediction... >>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"

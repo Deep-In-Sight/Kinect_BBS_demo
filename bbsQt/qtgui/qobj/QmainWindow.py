@@ -9,9 +9,10 @@ import shutil
 
 #from PIL import Image
 #import random
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import * 
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
+                            QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
+from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
+from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PyQt5.QtPrintSupport import *
 
 from ..config import Config as setConfig
@@ -28,12 +29,6 @@ from datetime import datetime
 import time
 
 from bbsQt.qtgui.qobj import QButtons
-#import matplotlib.pyplot as plt
-#import src.image as imgutil
-
-#import subprocess
-
-#plt.rcParams['toolbar'] = 'None'
 
 ENABLE_PYK4A = True
 from ..pykinect_azure import pykinect
@@ -63,7 +58,7 @@ def get_layout(mylabel):
 
 
 def load_image():
-    fn_img = "/home/hoseung/Work/Kinect_BBS_demo/G1/000/RGB/a_0001.jpg"
+    fn_img = "default_img.jpg"
     img = cv2.imread(fn_img)
     #img = imgutil.rgb2gray(img)
     img = cv2.resize(img, (480, 270))

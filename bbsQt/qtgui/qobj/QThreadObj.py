@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
+from bbsQt.constants import NFRAMES
 
 WAIT = 0.01
 
@@ -233,8 +234,7 @@ class qThreadRecord(QThread):
 
         print(f'[Qthread obj] skeleton index : {skindex}')
         #scene = ku.kinect2mobile_direct(self.stackJoint)
-        nframe = 10 
-        sub = ru.smoothed_frame_N(self.skarr[skindex], nframe=nframe, shift=1)
+        sub = ru.smoothed_frame_N(self.skarr[skindex], nframe=NFRAMES[f'{self.ScenarioNo}'], shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
         self.q1.put({"action":self.ScenarioNo,
@@ -279,7 +279,9 @@ class qThreadRecord(QThread):
             else:
                 color = 'tab:green'
             for j in ii:
-                ax.plot([i['x'+sa][idx]*1.4 for sa in j if i['x'+sa][idx] !=0], [i['y'+sa][idx]*1.2 for sa in j if i['x'+sa][idx] !=0], color=color, lw=5)
+                ax.plot([i['x'+sa][idx]*1.4 for sa in j if i['x'+sa][idx] !=0], 
+                        [i['y'+sa][idx]*1.2 for sa in j if i['x'+sa][idx] !=0],
+                        color=color, lw=10)
                 ax.axes.xaxis.set_visible(False)
                 ax.axes.yaxis.set_visible(False)        
         if save == 1:
