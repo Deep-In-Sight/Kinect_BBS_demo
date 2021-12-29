@@ -20,13 +20,13 @@ def createSSHClient(server, port, user, password):
     client.connect(server, port, user, password)
     return client
 
-ssh = createSSHClient(HOST, SCP_PORT, S_ACCOUNT, S_PASSWORD)
-scp = SCPClient(ssh.get_transport())
+#ssh = createSSHClient(HOST, SCP_PORT, S_ACCOUNT, S_PASSWORD)
+#scp = SCPClient(ssh.get_transport())
 
 
-def send_scp(fn):
-    scp.put(fn, DIR_KEY_SERVER)
-    print("put", fn, "to", DIR_KEY_SERVER)
+#def send_scp(fn):
+#    scp.put(fn, DIR_KEY_SERVER)
+#    print("put", fn, "to", DIR_KEY_SERVER)
 
 
 def untar(fn_tar):
@@ -110,9 +110,9 @@ class Message:
         }
         jsonheader_bytes = self._json_encode(jsonheader, "utf-8")
         message_hdr = struct.pack(">H", len(jsonheader_bytes))
-        print(message_hdr)
-        print(jsonheader_bytes)
-        print(content_bytes)
+        #print(message_hdr)
+        #print(jsonheader_bytes)
+        #print(content_bytes)
         message = message_hdr + jsonheader_bytes + content_bytes
         return message
 

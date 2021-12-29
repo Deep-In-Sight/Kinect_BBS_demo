@@ -55,10 +55,15 @@ def create_request(action, value):
 
 def start_connection(host, port, request):
     addr = (host, port)
-    print("[comm] starting connection to", addr)
+    #print("[comm] starting connection to", addr)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
+    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    #print("addr", addr)
     sock.connect_ex(addr)
+    
+    print("socket connecting???")
+
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = libclient.Message(sel, sock, addr, request)
     #################################################
@@ -86,7 +91,7 @@ def run_share_key(q_text, e_key, lock, debug=True):
         #e_enc.clear()
 
     # File transfer request 
-    subprocess.call(["/home/hoseung/anaconda3/envs/newbbs/bin/python", "send_key.py", "serkey"])
+    subprocess.call(["/home/ict04/anaconda3/envs/bbs/bin/python", "send_key.py", "serkey"])
     print("___________")
     if debug: print("[comm] sending keys", fn_tar)
     print("[comm] fn_dict", fn_dict)
