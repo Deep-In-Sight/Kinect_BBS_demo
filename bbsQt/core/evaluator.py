@@ -5,7 +5,7 @@ import pickle
 import torch
 
 import fase
-fase.USE_FPGA = True
+fase.USE_FPGA = False
 from fase.core.heaan import he
 #from fase import heaan_loader
 #he = heaan_loader.load()
