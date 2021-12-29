@@ -110,20 +110,20 @@ class Message:
         }
         jsonheader_bytes = self._json_encode(jsonheader, "utf-8")
         message_hdr = struct.pack(">H", len(jsonheader_bytes))
-        print(message_hdr)
-        print(jsonheader_bytes)
-        print(content_bytes)
+        #print(message_hdr)
+        #print(jsonheader_bytes)
+        #print(content_bytes)
         message = message_hdr + jsonheader_bytes + content_bytes
         return message
 
     def _process_response_json_content(self):
         content = self.response
         result = content.get("result")
-        print(f"got result: {result}")
+        #print(f"got result: {result}")
 
     def _process_response_binary_content(self):
         content = self.response
-        print(f"got response: {repr(content)}")
+        #print(f"got response: {repr(content)}")
 
     def process_events(self, mask):
         if mask & selectors.EVENT_READ:

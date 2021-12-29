@@ -156,7 +156,7 @@ class Message:
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
-            #print("[process_events], EVENT_WRITE")
+            print("[process_events], EVENT_WRITE")
             self.write()
 
     def read(self):
@@ -168,6 +168,7 @@ class Message:
         if self._jsonheader_len is not None:
             if self.jsonheader is None:
                 self.process_jsonheader()
+        print("processed Json Header")
 
         if self.jsonheader:
             if self.request is None:
@@ -269,21 +270,24 @@ class Message:
 
     def create_response(self):
         print("[libserver] in create_response")
-        # if self.jsonheader["content-type"] == "key":
-        #     # Save received file
-        #     with open(self.jsonheader['note'], "wb") as f:
-        #         f.write(self.request)
-        #     # Untar received file
-        #     fn_file = self.jsonheader['note']
-        #     fn_list = untar(fn_file)
-        #     print("[libserver] received file", fn_list, "from", self.addr)
+        if self.jsonheader["content-type"] == "key":
+            # Save received file
+            with open(self.jsonheader['note'], "wb") as f:
+                f.write(self.request)
+            # Untar received file
+            #fn_file = self.jsonheader['note']
+            fn_list = untar("./keys.tar.gz")
+            print("[libserver] received file", fn_list, "from", self.addr)
 
         #     response = self._create_response_key()
-        if self.jsonheader["content-type"] == "key":
+        if self.jsonheader["content-type"] == "text/json":
             # Untar received file
-            fn_file = self.jsonheader['note']
-            fn_list = untar(fn_file)
-            print("[libserver] received file", fn_list, "from", self.addr)
+            #fn_file = self.jsonheader['note']
+            if self.jsonheader['note'] == "key":
+                print("AAAAAAAAAAAA")
+                #print(fn_file)
+                fn_list = untar("./keys.tar.gz")
+                print("[libserver] received file", fn_list, "from", self.addr)
 
             response = self._create_response_key()            
         elif self.jsonheader["content-type"] == "ctxt":
@@ -296,6 +300,7 @@ class Message:
             self.e_ans.wait()# Wait for evaluator's answer
             output_file = self.q_text.get()
             response = self._create_response_ctext(output_file["filename"])
+            
             
         elif "file" in self.jsonheader["content-type"]:
             with open(self.jsonheader['note'], "wb") as f:

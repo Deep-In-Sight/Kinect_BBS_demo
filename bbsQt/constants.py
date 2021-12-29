@@ -36,7 +36,7 @@ elif location == "local":
     PORT = 2345
 elif location == "ETRI":
     HOST = '61.74.232.166'
-    PORT = 6543
+    PORT = 2345
     
 #    return HOST, PORT
 DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/"

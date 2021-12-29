@@ -27,8 +27,6 @@ def run_server(q_text, e_key, e_enc, e_ans, lock):
     """
     The resultant prediction file name is assumed.
     """
-
-
     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Avoid bind() exception: OSError: [Errno 48] Address already in use
     lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

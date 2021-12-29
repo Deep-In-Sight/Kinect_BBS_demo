@@ -86,7 +86,7 @@ def run_share_key(q_text, e_key, lock, debug=True):
         #e_enc.clear()
 
     # File transfer request 
-    subprocess.call(["/home/hoseung/anaconda3/envs/newbbs/bin/python", "send_key.py", "serkey"])
+    subprocess.call(["/home/etri_ai1/anaconda3/envs/bbs/bin/python", "send_key.py", "serkey"])
     print("___________")
     if debug: print("[comm] sending keys", fn_tar)
     print("[comm] fn_dict", fn_dict)
