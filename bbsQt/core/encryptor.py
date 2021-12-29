@@ -199,6 +199,7 @@ class HEAAN_Encryptor():
                 raise LookupError("Can't find skeleton in queue")    
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
             if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
+            print("sk['action']", sk['action'])
             action = sk['action']
 
             sc = self.scalers[action]

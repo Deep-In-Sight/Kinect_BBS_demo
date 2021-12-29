@@ -147,7 +147,7 @@ def query(fn_dict, lock):
 
     # File transfer request 
     request = create_request(action, fn_enc)
-    print("[comm] request", request)
+    #print("[comm] request", request)
     start_connection(HOST, PORT, request)
 
     try:
