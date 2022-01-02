@@ -30,15 +30,22 @@ NFRAMES={'1':8,
 if location == "DI":
     HOST = '10.100.82.55'
     PORT = 2345
+
+    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
+    COPY_SCRIPT='send_key.py'
 elif location == "local":
     HOST = '127.0.0.1'
     PORT = 2345
     DIR_KEY_SERVER = "./server/"
+    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
+    COPY_SCRIPT='send_key_cp.py'
 elif location == "ETRI":
     HOST = '61.74.232.166'
     PORT = 2345
     DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/"
     S_ACCOUNT = 'etri_ai1'
     S_PASSWORD = 'etri_ai1'
+    BIN_PYTHON='/home/etri_ai1/anaconda3/envs/bbs/bin/python'
+    COPY_SCRIPT='send_key.py'
     
 SCP_PORT = 22
