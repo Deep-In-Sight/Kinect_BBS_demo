@@ -272,14 +272,11 @@ class Message:
         print("[libserver] in create_response")
         if self.jsonheader["content-type"] == "key":
             # Save received file
-            with open(self.jsonheader['note'], "wb") as f:
-                f.write(self.request)
-            # Untar received file
-            #fn_file = self.jsonheader['note']
-            fn_list = untar("./keys.tar.gz")
+            fn_list = self.jsonheader['note']
             print("[libserver] received file", fn_list, "from", self.addr)
-
-        #     response = self._create_response_key()
+            
+            # tell server is ready?
+            response = self._create_response_key()
         if self.jsonheader["content-type"] == "text/json":
             # Untar received file
             #fn_file = self.jsonheader['note']

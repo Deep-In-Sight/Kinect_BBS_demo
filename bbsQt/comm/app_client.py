@@ -7,7 +7,7 @@ import selectors
 import traceback
 
 from . import libclient
-from bbsQt.constants import HOST, PORT
+from bbsQt.constants import COPY_SCRIPT, HOST, PORT, BIN_PYTHON
 #from bbsQt.constants import DIR_KEY_SERVER, S_ACCOUNT, S_PASSWORD, SCP_PORT
 
 # only one selector throughout the application.
@@ -37,12 +37,6 @@ def create_request(action, value):
             encoding='binary',
             content=value  # file name
         )
-    # elif action == "query":
-    #     return dict(
-    #         type="ctxt",
-    #         encoding='binary',
-    #         content=value  # file name
-    #     )
     elif action == "query":
         return dict(
             type="ctxt",
@@ -84,24 +78,21 @@ def run_share_key(q_text, e_key, lock, debug=True):
     # fn_dict = {"root_path":key_path, "keys_to_share":fn_tar}
 
     key_path = fn_dict['root_path']
-    # fn_tar = fn_dict['keys_to_share']
+    fn_keys = fn_dict['keys_to_share']
     # print("[comm] sending gzipped key file:", fn_tar)
     # if os.path.isfile(fn_tar):
     #     print("[comm] found HEAAN keys:", fn_tar)
         #e_enc.clear()
 
     # File transfer request 
-    subprocess.call(["/home/etri_ai1/anaconda3/envs/bbs/bin/python", 
-                     "send_key.py", key_path])
+    subprocess.call([BIN_PYTHON, 
+                     COPY_SCRIPT, key_path])
     print("___________")
     # if debug: print("[comm] sending keys", fn_tar)
     print("[comm] fn_dict", fn_dict)
     
-
-
-    fn_key 꼭 필요한가? 
-
-    share_key(HOST, PORT, action, fn_tar)
+    print("[app_clien][run_share_key] passing fn_tar to share_key()", fn_keys)
+    share_key(HOST, PORT, action, fn_keys)
     print("[comm] run_share_key done \n")
     #q_text.put(ans)
 
