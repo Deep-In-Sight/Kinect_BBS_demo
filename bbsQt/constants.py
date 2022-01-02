@@ -41,5 +41,4 @@ elif location == "ETRI":
     S_ACCOUNT = 'etri_ai1'
     S_PASSWORD = 'etri_ai1'
     
-
 SCP_PORT = 22

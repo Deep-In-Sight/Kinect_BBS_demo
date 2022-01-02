@@ -20,14 +20,6 @@ BLOCKSIZE = 2**16
 #     client.connect(server, port, user, password)
 #     return client
 
-# ssh = createSSHClient(HOST, SCP_PORT, S_ACCOUNT, S_PASSWORD)
-# scp = SCPClient(ssh.get_transport())
-
-
-# def send_scp(fn):
-#     scp.put(fn, DIR_KEY_SERVER)
-#     print("put", fn, "to", DIR_KEY_SERVER)
-
 
 def untar(fn_tar):
     if fn_tar.endswith("tar.gz"):

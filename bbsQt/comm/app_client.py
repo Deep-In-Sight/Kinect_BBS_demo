@@ -59,10 +59,15 @@ def create_request(action, value):
 
 def start_connection(host, port, request):
     addr = (host, port)
-    print("[comm] starting connection to", addr)
+    #print("[comm] starting connection to", addr)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
+    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    #print("addr", addr)
     sock.connect_ex(addr)
+    
+    print("socket connecting???")
+
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = libclient.Message(sel, sock, addr, request)
     #################################################
