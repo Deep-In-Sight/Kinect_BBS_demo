@@ -1,10 +1,7 @@
 import multiprocessing
-import pickle
 import sys
 import os
 import multiprocessing as mplti
-from time import time
-import bbsQt
 
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_client
@@ -12,7 +9,7 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 
 from PyQt5.QtWidgets import QApplication
 
-TEST=False
+TEST=True
 
 def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     app = QApplication(sys.argv)
@@ -59,9 +56,13 @@ def main():
 
     q1 = ctx.Queue(maxsize=8)
     q_text = ctx.Queue(maxsize=8)
+    """
+    Ecryptor puts key file information to q_textvas:
+    {"root_path":key_path, "keys_to_share":fn_tar}
+    """
     q_answer = ctx.Queue(maxsize=8)
 
-    # Key existence
+    # Key exists
     e_key = multiprocessing.Event()
     e_key.clear()
     
@@ -69,17 +70,17 @@ def main():
     e_sk = multiprocessing.Event()
     e_sk.clear()
 
-    # Ciphertext saved
+    # Query ciphertext saved
     e_enc = multiprocessing.Event()
     e_enc.clear()
 
-    # answer saved
-    e_ans = multiprocessing.Event()
-    e_ans.clear()
-
-    # answer saved
+    # Encrypted prediction saved
     e_enc_ans = multiprocessing.Event()
     e_enc_ans.clear()
+
+    # Decrypted prediction saved
+    e_ans = multiprocessing.Event()
+    e_ans.clear()
 
     # Quit the application
     e_quit = multiprocessing.Event()
