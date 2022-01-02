@@ -8,12 +8,16 @@ import traceback
 
 from . import libclient
 from bbsQt.constants import HOST, PORT
-from bbsQt.constants import DIR_KEY_SERVER, HOST, S_ACCOUNT, S_PASSWORD, SCP_PORT
+#from bbsQt.constants import DIR_KEY_SERVER, S_ACCOUNT, S_PASSWORD, SCP_PORT
 
+# only one selector throughout the application.
 sel = selectors.DefaultSelector()
 
 
 def create_request(action, value):
+    """ Should be matched with Message.queue_request()
+    queue_request() separates requests by their 'type', not 'action'. 
+    """
     if action == "share_key":
         return dict(
             type="key",
@@ -66,33 +70,33 @@ def start_connection(host, port, request):
     sel.register(sock, events, data=message)
 
 
-
-
 def run_share_key(q_text, e_key, lock, debug=True):
-    #host = '127.0.0.1'
-    #host = '10.100.82.55'
-    #port = 2345
     action = "share_key"
 
     e_key.wait()
     if debug: print("[comm] HEAAN keys are ready")
-    fn_dict = q_text.get()
-    #key_path = fn_dict[R'root_path']    
+    fn_dict = q_text.get() 
+    # fn_dict = {"root_path":key_path, "keys_to_share":fn_tar}
 
-    fn_tar = fn_dict['keys_to_share']
-    print("[comm] sending gzipped key file:", fn_tar)
-    if os.path.isfile(fn_tar):
-        print("[comm] found HEAAN keys:", fn_tar)
+    key_path = fn_dict['root_path']
+    # fn_tar = fn_dict['keys_to_share']
+    # print("[comm] sending gzipped key file:", fn_tar)
+    # if os.path.isfile(fn_tar):
+    #     print("[comm] found HEAAN keys:", fn_tar)
         #e_enc.clear()
 
     # File transfer request 
-    subprocess.call(["/home/etri_ai1/anaconda3/envs/bbs/bin/python", "send_key.py", "serkey"])
+    subprocess.call(["/home/etri_ai1/anaconda3/envs/bbs/bin/python", 
+                     "send_key.py", key_path])
     print("___________")
-    if debug: print("[comm] sending keys", fn_tar)
+    # if debug: print("[comm] sending keys", fn_tar)
     print("[comm] fn_dict", fn_dict)
     
-    # fn_tar = "./keys2.tar.gz"
-    ans = share_key(HOST, PORT, action, fn_tar)
+
+
+    fn_key 꼭 필요한가? 
+
+    share_key(HOST, PORT, action, fn_tar)
     print("[comm] run_share_key done \n")
     #q_text.put(ans)
 
@@ -101,7 +105,6 @@ def share_key(host, port, action, fn_key, debug=True):
     #host = '10.100.82.55'
     request = create_request(action, fn_key)
     start_connection(host, port, request)
-    
     
     try:
         while True:
@@ -127,9 +130,9 @@ def share_key(host, port, action, fn_key, debug=True):
         print("[comm] connection closed.")
 
     
-    ans = {'answer':"good"}
-    print("[comm] server Evaluator is ready. You can send a query")
-    return ans
+    #ans = {'answer':"good"}
+    #print("[comm] server Evaluator is ready. You can send a query")
+    #return ans
     
 
 
