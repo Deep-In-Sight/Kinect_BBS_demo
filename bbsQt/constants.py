@@ -10,7 +10,7 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][1]
+location = ['DI', 'ETRI', 'local'][2]
 
 NFRAMES={'1':8,
          '2':8,
@@ -27,19 +27,18 @@ NFRAMES={'1':8,
          '13':8,
          '14':8}
 
-#def set_tcp(location):
 if location == "DI":
     HOST = '10.100.82.55'
     PORT = 2345
 elif location == "local":
     HOST = '127.0.0.1'
     PORT = 2345
+    DIR_KEY_SERVER = "./server/"
 elif location == "ETRI":
     HOST = '61.74.232.166'
     PORT = 2345
+    DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/"
+    S_ACCOUNT = 'etri_ai1'
+    S_PASSWORD = 'etri_ai1'
     
-#    return HOST, PORT
-DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/"
-S_ACCOUNT = 'etri_ai1'
-S_PASSWORD = 'etri_ai1'
 SCP_PORT = 22

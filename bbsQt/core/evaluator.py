@@ -108,8 +108,11 @@ class HEAAN_Evaluator():
 
         t0 = time()
         allmodels = []
-        for action in range(1,2):
-            Nmodel = pickle.load(open(f"models/trained_NRF_{action}.pickle", "rb"))
+        for action in range(1,3):
+            try:
+                Nmodel = pickle.load(open(f"models/trained_model{action}_e_s.pickle", "rb"))
+            except:
+                Nmodel = pickle.load(open(f"models/trained_model{action}_a_s.pickle", "rb"))
             h_rf = HomomorphicNeuralRandomForest(Nmodel)
             print("[EVAL.model_loader] HRF loaded for class", action)
             nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
@@ -117,7 +120,7 @@ class HEAAN_Evaluator():
                                                                 self.parms,
                                                                 my_tm_tanh.coeffs,
                                                                 do_reduction = False,
-                                                                save_check=True
+                                                                #save_check=True
                                                                 )
             print("[EVAL.model_loader] HNRF model loaded for class", action)
             

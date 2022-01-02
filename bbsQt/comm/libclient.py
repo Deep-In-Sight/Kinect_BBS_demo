@@ -4,29 +4,21 @@ import json
 import io
 import struct
 import tarfile
-from bbsQt.constants import DIR_KEY_SERVER, HOST, S_ACCOUNT, S_PASSWORD, SCP_PORT
+# from bbsQt.constants import DIR_KEY_SERVER, HOST, S_ACCOUNT, S_PASSWORD, SCP_PORT
 
 BLOCKSIZE = 2**16
 
-import paramiko
-from scp import SCPClient
+# import paramiko
+# from scp import SCPClient
 #from datetime import datetime
 #from datetime import timedelta
 
-def createSSHClient(server, port, user, password):
-    client = paramiko.SSHClient()
-    client.load_system_host_keys()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(server, port, user, password)
-    return client
-
-#ssh = createSSHClient(HOST, SCP_PORT, S_ACCOUNT, S_PASSWORD)
-#scp = SCPClient(ssh.get_transport())
-
-
-#def send_scp(fn):
-#    scp.put(fn, DIR_KEY_SERVER)
-#    print("put", fn, "to", DIR_KEY_SERVER)
+# def createSSHClient(server, port, user, password):
+#     client = paramiko.SSHClient()
+#     client.load_system_host_keys()
+#     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#     client.connect(server, port, user, password)
+#     return client
 
 
 def untar(fn_tar):
@@ -119,11 +111,11 @@ class Message:
     def _process_response_json_content(self):
         content = self.response
         result = content.get("result")
-        print(f"got result: {result}")
+        #print(f"got result: {result}")
 
     def _process_response_binary_content(self):
         content = self.response
-        print(f"got response: {repr(content)}")
+        #print(f"got response: {repr(content)}")
 
     def process_events(self, mask):
         if mask & selectors.EVENT_READ:
@@ -202,8 +194,9 @@ class Message:
                 "content_encoding": content_encoding,
             }
             f.close()
-        elif "key" == content_type: # 
+        elif content_type == "key":  
             f= open("empty.dat", 'rb')
+            print("key...", f)
             #send_scp(content)
             req = {
                 "note":content,

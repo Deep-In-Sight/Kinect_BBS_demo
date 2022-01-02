@@ -12,13 +12,10 @@ from time import time
 #from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 #from fase.hnrf import heaan_nrf 
 
-# FN_KEYS = ["ENCRYPTION.txt",
-#            "MULTIPLICATION.txt",
-#            "ROTATION_1.txt"]
-
 class HomomorphicTreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
-       모든 Context 정보를 다 필요로 함. 이것만 따로 class를 만들고 CKKS context 보내기 좀 귀찮은데? 
+       모든 Context 정보를 다 필요로 함. 
+       이것만 따로 class를 만들고 CKKS context 보내기 좀 귀찮은데? 
     """
     def __init__(self, comparator: np.ndarray,
                  scheme, 
@@ -64,15 +61,6 @@ class Param():
         if self.logn == None:
             self.logn = int(np.log2(n))
 
-def key_found(key_path):
-    all_found = []
-    for fn in FN_KEYS:
-        this_fn = key_path + fn
-        found = os.path.isfile(this_fn)
-        all_found.append(found)
-        print(f"{this_fn} is","found" if found else "missing" )
-    
-    return np.all(all_found)
 
 def decrypt(scheme, secretKey, enc, parms):
     featurized = scheme.decrypt(secretKey, enc)
@@ -96,19 +84,18 @@ def compress_files(fn_tar, fn_list):
 
 class HEAAN_Encryptor():
     def __init__(self, q_text, e_key, lock, key_path, 
-                debug=True, tar=True, test=False):
+                debug=True, tar=False, test=False):
         #lock.acquire()# 이렇게 하는건가? 
 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
         n = 1*2**logn
+        is_serialized = True
 
         self.parms = Param(n=n, logp=logp, logq=logq)
         self.key_path = key_path
         if debug: print("[ENCRYPTOR] key path", key_path)
-
-        is_serialized = True
 
         self.ring = he.Ring()
         
@@ -117,8 +104,6 @@ class HEAAN_Encryptor():
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.addLeftRotKey(self.secretKey, 1)
 
-        self.set_featurizers()
-        self.load_scalers()
         if tar:
             if test:
                 # Very small file for test purpose
@@ -127,21 +112,18 @@ class HEAAN_Encryptor():
             else:
                 fn_tar = "keys.tar.gz"
             compress_files(fn_tar, [key_path+'serkey/'+fn for fn in FN_KEYS])
-            q_text.put({"root_path":key_path, 
+            q_text.put({"root_path":key_path+'serkey/', 
                        "keys_to_share":fn_tar})
         else:
-            # Keys are ready
+            # Copy without tar
             q_text.put({"root_path":key_path + 'serkey/',
                     "keys_to_share":FN_KEYS})
         e_key.set()
 
-        if debug: print("[Encryptor] HEAAN is ready")
+        self.set_featurizers()
+        self.load_scalers()
 
-        # Check HEAAN
-        # val = np.arange(10)
-        # ctxt = encrypt(self.scheme, val, self.parms)
-        # print(ctxt.n, ctxt.logp, ctxt.logq)
-        # del ctxt
+        if debug: print("[Encryptor] HEAAN is ready")
 
     def set_featurizers(self):
         scheme = self.scheme
@@ -298,5 +280,15 @@ class HEAAN_Encryptor():
             e_ans.set()  ## FLOW CONTROL
 
             i+=1
-
+    
+    @staticmethod
+    def key_found(key_path):
+        all_found = []
+        for fn in FN_KEYS:
+            this_fn = key_path + fn
+            found = os.path.isfile(this_fn)
+            all_found.append(found)
+            print(f"{this_fn} is","found" if found else "missing" )
+        
+        return np.all(all_found)
 
