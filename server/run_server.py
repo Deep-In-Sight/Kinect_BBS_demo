@@ -9,6 +9,10 @@ from bbsQt.core.evaluator import HEAAN_Evaluator
 
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
+import fase
+#fase.USE_FPGA = True 
+from fase.core.heaan import he
+
 def run_evaluator(q1, q_text, lock, e_key, e_enc, e_ans, key_path="./"):
     e_key.wait()
     henc = HEAAN_Evaluator(lock, key_path, e_ans)
