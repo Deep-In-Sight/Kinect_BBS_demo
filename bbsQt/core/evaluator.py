@@ -107,11 +107,14 @@ class HEAAN_Evaluator():
 
         t0 = time()
         allmodels = []
-        for action in range(1,3):
+        for action in range(13,14):
             try:
-                Nmodel = pickle.load(open(f"models/trained_model{action}_e_s.pickle", "rb"))
+                #fn = f"models/trained_model{action}_a_s.pickle"
+                fn = f"models/trained_NRF_{action}.pickle"
+                Nmodel = pickle.load(open(fn, "rb"))
+                print("Loaded a model...", fn)
             except:
-                Nmodel = pickle.load(open(f"models/trained_model{action}_a_s.pickle", "rb"))
+                Nmodel = pickle.load(open(f"models/trained_model{action}_e_s.pickle", "rb"))
             h_rf = HomomorphicNeuralRandomForest(Nmodel)
             print("[EVAL.model_loader] HRF loaded for class", action)
             nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
