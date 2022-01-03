@@ -376,9 +376,9 @@ class qScenario(QObject):
 
 
 	def showinfo(self):
-		if not self.q_answer.empty():
-			answer = f'Action #{self.ScenarioNo} \n'+ self.q_answer.get()
-			self.text_answer = answer
+		# if not self.q_answer.empty():
+		# 	answer = f'Action #{self.ScenarioNo}: '+ self.q_answer.get()
+		# 	self.text_answer = answer
 		info 	 = f" {self.text_answer} <<< Waiting for prediction... >>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"

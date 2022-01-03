@@ -1,7 +1,7 @@
 import multiprocessing
 import sys
 import multiprocessing as mplti
-from time import time
+#from time import time
 
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_server
@@ -12,13 +12,16 @@ from PyQt5.QtWidgets import QApplication#, QMainWindow
 import fase
 #fase.USE_FPGA = True 
 from fase.core.heaan import he
+from bbsQt.comm.libserver import TEST_CLIENT
 
-def run_evaluator(q1, q_text, lock, e_key, e_enc, e_ans, key_path="./"):
+def run_evaluator(q_text, lock, e_key, e_enc, e_ans, key_path="./"):
     e_key.wait()
     henc = HEAAN_Evaluator(lock, key_path, e_ans)
     e_key.clear()
     #print(henc.prams.n)
-    henc.start_evaluate_loop(q1, q_text, e_enc, e_ans)
+    if not TEST_CLIENT:
+        print("[MAIN] Running evaluation loop")
+        henc.start_evaluate_loop(q_text, e_enc, e_ans)
 
 def run_communicator(e_key, q_text, e_enc, e_ans, lock):
     # 1. send keys to server and do quick check
@@ -56,7 +59,7 @@ def main():
     p_socket.start()
 
     p_enc = mplti.Process(target=run_evaluator, 
-                          args=(q1, q_text, lock, e_key, e_enc, e_ans), 
+                          args=(q_text, lock, e_key, e_enc, e_ans), 
                           daemon=False)
     p_enc.start()
 

@@ -162,9 +162,6 @@ class qThreadRecord(QThread):
         self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
 
         nframes = len(self.skarr_list[0])
-        #maxPerson = len(self.skarr_list)
-        #print("maxPerson --------- ", maxPerson)
-        #maxframe_idx = 0
         
         i_person_exist = np.ones(nframes, dtype=bool)
         #print("i_person_exist", i_person_exist)
@@ -177,55 +174,17 @@ class qThreadRecord(QThread):
             i_person_exist *= i_non_empty
         
         maxframe_idx = np.argmin(i_person_exist)
-        #maxPerson = 
-        
-        # for i in range(1, len(self.skarr_list[0])):
-        #     for j in range(maxPerson):
-        #         if maxPerson < len(self.skarr_list[j]):
-        #             maxPerson = len(self.skarr_list[i])
-        #             maxframe_idx = idx
-        
-        #print('[Qthread obj] maxperson', maxPerson)
         print('[Qthread obj] maxframe idx',maxframe_idx)
 
-
         self.sk_viewer(self.skarr_list, self.stackColor, maxframe_idx, 1)
-
         skimage = self.load_image(maxframe_idx)
         
-        #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        
-        # todo 
-        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
-        # print(f'skeleton index : {skindex}')
-        # scene = ku.kinect2mobile_direct(self.stackJoint)
-
-        # nframe = 10 
-        # sub = ru.smoothed_frame_N(scene, nframe=nframe, shift=1)
-        # skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-        # q1.put({"action":self.ScenarioNo,
-        #         "skeleton": skeleton})
-        # #print("is q1 empty?", q1.empty())
-        # e_sk.set()
-        #print("is e_sk set?1", e_sk.is_set())
-        
-        #uid = pwd.getpwnam("etri_ai2").pw_uid
-        #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
-
-
         ## IMAGE SAVE 
         idx = list(range(self.pic_Count))
-        #idx = np.array_split(idx, Ncpu);
-
-        #for i in range(int(Ncpu)):
-        #idx[i] = idx[i].tolist()
 
         print("[Qthread obj] Number of frames", len(self.stackColor))
         # queues = [Queue() for i in range(Ncpu)]
         t0 = time.time()
-        #print(self.path_save)
         #args = [(self.path_save, self.stackColor[idx[i]], idx[i][0], self.Locale, self.SubjectID) for i in range(Ncpu)]
         #jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
         #c(path_root, data, idx0, Locale, ID
@@ -246,12 +205,8 @@ class qThreadRecord(QThread):
     # # add 2021.12.27  
     def select_sk0(self):
         skindex =0
-        #self.stackColor = np.array(self.stackColor)
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
-        # todo 
-        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
         print(f'[Qthread obj] skeleton index : {skindex}')
         print("[Qthread obj] camera_num", self.camera_num)
         #scene = ku.kinect2mobile_direct(self.stackJoint)
@@ -268,25 +223,19 @@ class qThreadRecord(QThread):
         print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
         
         self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        answer = self.q_answer.get()
+        self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
         font = QFont()
         font.setBold(True)
-        font.setPointSize(15)
+        font.setPointSize(18)
         self.qScenario.viewInfo.setFont(font)
 
         self.e_ans.clear()
-        #uid = pwd.getpwnam("etri_ai2").pw_uid
-        #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
     
     def select_sk1(self):
         skindex=1
-        #self.stackColor = np.array(self.stackColor)
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
-        # todo 
-        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
         print(f'[Qthread obj] skeleton index : {skindex}')
         print("[Qthread obj] camera_num", self.camera_num)
         #scene = ku.kinect2mobile_direct(self.stackJoint)
@@ -304,27 +253,21 @@ class qThreadRecord(QThread):
         
         self.e_ans.wait()
         		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        answer = self.q_answer.get()
+        self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
         font = QFont()
         font.setBold(True)
-        font.setPointSize(15)
+        font.setPointSize(18)
         self.qScenario.viewInfo.setFont(font)
 
         self.e_ans.clear()
-        #uid = pwd.getpwnam("etri_ai2").pw_uid
-        #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
     
     def select_sk2(self):
         skindex=2
-        #self.stackColor = np.array(self.stackColor)
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
-        # todo 
-        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
         print(f'[Qthread obj] skeleton index : {skindex}')
         print("[Qthread obj] camera_num", self.camera_num)
-        #scene = ku.kinect2mobile_direct(self.stackJoint)
         this_scenario = self.qScenario.class_num.currentText()
         sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
                                  nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
@@ -338,11 +281,11 @@ class qThreadRecord(QThread):
         print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
         
         self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        answer = self.q_answer.get()
+        self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
         font = QFont()
         font.setBold(True)
-        font.setPointSize(15)
+        font.setPointSize(18)
         self.qScenario.viewInfo.setFont(font)
 
         self.e_ans.clear()

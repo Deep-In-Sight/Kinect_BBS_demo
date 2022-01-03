@@ -11,7 +11,7 @@ from sklearn import preprocessing
 from time import time
 #from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 #from fase.hnrf import heaan_nrf 
-
+DEBUG=False
 class HomomorphicTreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
@@ -131,7 +131,7 @@ class HEAAN_Encryptor():
 
         featurizers =[]
         
-        for action in range(1,2):
+        for action in [1,13]:#range(1,2):
             t0 = time()
             Nmodel = pickle.load(open(f"./models/trained_NRF_{action}.pickle", "rb"))
             
@@ -168,12 +168,16 @@ class HEAAN_Encryptor():
         parms = self.parms
 
         
-
+        
         i=0
         while True:
             e_sk.wait()  ## FLOW CONTROL
+            print("zZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
+            print(self.scalers)
             print("[Encryptor] good to go") 
             sk = q1.get()  ## FLOW CONTROL
+            "++++++++++++++++++++++++++ SK dict ++++++++++++++++++++++"
+            print(sk)
             
             e_sk.clear()  ## FLOW CONTROL: reset skeleton event
             
@@ -181,7 +185,7 @@ class HEAAN_Encryptor():
                 raise LookupError("Can't find skeleton in queue")    
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
             if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
-            action = sk['action']
+            action = int(sk['action'])
 
             sc = self.scalers[action]
             fn = f"ctx_a{action:02d}_{i}.dat"
@@ -226,6 +230,9 @@ class HEAAN_Encryptor():
             e_enc_ans.wait()  ## FLOW CONTROL
             preds = []
             fn_preds = q_text.get()  ## FLOW CONTROL
+
+            #### DEBUGGING
+            fn_preds = [f"pred_{i}.dat" for i in range(5)]
             print("fn_preds", fn_preds)
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
@@ -240,33 +247,33 @@ class HEAAN_Encryptor():
                 del ctx_pred
             del ctx1 
 
+            if DEBUG:
+                ##########################
+                with open("params.txt", "r") as ll:
+                    s = ll.readline().split(" ")
+                    llogp1, llogq1, ln1 = int(s[0]),int(s[1]),int(s[2])
+                    s = ll.readline().split(" ")
+                    llogp2, llogq2, ln2 = int(s[0]),int(s[1]),int(s[2])
+                    s = ll.readline().split(" ")
+                    llogp3, llogq3, ln3 = int(s[0]),int(s[1]),int(s[2])
+                
+                ctx = he.Ciphertext(llogp1, llogq1, ln1) # 나중에 오는 애는 logq가 다를 수도 있음
+                print("[encryptor] b1_ctxt", ctx)
+                he.SerializationUtils.readCiphertext(ctx, "b1_ctx.dat")
+                print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
+                del ctx
+                
+                ctx = he.Ciphertext(llogp2, llogq2, ln2) # 나중에 오는 애는 logq가 다를 수도 있음
+                print("[encryptor] compare_after_activation", ctx)
+                he.SerializationUtils.readCiphertext(ctx, "compare_after_add.dat")
+                print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
+                del ctx
 
-            ##########################
-            with open("params.txt", "r") as ll:
-                s = ll.readline().split(" ")
-                llogp1, llogq1, ln1 = int(s[0]),int(s[1]),int(s[2])
-                s = ll.readline().split(" ")
-                llogp2, llogq2, ln2 = int(s[0]),int(s[1]),int(s[2])
-                s = ll.readline().split(" ")
-                llogp3, llogq3, ln3 = int(s[0]),int(s[1]),int(s[2])
-            
-            ctx = he.Ciphertext(llogp1, llogq1, ln1) # 나중에 오는 애는 logq가 다를 수도 있음
-            print("[encryptor] b1_ctxt", ctx)
-            he.SerializationUtils.readCiphertext(ctx, "b1_ctx.dat")
-            print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
-            del ctx
-            
-            ctx = he.Ciphertext(llogp2, llogq2, ln2) # 나중에 오는 애는 logq가 다를 수도 있음
-            print("[encryptor] compare_after_activation", ctx)
-            he.SerializationUtils.readCiphertext(ctx, "compare_after_add.dat")
-            print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
-            del ctx
-
-            ctx = he.Ciphertext(llogp3, llogq3, ln3) # 나중에 오는 애는 logq가 다를 수도 있음
-            print("[encryptor] compare_after_activation", ctx)
-            he.SerializationUtils.readCiphertext(ctx, "compare_after_activation.dat")
-            print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
-            del ctx
+                ctx = he.Ciphertext(llogp3, llogq3, ln3) # 나중에 오는 애는 logq가 다를 수도 있음
+                print("[encryptor] compare_after_activation", ctx)
+                he.SerializationUtils.readCiphertext(ctx, "compare_after_activation.dat")
+                print(decrypt(self.scheme, self.secretKey, ctx, self.parms))
+                del ctx
 
             ###########################
 
