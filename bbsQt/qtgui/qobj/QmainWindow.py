@@ -323,89 +323,12 @@ class QMyMainWindow(QWidget):
         LayoutMain.addLayout(self.qScenario.getLayout(),49)
 
         # # add 2021.12.27  skindexbox connect 
-        self.skindexbtn0.clicked.connect(self.select_sk0)
-        self.skindexbtn1.clicked.connect(self.select_sk1)
-        self.skindexbtn2.clicked.connect(self.select_sk2)
+        self.skindexbtn0.clicked.connect(self.qthreadrec.select_sk0)
+        self.skindexbtn1.clicked.connect(self.qthreadrec.select_sk1)
+        self.skindexbtn2.clicked.connect(self.qthreadrec.select_sk2)
 
         self.qScenario.end.clicked.connect(self.end)
         self.qScenario.save.clicked.connect(self.save)
-    # def update_panel(self,x,y):
-    #     self.scatter1.set_offsets([[x,y]])
-    #     self.scatter2.set_offsets([[x,y]])            
-    #     # plt.draw()
-
-    def select_sk0(self):
-        skindex =0
-        #print(f'[Qthread obj] skeleton index : {skindex}')
-        sub = ru.smoothed_frame_N(self.qthreadrec.skarr[skindex], 
-                                 nframe=NFRAMES[f'{self.ScenarioNo}'], 
-                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-        self.q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        self.qScenario.viewInfo.setFont(font)
-
-        self.e_ans.clear()
-    
-    def select_sk1(self):
-        skindex =1
-        #print(f'[Qthread obj] skeleton index : {skindex}')
-        sub = ru.smoothed_frame_N(self.qthreadrec.skarr[skindex], 
-                                 nframe=NFRAMES[f'{self.ScenarioNo}'], 
-                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-        self.q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        self.qScenario.viewInfo.setFont(font)
-
-        self.e_ans.clear()
-
-    def select_sk2(self):
-        skindex =2
-        #print(f'[Qthread obj] skeleton index : {skindex}')
-        sub = ru.smoothed_frame_N(self.qthreadrec.skarr[skindex], 
-                                 nframe=NFRAMES[f'{self.ScenarioNo}'], 
-                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-        self.q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        self.qScenario.viewInfo.setFont(font)
-
-        self.e_ans.clear()
-
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -528,6 +451,9 @@ class QMyMainWindow(QWidget):
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
                                 self.PWD, self.btn.cameranum.currentIndex(), 
                                 self.q1, self.e_sk, self.e_ans, self.q_answer)
+        self.skindexbtn0.clicked.connect(self.qthreadrec.select_sk0)
+        self.skindexbtn1.clicked.connect(self.qthreadrec.select_sk1)
+        self.skindexbtn2.clicked.connect(self.qthreadrec.select_sk2)
     # todo class and score
     @pyqtSlot()
     def updateScenarioNo(self):
