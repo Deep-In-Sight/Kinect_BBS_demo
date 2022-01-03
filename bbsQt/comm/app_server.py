@@ -4,10 +4,7 @@ import traceback
 from . import libserver
 from bbsQt.constants import HOST, PORT
 
-#HOST = '127.0.0.1'#"10.100.82.55"
-#PORT = 2345
 sel = selectors.DefaultSelector()
-
 
 def accept_wrapper(sock, q_text, e_key, e_enc, e_ans):
     conn, addr = sock.accept()  # Should be ready to read
@@ -16,12 +13,6 @@ def accept_wrapper(sock, q_text, e_key, e_enc, e_ans):
     message = libserver.Message(sel, conn, addr, q_text, e_key, e_enc, e_ans)
     sel.register(conn, selectors.EVENT_READ, data=message)
 
-
-#if len(sys.argv) != 3:
-#    print("usage:", sys.argv[0], "<host> <port>")
-#    sys.exit(1)
-
-#host, port = sys.argv[1], int(sys.argv[2])
 
 def run_server(q_text, e_key, e_enc, e_ans, lock):
     """

@@ -4,7 +4,6 @@ import tarfile
 import pickle
 import torch
 
-import fase
 from fase.core.heaan import he
 #from fase import heaan_loader
 #he = heaan_loader.load()
@@ -76,22 +75,14 @@ class HEAAN_Evaluator():
 
         self.ring = he.Ring()
         
-        if not key_found(key_path):
-            self.get_keys()
-        
         self.scheme = he.Scheme(self.ring, True, key_path)
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.loadLeftRotKey(1)
         
         self.load_models()
-        print("[Encryptor] HEAAN is ready")
-        # models = []
-        # for i in range(1,15):
-        #     model = BBS_Evaluator_model(action=i, 
-        #             trained_model_path='./trained_models/')
-        #     models.append((f"{i}",model))
-        # self.models = dict(models)
         print(self.models)
+
+        print("[Encryptor] HEAAN is ready")
         e_ans.set()
 
     def load_models(self):
@@ -135,11 +126,6 @@ class HEAAN_Evaluator():
         scheme = self.scheme
         return True
 
-    def get_keys(self):
-        #print("good to go") 
-        #sk = q1.get()
-        pass
-
     def run_model(self, cc, ctx):
         print("Running model for class", cc)
         model = self.models[f"{cc}"]
@@ -149,12 +135,14 @@ class HEAAN_Evaluator():
         return model(ctx)
         #return self.predict(data)
 
-    def start_evaluate_loop(self, q1, q_text, e_enc, e_ans, tar=True):
+    def start_evaluate_loop(self, q_text, e_enc, e_ans, tar=True):
         """
         filename : ctxt_a05_{i}.dat, where a05 means action #5.
         """
+        print("[EVALUATOR] starting_evaluate_loop")
         while True:
             e_enc.wait()
+            print("[EVALUATOR] e_enc set")
             fn_data = q_text.get()
             #fn_data = data['filename']
             print(fn_data)
