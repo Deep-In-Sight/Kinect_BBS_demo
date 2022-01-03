@@ -10,7 +10,7 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][2]
+location = ['DI', 'ETRI', 'local'][0]
 
 NFRAMES={'1':8,
          '2':8,
@@ -49,3 +49,6 @@ elif location == "ETRI":
     COPY_SCRIPT='send_key.py'
     
 SCP_PORT = 22
+
+
+TEST_CLIENT=False

@@ -98,7 +98,7 @@ class HEAAN_Evaluator():
 
         t0 = time()
         allmodels = []
-        for action in range(13,14):
+        for action in [1,13]:#range(13,14):
             try:
                 #fn = f"models/trained_model{action}_a_s.pickle"
                 fn = f"models/trained_NRF_{action}.pickle"
@@ -129,6 +129,8 @@ class HEAAN_Evaluator():
     def run_model(self, cc, ctx):
         print("Running model for class", cc)
         model = self.models[f"{cc}"]
+        #model = self.models[cc]
+
         #featurizer = self.models[f"{cc}"]['featurizer']
         print("[Evaluator] running model...")
         #ctx = featurizer.encrypt(data)

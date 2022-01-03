@@ -10,9 +10,9 @@ from bbsQt.core.evaluator import HEAAN_Evaluator
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 
 import fase
-#fase.USE_FPGA = True 
+fase.USE_FPGA = True 
 from fase.core.heaan import he
-from bbsQt.comm.libserver import TEST_CLIENT
+from bbsQt.constants import TEST_CLIENT
 
 def run_evaluator(q_text, lock, e_key, e_enc, e_ans, key_path="./"):
     e_key.wait()

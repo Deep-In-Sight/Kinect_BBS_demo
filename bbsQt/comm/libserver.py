@@ -12,7 +12,7 @@ request_search = {
 }
 
 BLOCKSIZE = 2**16
-TEST_CLIENT=True
+from bbsQt.constants import TEST_CLIENT
 
 
 def untar(fn_tar):
