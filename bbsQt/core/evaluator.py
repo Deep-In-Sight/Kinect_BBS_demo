@@ -3,16 +3,17 @@ import os
 import tarfile
 import pickle
 import torch
+from time import time
 
+import fase
+fase.USE_FPGA = True 
 from fase.core.heaan import he
-#from fase import heaan_loader
-#he = heaan_loader.load()
+#from fase.core.heaan import he
 from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 from time import time
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
-#from fase.hnrf.heaan_nrf import HomomorphicModel 
 
 from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS
 
@@ -63,7 +64,7 @@ def show_file_content(fn):
 
 class HEAAN_Evaluator():
     def __init__(self, lock, key_path, e_ans):
-        lock.acquire()# 이렇게 하는건가? 
+        #lock.acquire()# 이렇게 하는건가? 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
@@ -80,55 +81,60 @@ class HEAAN_Evaluator():
         self.scheme.loadLeftRotKey(1)
         
         self.load_models()
-        print(self.models)
 
         print("[Encryptor] HEAAN is ready")
         e_ans.set()
 
     def load_models(self):
-        print("[Evaluator] Loading trained NRF models")
+        self.models = {}
         dilatation_factor = 10
         polynomial_degree = 10
 
-        my_tm_tanh = NeuralTreeMaker(torch.tanh, 
+        self.my_tm_tanh = NeuralTreeMaker(torch.tanh, 
                             use_polynomial=True,
                             dilatation_factor=dilatation_factor, 
-                            polynomial_degree=polynomial_degree)
+                            polynomial_degree=polynomial_degree+1)
+        # for cam in ['a','e']:
+        #     for action in range(1,15):
+        #         model = self.load_model(action, cam)
+        #         self.models.update({f"{action}":model})
+        #print(f"loading 14 models took {time() - t0:.2f}")
+
+    def load_model(self, action, cam):
+        print("[Evaluator] Loading trained NRF models")
 
         t0 = time()
-        allmodels = []
-        cam = "e"
-        for action in [1]:#3]:#range(13,14):
-            #try:
-            fn = f"models/Nmodel_{action}_{cam}.pickle"
-            Nmodel = pickle.load(open(fn, "rb"))
-            print("Loaded a model...", fn)
-            #except:
-            #    Nmodel = pickle.load(open(f"models/Nmodel_{action}_{cam}.pickle", "rb"))
-            h_rf = HomomorphicNeuralRandomForest(Nmodel)
-            print("[EVAL.model_loader] HRF loaded for class", action)
-            nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
-                                                                self.scheme,
-                                                                self.parms,
-                                                                my_tm_tanh.coeffs,
-                                                                do_reduction = False,
-                                                                #save_check=True
-                                                                )
-            print("[EVAL.model_loader] HNRF model loaded for class", action)
+        fn = f"models/Nmodel_{action}_{cam}.pickle"
+        Nmodel = pickle.load(open(fn, "rb"))
+        #print("Loaded a model...", fn)
+        
+        h_rf = HomomorphicNeuralRandomForest(Nmodel)
+        #print("[EVAL.model_loader] HRF loaded for class", action)
+        nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
+                                                            self.scheme,
+                                                            self.parms,
+                                                            self.my_tm_tanh.coeffs,
+                                                            do_reduction = False,
+                                                            #save_check=True
+                                                            )
+        print("[EVAL.model_loader] HNRF model loaded for class", action)
             
-            allmodels.append((f"{action}",nrf_evaluator))
-        self.models = dict(allmodels)
-
-        print(f"generating 14 models took {time() - t0:.2f}")
+        #allmodels.append((f"{action}",nrf_evaluator))
+        self.models.update({f"{action}":nrf_evaluator})    
+        
+        print("updated models", self.models)    
 
     def _quick_check(self):
         scheme = self.scheme
         return True
 
-    def run_model(self, cc, ctx):
-        print("Running model for class", cc)
-        model = self.models[f"{cc}"]
-        #model = self.models[cc]
+    def run_model(self, action, cam, ctx):
+        print("Running model for class", action)
+        try:
+            model = self.models[f"{action}"]
+        except:
+            print(f"Loading model for class {action} and camera {cam}")
+            model = self.models[f"{action}"]
 
         #featurizer = self.models[f"{cc}"]['featurizer']
         print("[Evaluator] running model...")
@@ -151,14 +157,18 @@ class HEAAN_Evaluator():
             _, action, cam, _ = fn_data.split("_")
             action = int(action)
             print("[evaluator] action class:", action)
+
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
             show_file_content(fn_data)
             e_enc.clear()
-            preds = self.run_model(action, ctx)
+            t0 =time()
+            preds = self.run_model(action, cam, ctx)
+            print(f"Prediction took {time()-t0:.2f} seconds")
 
             fn_preds = []
             for i, pred in enumerate(preds):
+                print("PRED", i, pred)
                 fn = f"pred_{i}.dat"
                 he.SerializationUtils.writeCiphertext(pred, fn)
                 fn_preds.append(fn)
@@ -168,12 +178,3 @@ class HEAAN_Evaluator():
                 q_text.put({"root_path":'./',  # Not using root path
                         "filename":fn_tar})
             e_ans.set()
-
-    def predict_test(self, ctx):
-        Nscore = 5
-        preds = []
-        for i in range(Nscore):
-            pp = np.random.rand(self.parms.n)
-            ctx = encrypt(self.scheme, pp, self.parms)
-            preds.append(ctx)
-        return preds

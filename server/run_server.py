@@ -6,19 +6,13 @@ import multiprocessing as mplti
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_server
 from bbsQt.core.evaluator import HEAAN_Evaluator
-
 from PyQt5.QtWidgets import QApplication#, QMainWindow
-
-import fase
-fase.USE_FPGA = True 
-from fase.core.heaan import he
 from bbsQt.constants import TEST_CLIENT
 
 def run_evaluator(q_text, lock, e_key, e_enc, e_ans, key_path="./"):
     e_key.wait()
     henc = HEAAN_Evaluator(lock, key_path, e_ans)
     e_key.clear()
-    #print(henc.prams.n)
     if not TEST_CLIENT:
         print("[MAIN] Running evaluation loop")
         henc.start_evaluate_loop(q_text, e_enc, e_ans)
@@ -31,11 +25,11 @@ def run_communicator(e_key, q_text, e_enc, e_ans, lock):
 
     
 def main():
-    KEYPATH = "./"  
+    #KEYPATH = "./"  
     lock = mplti.Lock()### 
     ctx = mplti.get_context('spawn') ###
 
-    q1 = ctx.Queue(maxsize=8)
+    #q1 = ctx.Queue(maxsize=8)
     q_text = ctx.Queue(maxsize=8)
 
     # Key existence
