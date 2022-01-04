@@ -95,17 +95,16 @@ class HEAAN_Evaluator():
                             dilatation_factor=dilatation_factor, 
                             polynomial_degree=polynomial_degree)
 
-
         t0 = time()
         allmodels = []
-        for action in [1,13]:#range(13,14):
-            try:
-                #fn = f"models/trained_model{action}_a_s.pickle"
-                fn = f"models/trained_NRF_{action}.pickle"
-                Nmodel = pickle.load(open(fn, "rb"))
-                print("Loaded a model...", fn)
-            except:
-                Nmodel = pickle.load(open(f"models/trained_model{action}_e_s.pickle", "rb"))
+        cam = "e"
+        for action in [1]:#3]:#range(13,14):
+            #try:
+            fn = f"models/Nmodel_{action}_{cam}.pickle"
+            Nmodel = pickle.load(open(fn, "rb"))
+            print("Loaded a model...", fn)
+            #except:
+            #    Nmodel = pickle.load(open(f"models/Nmodel_{action}_{cam}.pickle", "rb"))
             h_rf = HomomorphicNeuralRandomForest(Nmodel)
             print("[EVAL.model_loader] HRF loaded for class", action)
             nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
@@ -148,7 +147,9 @@ class HEAAN_Evaluator():
             fn_data = q_text.get()
             #fn_data = data['filename']
             print(fn_data)
-            action = int(fn_data.split("ctx_a")[1][:2])
+            #action = int(fn_data.split("ctx_a")[1][:2])
+            _, action, cam, _ = fn_data.split("_")
+            action = int(action)
             print("[evaluator] action class:", action)
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
