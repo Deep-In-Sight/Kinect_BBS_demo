@@ -237,7 +237,7 @@ class HEAAN_Encryptor():
                 print("[encryptor] decrypt ctxt", ctx_pred)
                 dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
                 print("[encryptor] append decrypted ctxt")
-                preds.append(np.sum(dec[:55]))# why 55? 
+                preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
                 print("[encryptor] decrypted prediction array", dec[:10])
                 del ctx_pred
             del ctx1 
