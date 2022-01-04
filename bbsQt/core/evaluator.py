@@ -63,7 +63,7 @@ def show_file_content(fn):
 
 
 class HEAAN_Evaluator():
-    def __init__(self, lock, key_path, e_ans):
+    def __init__(self, lock, server_path, e_ans):
         lock.acquire()# 이렇게 하는건가? 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
@@ -71,12 +71,13 @@ class HEAAN_Evaluator():
         n = 1*2**logn
 
         self.parms = Param(n=n, logp=logp, logq=logq)
-        self.key_path = key_path
-        print("[ENCRYPTOR] key path", key_path)
+        self.server_path = server_path
+        self.key_path = server_path + 'serkey/'
+        print("[ENCRYPTOR] key path", self.key_path)
 
         self.ring = he.Ring()
         
-        self.scheme = he.Scheme(self.ring, True, "./")
+        self.scheme = he.Scheme(self.ring, True, self.server_path)
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.loadLeftRotKey(1)
         
@@ -104,7 +105,7 @@ class HEAAN_Evaluator():
         print("[Evaluator] Loading trained NRF models")
 
         t0 = time()
-        fn = f"models/Nmodel_{action}_{cam}.pickle"
+        fn = self.server_path+f"models/Nmodel_{action}_{cam}.pickle"
         Nmodel = pickle.load(open(fn, "rb"))
         #print("Loaded a model...", fn)
         
@@ -120,7 +121,7 @@ class HEAAN_Evaluator():
         print("[EVAL.model_loader] HNRF model loaded for class", action)
             
         #allmodels.append((f"{action}",nrf_evaluator))
-        self.models.update({f"{action}":nrf_evaluator})    
+        self.models.update({f"{action}_{cam}":nrf_evaluator})    
         
         print("updated models", self.models)    
 
@@ -131,11 +132,11 @@ class HEAAN_Evaluator():
     def run_model(self, action, cam, ctx):
         print("Running model for class", action)
         try:
-            model = self.models[f"{action}"]
+            model = self.models[f"{action}_{cam}"]
         except:
             self.load_model(action, cam)
             print(f"Loading model for class {action} and camera {cam}")
-            model = self.models[f"{action}"]
+            model = self.models[f"{action}_{cam}"]
 
         #featurizer = self.models[f"{cc}"]['featurizer']
         print("[Evaluator] running model...")
@@ -151,7 +152,7 @@ class HEAAN_Evaluator():
         while True:
             e_enc.wait()
             print("[EVALUATOR] e_enc set")
-            fn_data = q_text.get()
+            fn_data = self.server_path + q_text.get()
             #fn_data = data['filename']
             print(fn_data)
             #action = int(fn_data.split("ctx_a")[1][:2])
@@ -170,12 +171,12 @@ class HEAAN_Evaluator():
             fn_preds = []
             for i, pred in enumerate(preds):
                 print("PRED", i, pred)
-                fn = f"pred_{i}.dat"
+                fn = self.server_path+f"pred_{i}.dat"
                 he.SerializationUtils.writeCiphertext(pred, fn)
                 fn_preds.append(fn)
             if tar:
                 fn_tar = FN_PREDS#"preds.tar.gz"
                 compress_files(fn_tar, fn_preds)
-                q_text.put({"root_path":'./',  # Not using root path
-                        "filename":fn_tar})
+                q_text.put({"root_path":self.server_path,  # Not using root path
+                        "filename":self.server_path+fn_tar})
             e_ans.set()

@@ -9,9 +9,9 @@ from bbsQt.core.evaluator import HEAAN_Evaluator
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 from bbsQt.constants import TEST_CLIENT
 
-def run_evaluator(q_text, lock, e_key, e_enc, e_ans, key_path="./serkey/"):
+def run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./"):
     e_key.wait()
-    henc = HEAAN_Evaluator(lock, key_path, e_ans)
+    henc = HEAAN_Evaluator(lock, server_path, e_ans)
     e_key.clear()
     if not TEST_CLIENT:
         print("[MAIN] Running evaluation loop")
