@@ -209,14 +209,20 @@ class qThreadRecord(QThread):
         
         print(f'[Qthread obj] skeleton index : {skindex}')
         print("[Qthread obj] camera_num", self.camera_num)
+        
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         this_scenario = self.qScenario.class_num.currentText()
         sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
                                  nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
                                  shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
+        
+        if self.camera_num == 0:
+            cam = 'a'
+        elif self.camera_num == 1:
+            cam = 'e'
         self.q1.put({"action":this_scenario,
+                     "cam":cam, 
                 "skeleton": skeleton})
         print("[Qthread obj] is q1 empty?", self.q1.empty())
         self.e_sk.set()
@@ -245,7 +251,12 @@ class qThreadRecord(QThread):
                                  shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
+        if self.camera_num == 0:
+            cam = 'a'
+        elif self.camera_num == 1:
+            cam = 'e'
         self.q1.put({"action":this_scenario,
+                     "cam":cam, 
                 "skeleton": skeleton})
         print("[Qthread obj] is q1 empty?", self.q1.empty())
         self.e_sk.set()
@@ -274,7 +285,12 @@ class qThreadRecord(QThread):
                                  shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
+        if self.camera_num == 0:
+            cam = 'a'
+        elif self.camera_num == 1:
+            cam = 'e'
         self.q1.put({"action":this_scenario,
+                     "cam":cam, 
                 "skeleton": skeleton})
         print("[Qthread obj] is q1 empty?", self.q1.empty())
         self.e_sk.set()

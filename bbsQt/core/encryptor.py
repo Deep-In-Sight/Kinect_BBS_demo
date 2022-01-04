@@ -173,11 +173,9 @@ class HEAAN_Encryptor():
         i=0
         while True:
             e_sk.wait()  ## FLOW CONTROL
-            print("zZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-            print(self.scalers)
             print("[Encryptor] good to go") 
             sk = q1.get()  ## FLOW CONTROL
-            "++++++++++++++++++++++++++ SK dict ++++++++++++++++++++++"
+            "++++++++++++++++++++++++++ SKELETON POINTS ++++++++++++++++++++++"
             print(sk)
             
             e_sk.clear()  ## FLOW CONTROL: reset skeleton event
@@ -187,6 +185,7 @@ class HEAAN_Encryptor():
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
             if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
             action = int(sk['action'])
+            cam = sk['cam']
 
             sc = self.scalers[action]
             fn = f"ctx_{action:02d}_{cam}_{i}.dat"
@@ -194,11 +193,7 @@ class HEAAN_Encryptor():
             
 
             featurizer = self.featurizers[action]
-            #print(len(sk['skeleton']))
-            print("+++++++++++++++  SKELETON POINTS  ++++++++++++++++")
-            print(sk['skeleton'])
-            
-            print("Featurizing skeleton...")
+            #print("Featurizing skeleton...")
             t0 = time()
             
             ##### 스켈레톤 하나만 선정해서 들어오는데 리스트에 싸여있을 이유가 없음... [0] 없애자. 
@@ -235,9 +230,10 @@ class HEAAN_Encryptor():
             #### DEBUGGING
             fn_preds = [f"pred_{i}.dat" for i in range(5)]
             print("fn_preds", fn_preds)
+            logq = 180
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
-                ctx_pred = he.Ciphertext(ctx1.logp, ctx1.logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
+                ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
                 print("[encryptor] load ctxt", fn_ctx)
                 he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
                 print("[encryptor] decrypt ctxt", ctx_pred)
