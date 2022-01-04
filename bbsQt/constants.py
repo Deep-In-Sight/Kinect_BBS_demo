@@ -10,31 +10,33 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][2]
+location = ['DI', 'ETRI', 'local'][0]
 
-NFRAMES={'1':8,
-         '2':8,
-         '3':8,
-         '4':8,
-         '5':8,
-         '6':8,
-         '7':8,
-         '8':8,
-         '9':8,
-         '10':8,
-         '11':8,
-         '12':8,
-         '13':8,
-         '14':8}
+NFRAMES={'1':6,
+         '2':6,
+         '3':6,
+         '4':6,
+         '5':6,
+         '6':6,
+         '7':6,
+         '8':6,
+         '9':6,
+         '10':6,
+         '11':6,
+         '12':6,
+         '13':6,
+         '14':6}
 
 if location == "DI":
     HOST = '10.100.82.55'
     PORT = 2345
     BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key.py'
-    DIR_KEY_SERVER = "./server/"
+    DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo//server/"
     BIN_PLAYER = "/usr/bin/totem" 
     DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
+    S_ACCOUNT = 'etri_ai2'
+    S_PASSWORD = 'etri_ai2'
 elif location == "local":
     HOST = '127.0.0.1'
     PORT = 2345
@@ -56,4 +58,4 @@ elif location == "ETRI":
 SCP_PORT = 22
 
 
-TEST_CLIENT=True
+TEST_CLIENT=False

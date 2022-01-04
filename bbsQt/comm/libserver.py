@@ -261,8 +261,6 @@ class Message:
         # Set selector to listen for write events, we're done reading.
         self._set_selector_events_mask("w")
 
-    #def _create
-
     def create_response(self):
         print("[libserver] in create_response")
         if self.jsonheader["content-type"] == "key":
