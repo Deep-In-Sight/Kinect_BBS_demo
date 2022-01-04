@@ -4,6 +4,7 @@ from PyQt5.QtGui import QFont, QIcon
 import os
 from ..config import Config as setConfig
 import subprocess
+from bbsQt.constants import DIR_VIDEO, BIN_PLAYER
 
 BTN_MIN_WIDTH 		= 100
 BTN_MAX_WIDTH 		= 200
@@ -12,9 +13,8 @@ ICON_MIN_HEIGHT 	= 32
 
 recordconfig = setConfig()
 
-bin_player = "/usr/bin/mpv", 
-dir_video = "/home/etri_ai2/Desktop/video_box/"
-get_video_name = lambda self: dir_video+f"{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"
+
+
 
 def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 	btn = QPushButton()
@@ -355,11 +355,16 @@ class qScenario(QObject):
 		self.scorenum.setText(f'Score : {self.score_num.currentText()}')
 		self.scenarionum.setText(f'Scenario : {self.class_num.currentText()}')
 
+    
 	def videoplay(self):
+		video_name = DIR_VIDEO+f"{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"
 
 		try:
 			#p = subprocess.Popen(["/usr/bin/mpv", f"/home/etri_ai2/Desktop/video_box/{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"])
-			p = subprocess.Popen([bin_player, get_video_name(self)])
+			#
+			print("VIDEO NAME ~~~~~~~~~~~~~~~~~~", video_name)
+			print("VIDE BIN", BIN_PLAYER)
+			p = subprocess.Popen([BIN_PLAYER, video_name])
 		except:
 			print("cannot find video...")
 
