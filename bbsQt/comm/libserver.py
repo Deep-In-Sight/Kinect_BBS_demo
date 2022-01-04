@@ -164,7 +164,7 @@ class Message:
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
-            print("[process_events], EVENT_WRITE")
+            #print("[process_events], EVENT_WRITE")
             self.write()
 
     def read(self):

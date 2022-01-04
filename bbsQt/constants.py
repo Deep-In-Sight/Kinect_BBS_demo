@@ -32,7 +32,7 @@ if location == "DI":
     PORT = 2345
     BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key.py'
-    DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo//server/"
+    DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo/server/serkey/"
     BIN_PLAYER = "/usr/bin/totem" 
     DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
     S_ACCOUNT = 'etri_ai2'
@@ -49,7 +49,7 @@ elif location == "local":
 elif location == "ETRI":
     HOST = '61.74.232.166'
     PORT = 2345
-    DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/"
+    DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/serkey/"
     S_ACCOUNT = 'etri_ai1'
     S_PASSWORD = 'etri_ai1'
     BIN_PYTHON='/home/etri_ai1/anaconda3/envs/bbs/bin/python'

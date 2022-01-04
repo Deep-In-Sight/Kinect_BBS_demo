@@ -9,7 +9,7 @@ from bbsQt.core.evaluator import HEAAN_Evaluator
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 from bbsQt.constants import TEST_CLIENT
 
-def run_evaluator(q_text, lock, e_key, e_enc, e_ans, key_path="./"):
+def run_evaluator(q_text, lock, e_key, e_enc, e_ans, key_path="./serkey/"):
     e_key.wait()
     henc = HEAAN_Evaluator(lock, key_path, e_ans)
     e_key.clear()

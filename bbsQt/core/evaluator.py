@@ -58,13 +58,13 @@ def print_binary(s):
 def show_file_content(fn):
     with open(fn, 'rb') as fbin:
         line = fbin.read(100)
-        print("file in binary format", line)
-        print("file in HEX", print_binary(line))
+        print("\n <<<<file in binary format>>>>", line)
+        print("\n <<<<file in HEX>>>>", print_binary(line))
 
 
 class HEAAN_Evaluator():
     def __init__(self, lock, key_path, e_ans):
-        #lock.acquire()# 이렇게 하는건가? 
+        lock.acquire()# 이렇게 하는건가? 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
@@ -76,7 +76,7 @@ class HEAAN_Evaluator():
 
         self.ring = he.Ring()
         
-        self.scheme = he.Scheme(self.ring, True, key_path)
+        self.scheme = he.Scheme(self.ring, True, "./")
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.loadLeftRotKey(1)
         
@@ -93,7 +93,7 @@ class HEAAN_Evaluator():
         self.my_tm_tanh = NeuralTreeMaker(torch.tanh, 
                             use_polynomial=True,
                             dilatation_factor=dilatation_factor, 
-                            polynomial_degree=polynomial_degree+1)
+                            polynomial_degree=polynomial_degree)
         # for cam in ['a','e']:
         #     for action in range(1,15):
         #         model = self.load_model(action, cam)
@@ -133,6 +133,7 @@ class HEAAN_Evaluator():
         try:
             model = self.models[f"{action}"]
         except:
+            self.load_model(action, cam)
             print(f"Loading model for class {action} and camera {cam}")
             model = self.models[f"{action}"]
 
