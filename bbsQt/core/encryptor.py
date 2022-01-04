@@ -130,23 +130,21 @@ class HEAAN_Encryptor():
         parms = self.parms
 
         featurizers =[]
-        cam = "e"
-        for action in range(1,2):
-            t0 = time()
-            Nmodel = pickle.load(open(f"./models/Nmodel_{action}_{cam}.pickle", "rb"))
-            h_rf = HomomorphicNeuralRandomForest(Nmodel)
-
-            #h_rf = pickle.load(open(f"./trained_rf_{action}.pickle", "rb"))
-            featurizers.append((action,HomomorphicTreeFeaturizer(h_rf.return_comparator(), scheme, parms)))
-            print(f"Loading featurizer took {time() - t0:.2f} s")
+        for action in range(1,15):
+            for cam in ['a','e']:
+                Nmodel = pickle.load(open(f"./models/Nmodel_{action}_{cam}.pickle", "rb"))
+                h_rf = HomomorphicNeuralRandomForest(Nmodel)
+                featurizers.append((action,HomomorphicTreeFeaturizer(h_rf.return_comparator(), scheme, parms)))
+                
         self.featurizers = dict(featurizers)
 
     def load_scalers(self):
-        cam = "e"
+        
         scalers =[]
         for action in range(1,15):
-            sc = pickle.load(open(f'./models/scaler_{action}_{cam}.pickle', "rb"))
-            scalers.append((action, sc))
+            for cam in ['a','e']:
+                sc = pickle.load(open(f'./models/scaler_{action}_{cam}.pickle', "rb"))
+                scalers.append((action, sc))
             
         self.scalers = dict(scalers)
 
@@ -203,18 +201,18 @@ class HEAAN_Encryptor():
             ctx1 = featurizer.encrypt(scaled[0])
             pickle.dump(scaled[0], open("scaled.pickle", "wb"))
             print(f"Featurizing done in {time() - t0:.2f}s")
-            print(ctx1.n, ctx1.logp, ctx1.logq)
+            #print(ctx1.n, ctx1.logp, ctx1.logq)
             if debug: print("[Encryptor] Ctxt encrypted")
             he.SerializationUtils.writeCiphertext(ctx1, fn)
             if debug: print("[Encryptor] Ctxt wrote")
 
             ############
-            #ddd = decrypt(self.scheme, self.secretKey, ctx1, self.parms)
-            #ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
-            #he.SerializationUtils.readCiphertext(ctx, fn)
-            #ddd2 = decrypt(self.scheme, self.secretKey, ctx2, self.parms)
-            #print(ddd)
-            #print(ddd2)
+            ddd = decrypt(self.scheme, self.secretKey, ctx1, self.parms)
+            ctx2 = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
+            he.SerializationUtils.readCiphertext(ctx2, fn)
+            ddd2 = decrypt(self.scheme, self.secretKey, ctx2, self.parms)
+            print(ddd)
+            print(ddd2)
             ###########
             q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
             if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
@@ -239,7 +237,7 @@ class HEAAN_Encryptor():
                 print("[encryptor] decrypt ctxt", ctx_pred)
                 dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
                 print("[encryptor] append decrypted ctxt")
-                preds.append(np.sum(dec))
+                preds.append(np.sum(dec[:55]))# why 55? 
                 print("[encryptor] decrypted prediction array", dec[:10])
                 del ctx_pred
             del ctx1 

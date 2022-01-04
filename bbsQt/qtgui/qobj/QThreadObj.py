@@ -156,6 +156,9 @@ class qThreadRecord(QThread):
 
     # todo data tree  
     def save_multiproc(self):
+        #print("_______________________")
+        #print(len(self.stackColor))
+        #print(self.stackColor)
         self.stackColor = np.array(self.stackColor)
         # 모든 스켈레톤이 다있는 프레임 
         #skarr  = ku.kinect2mobile_direct(self.stackJoint[maxframe_idx])
