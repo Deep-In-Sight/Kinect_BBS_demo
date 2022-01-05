@@ -196,8 +196,11 @@ class qThreadRecord(QThread):
         elif self.camera_num == 0:
             camera_num = 'a_'
 
-        for i, color in enumerate(self.stackColor):
-            cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
+        #for i, color in enumerate(self.stackColor):
+        #Save only one jpg
+        i = maxframe_idx
+        color = self.stackColor[i]
+        cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
 
         #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
 
