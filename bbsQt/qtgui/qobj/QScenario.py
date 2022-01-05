@@ -5,6 +5,7 @@ import os
 from ..config import Config as setConfig
 import subprocess
 from bbsQt.constants import DIR_VIDEO, BIN_PLAYER
+from glob import glob
 
 BTN_MIN_WIDTH 		= 100
 BTN_MAX_WIDTH 		= 200
@@ -357,14 +358,9 @@ class qScenario(QObject):
 
     
 	def videoplay(self):
-        
-		video_name = DIR_VIDEO+f"?{self.class_num.currentText()}_{self.score_num.currentText()}_*.mp4"
+		video_name = glob(DIR_VIDEO+f"?{self.class_num.currentText()}_{self.score_num.currentText()}_*.mp4")[0]
 
 		try:
-			#p = subprocess.Popen(["/usr/bin/mpv", f"/home/etri_ai2/Desktop/video_box/{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"])
-			#
-			print("VIDEO NAME ~~~~~~~~~~~~~~~~~~", video_name)
-			print("VIDE BIN", BIN_PLAYER)
 			p = subprocess.Popen([BIN_PLAYER, video_name])
 		except:
 			print("cannot find video...")
@@ -378,8 +374,6 @@ class qScenario(QObject):
 	# 	self.imgMemoryInfoDisp = f"[RGB]:{self.rgbdispsize}MB"
 	# 	self.imgMemoryInfoDisp += f"\n[IR]:{self.irdispsize}MB"
 	# 	self.imgMemoryInfoDisp += f"\n[Depth]:{self.depthdispsize}MB"
-		
-
 
 	def showinfo(self):
 		# if not self.q_answer.empty():
