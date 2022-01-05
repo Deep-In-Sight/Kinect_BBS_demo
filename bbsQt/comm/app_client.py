@@ -84,6 +84,7 @@ def run_share_key(q_text, e_key, lock, debug=True):
     #     print("[comm] found HEAAN keys:", fn_tar)
         #e_enc.clear()
 
+    print("Copying Keys in", key_path)
     # File transfer request 
     subprocess.call([BIN_PYTHON, 
                      COPY_SCRIPT, key_path])

@@ -40,7 +40,7 @@ if location == "DI":
 elif location == "local":
     HOST = '127.0.0.1'
     PORT = 2345
-    DIR_KEY_SERVER = "./server/serkey/"
+    DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
     BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key_cp.py'
     BIN_PLAYER = "/usr/bin/totem" 

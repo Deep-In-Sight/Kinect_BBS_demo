@@ -10,7 +10,6 @@ from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA
 import fase
 fase.USE_FPGA = FPGA
 from fase.core.heaan import he
-#from fase.core.heaan import he
 from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 from time import time
 from fase import hnrf as hnrf

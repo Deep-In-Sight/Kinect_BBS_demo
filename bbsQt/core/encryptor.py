@@ -179,23 +179,38 @@ class HEAAN_Encryptor():
 
             sc = self.scalers[f"{action}_{cam}"]
             fn = f"ctx_{action:02d}_{cam}_{i}.dat"
-            #ctx1 = encrypt(scheme, sk['skeleton'][0], self.parms)
-            
-
+           
             featurizer = self.featurizers[f"{action}_{cam}"]
-            #print("Featurizing skeleton...")
+            if debug: print("Featurizing skeleton...")
             t0 = time()
             
+
+            skeleton = sk['skeleton']
+            # import pickle
+            # action=1
+            # cam='e'
+            # test_data_dir = "./models/"
+            # dataset = pickle.load(open(test_data_dir + f"BBS_dataset_{action}_{cam}_unnormed.pickle", "rb"))
+            # X_valid = dataset["valid_x"][12:13]
+            # #y_valid = dataset["valid_y"][12:13]
+            # skeleton = X_valid
+            
             if DEBUG:
-                scaled = sc.transform(sk['skeleton'])
+                scaled = sc.transform(skeleton)
             else:
-                rav_sub = sk['skeleton'][0]
+                rav_sub = skeleton[0]
                 scaled = sc.transform(rav_sub.reshape(1,-1))
-            ctx1 = featurizer.encrypt(scaled[0])
-            pickle.dump(scaled[0], open("scaled.pickle", "wb"))
-            print(f"Featurizing done in {time() - t0:.2f}s")
-            #print(ctx1.n, ctx1.logp, ctx1.logq)
+            
+            sc0 = scaled[0]
+            sc0 = (sc0 - sc0.min()) / (2*(sc0.max() - sc0.min())) + 0.5*np.mean(sc0)
+            print("MIN", sc0.min(), "MAX", sc0.max())
+            ctx1 = featurizer.encrypt(sc0)
+            pickle.dump(sc0, open("scaled.pickle", "wb"))
+            if debug: print(f"Featurizing done in {time() - t0:.2f}s")
+            if debug: print(ctx1.n, ctx1.logp, ctx1.logq)
             if debug: print("[Encryptor] Ctxt encrypted")
+
+
             he.SerializationUtils.writeCiphertext(ctx1, fn)
             if debug: print("[Encryptor] Ctxt wrote")
 
