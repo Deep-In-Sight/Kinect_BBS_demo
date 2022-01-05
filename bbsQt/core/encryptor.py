@@ -83,7 +83,7 @@ def compress_files(fn_tar, fn_list):
 
 class HEAAN_Encryptor():
     def __init__(self, q_text, e_key, lock, key_path, 
-                debug=True, tar=False, test=False):
+                debug=True, tar=False):
         #lock.acquire()# 이렇게 하는건가? 
 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -104,12 +104,7 @@ class HEAAN_Encryptor():
         self.scheme.addLeftRotKey(self.secretKey, 1)
 
         if tar:
-            if test:
-                # Very small file for test purpose
-                # Real files should had been passed to the server in advance.
-                fn_tar = "test.tar.gz"
-            else:
-                fn_tar = "keys.tar.gz"
+            fn_tar = "keys.tar.gz"
             compress_files(fn_tar, [key_path+'serkey/'+fn for fn in FN_KEYS])
             q_text.put({"root_path":key_path+'serkey/', 
                        "keys_to_share":fn_tar})
@@ -268,7 +263,23 @@ class HEAAN_Encryptor():
             preds = []
             fn_preds = q_text.get()  ## FLOW CONTROL
 
-
+            #fn_preds = [f"pred_{i}.dat" for i in range(5)]
+            # Load predictions
+            print("fn_preds", fn_preds)
+            logq = 180
+            preds=[]
+            for fn_ctx in fn_preds:
+                print("[encryptor] make an empty ctxt")
+                ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
+                print("[encryptor] load ctxt", fn_ctx)
+                he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
+                print("[encryptor] decrypt ctxt", ctx_pred)
+                dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
+                print("[encryptor] append decrypted ctxt")
+                preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
+                print("[encryptor] decrypted prediction array", dec[:10])
+                del ctx_pred
+            del ctx1 
 
 
             if DEBUG:

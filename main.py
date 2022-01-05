@@ -8,10 +8,7 @@ from bbsQt.comm import app_client
 from bbsQt.core.encryptor import HEAAN_Encryptor
 
 from PyQt5.QtWidgets import QApplication
-
-TEST=True
 from bbsQt.constants import DEBUG
-
 
 
 def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
@@ -54,7 +51,7 @@ def debug_eval(q1, q_text, lock, e_sk, e_key, e_enc, e_ans):
 
 
 def run_encryptor(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
-    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path, test=TEST)
+    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
      #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 
