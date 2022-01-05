@@ -5,8 +5,10 @@ import pickle
 import torch
 from time import time
 
+from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA
+
 import fase
-fase.USE_FPGA = True 
+fase.USE_FPGA = FPGA
 from fase.core.heaan import he
 #from fase.core.heaan import he
 from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
@@ -15,7 +17,7 @@ from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
 
-from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS
+
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)

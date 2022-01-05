@@ -10,7 +10,7 @@ from bbsQt.core.encryptor import HEAAN_Encryptor
 from PyQt5.QtWidgets import QApplication
 
 TEST=True
-DEBUG=True
+from bbsQt.constants import DEBUG
 
 
 
@@ -39,7 +39,7 @@ def debug_eval(q1, q_text, lock, e_sk, e_key, e_enc, e_ans):
     import pickle
     action=1
     cam='e'
-    test_data_dir = "/home/hoseung/Work/fhenrf/pose/"
+    test_data_dir = "./models/"
     dataset = pickle.load(open(test_data_dir + f"BBS_dataset_{action}_{cam}_unnormed.pickle", "rb"))
     X_valid = dataset["valid_x"][12:13]
     y_valid = dataset["valid_y"][12:13]

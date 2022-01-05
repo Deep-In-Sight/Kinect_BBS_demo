@@ -4,14 +4,13 @@ import numpy as np
 import os 
 import pickle
 import tarfile
-from bbsQt.constants import FN_KEYS, HEAAN_CONTEXT_PARAMS
+from bbsQt.constants import FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG
 from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 #from sklearn import preprocessing
 
 from time import time
 #from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
 #from fase.hnrf import heaan_nrf 
-DEBUG=True
 class HomomorphicTreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
@@ -206,6 +205,7 @@ class HEAAN_Encryptor():
             if debug: print("[Encryptor] Ctxt wrote")
 
             if DEBUG:
+                self.setup_eval(server_path="./")
                 dec=decrypt(self.scheme, self.secretKey, ctx1, self.parms)
                 print("[encryptor] decrypt ctxt1", dec[:20])
                 del ctx1
@@ -313,6 +313,22 @@ class HEAAN_Encryptor():
 
             i+=1
     
+    def setup_eval(self, server_path="./"):
+        logq = HEAAN_CONTEXT_PARAMS['logq']#540
+        logp = HEAAN_CONTEXT_PARAMS['logp']#30
+        logn = HEAAN_CONTEXT_PARAMS['logn']#14
+        n = 1*2**logn
+
+        self.parms2 = Param(n=n, logp=logp, logq=logq)
+        self.server_path2 = server_path
+        self.key_path2 = server_path + 'serkey/'
+        print("[ENCRYPTOR] key path", self.key_path2)
+
+        self.ring2 = he.Ring()
+        
+        self.scheme2 = he.Scheme(self.ring2, True, self.server_path2)
+        self.algo2 = he.SchemeAlgo(self.scheme2)
+        self.scheme2.loadLeftRotKey(1)
 
     def load_models(self):
         from fase.hnrf.tree import NeuralTreeMaker
@@ -338,8 +354,8 @@ class HEAAN_Encryptor():
         h_rf = HomomorphicNeuralRandomForest(Nmodel)
         #print("[EVAL.model_loader] HRF loaded for class", action)
         nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
-                                                            self.scheme,
-                                                            self.parms,
+                                                            self.scheme2,
+                                                            self.parms2,
                                                             self.my_tm_tanh.coeffs,
                                                             do_reduction = False,
                                                             #save_check=True

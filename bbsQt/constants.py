@@ -10,7 +10,7 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][0]
+location = ['DI', 'ETRI', 'local'][2]
 
 NFRAMES={'1':6,
          '2':6,
@@ -40,7 +40,7 @@ if location == "DI":
 elif location == "local":
     HOST = '127.0.0.1'
     PORT = 2345
-    DIR_KEY_SERVER = "./server/"
+    DIR_KEY_SERVER = "./server/serkey/"
     BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key_cp.py'
     BIN_PLAYER = "/usr/bin/totem" 
@@ -59,3 +59,5 @@ SCP_PORT = 22
 
 
 TEST_CLIENT=False
+DEBUG=False
+FPGA=False
