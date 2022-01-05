@@ -357,7 +357,8 @@ class qScenario(QObject):
 
     
 	def videoplay(self):
-		video_name = DIR_VIDEO+f"{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"
+        
+		video_name = DIR_VIDEO+f"?{self.class_num.currentText()}_{self.score_num.currentText()}_*.mp4"
 
 		try:
 			#p = subprocess.Popen(["/usr/bin/mpv", f"/home/etri_ai2/Desktop/video_box/{self.class_num.currentText()}_{self.score_num.currentText()}.mp4"])
