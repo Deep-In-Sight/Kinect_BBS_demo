@@ -10,7 +10,7 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][0]
+location = ['DI', 'ETRI', 'local'][1]
 
 NFRAMES={'1':6,
          '2':6,
@@ -52,8 +52,10 @@ elif location == "ETRI":
     DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/serkey/"
     S_ACCOUNT = 'etri_ai1'
     S_PASSWORD = 'etri_ai1'
-    BIN_PYTHON='/home/etri_ai1/anaconda3/envs/bbs/bin/python'
+    BIN_PYTHON='/home/etri_he1/anaconda3/envs/bbs/bin/python'
     COPY_SCRIPT='send_key.py'
+    BIN_PLAYER = "/usr/bin/mpv" 
+    DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
     
 SCP_PORT = 22
 
