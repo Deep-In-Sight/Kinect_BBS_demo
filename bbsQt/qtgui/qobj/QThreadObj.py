@@ -2,18 +2,14 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtPrintSupport import *
-#from datetime import datetime
-import multiprocessing as mp
-#import matplotlib.pyplot as plt
 import time
 import numpy as np
-#from PIL import Image
-import pandas as pd
-#import src.image as imgutil
 import os
 import cv2
-import pwd
-from functools import partial
+#import multiprocessing as mp
+#import pandas as pd
+#import pwd
+#from functools import partial
 import pickle
 
 import matplotlib.pyplot as plt 
@@ -24,14 +20,6 @@ from bbsQt.model import rec_utils as ru
 from bbsQt.constants import NFRAMES, DEBUG_FLAG1
 
 WAIT = 0.01
-
-# def do_save_multiproc(path_root, data, idx0, Locale, ID):
-#     i = 0
-#     print(path_root)
-#     for color in data:
-#         cv2.imwrite(f"./{Locale}/{str(ID).zfill(3)}/RGB/{str((i+idx0) + 1).zfill(4)}.jpg", color)
-#         i = i + 1
-
 
 class qThreadRecord(QThread):
     
@@ -56,16 +44,8 @@ class qThreadRecord(QThread):
         self.e_ans = e_ans
         self.q_answer = q_answer
 
-        
-        #self.p_save0 = partial(self.select_sk, skindex=0)
-        #self.p_save1 = partial(self.select_sk, skindex=1)
-        #self.p_save2 = partial(self.select_sk, skindex=2)
-        print("QTrhead record", self.k4a)
-
-
     def setRun(self, Run):
         self.isRun = Run
-
 
     def init(self, PWD, Locale, SubjectID, btn):
         self.PWD = PWD
@@ -152,8 +132,6 @@ class qThreadRecord(QThread):
 
     def get_color(self):
         return self.stackColor
-
-
 
     # todo data tree  
     def save_multiproc(self):
