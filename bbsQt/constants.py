@@ -10,7 +10,7 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][1]
+location = ['DI', 'ETRI', 'local'][2]
 
 NFRAMES={'1':6,
          '2':6,
@@ -59,7 +59,9 @@ elif location == "ETRI":
     
 SCP_PORT = 22
 
+FPGA=False
 
+############# DEBUGGING ##############
+DEBUG_FLAG1 = True
 TEST_CLIENT=False
 DEBUG=False
-FPGA=True

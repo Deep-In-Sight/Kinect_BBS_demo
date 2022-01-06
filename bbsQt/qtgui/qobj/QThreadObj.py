@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES
+from bbsQt.constants import NFRAMES, DEBUG_FLAG1
 
 WAIT = 0.01
 
@@ -56,6 +56,7 @@ class qThreadRecord(QThread):
         self.e_ans = e_ans
         self.q_answer = q_answer
 
+        
         #self.p_save0 = partial(self.select_sk, skindex=0)
         #self.p_save1 = partial(self.select_sk, skindex=1)
         #self.p_save2 = partial(self.select_sk, skindex=2)
@@ -218,32 +219,41 @@ class qThreadRecord(QThread):
         
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         this_scenario = self.qScenario.class_num.currentText()
-        sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
-                                 nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
-                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+        this_score = self.qScenario.score_num.currentText()
         
+        if not DEBUG_FLAG1:
+            sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
+                                    nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
+                                    shift=1)
+            skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+            
         if self.camera_num == 0:
-            cam = 'a'
+            camera_num = 'a'
         elif self.camera_num == 1:
-            cam = 'e'
-        self.q1.put({"action":this_scenario,
-                     "cam":cam, 
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        answer = self.q_answer.get()
-        self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(18)
-        self.qScenario.viewInfo.setFont(font)
+            camera_num = 'e'
 
-        self.e_ans.clear()
-    
+        tm = time.localtime()
+        time_name = str(tm.tm_mon)+str(tm.tm_mday)+str(tm.tm_hour)+str(tm.tm_min)+str(tm.tm_sec)
+        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_name}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
+        
+        if not DEBUG_FLAG1:
+            self.q1.put({"action":this_scenario,
+                        "cam":camera_num, 
+                    "skeleton": skeleton})
+            print("[Qthread obj] is q1 empty?", self.q1.empty())
+            self.e_sk.set()
+            print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+            
+            self.e_ans.wait()
+            answer = self.q_answer.get()
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(18)
+            self.qScenario.viewInfo.setFont(font)
+
+            self.e_ans.clear()
+        
     def select_sk1(self):
         skindex=1
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
@@ -252,32 +262,40 @@ class qThreadRecord(QThread):
         print("[Qthread obj] camera_num", self.camera_num)
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         this_scenario = self.qScenario.class_num.currentText()
-        sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
-                                 nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
-                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+        this_score = self.qScenario.score_num.currentText()
 
+        if not DEBUG_FLAG1:
+            sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
+                                    nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
+                                    shift=1)
+            skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+            
         if self.camera_num == 0:
-            cam = 'a'
+            camera_num = 'a'
         elif self.camera_num == 1:
-            cam = 'e'
-        self.q1.put({"action":this_scenario,
-                     "cam":cam, 
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+            camera_num = 'e'
         
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        answer = self.q_answer.get()
-        self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(18)
-        self.qScenario.viewInfo.setFont(font)
+        tm = time.localtime()
+        time_name = str(tm.tm_mon)+str(tm.tm_mday)+str(tm.tm_hour)+str(tm.tm_min)+str(tm.tm_sec)
+        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_name}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
 
-        self.e_ans.clear()
+        if not DEBUG_FLAG1:
+            self.q1.put({"action":this_scenario,
+                        "cam":camera_num, 
+                    "skeleton": skeleton})
+            print("[Qthread obj] is q1 empty?", self.q1.empty())
+            self.e_sk.set()
+            print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+            
+            self.e_ans.wait()
+            answer = self.q_answer.get()
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(18)
+            self.qScenario.viewInfo.setFont(font)
+
+            self.e_ans.clear()
     
     def select_sk2(self):
         skindex=2
@@ -286,34 +304,41 @@ class qThreadRecord(QThread):
         print(f'[Qthread obj] skeleton index : {skindex}')
         print("[Qthread obj] camera_num", self.camera_num)
         this_scenario = self.qScenario.class_num.currentText()
-        sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
-                                 nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
-                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+        this_score = self.qScenario.score_num.currentText()
 
+        if not DEBUG_FLAG1:
+            sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
+                                    nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
+                                    shift=1)
+            skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+            
         if self.camera_num == 0:
-            cam = 'a'
+            camera_num = 'a'
         elif self.camera_num == 1:
-            cam = 'e'
-        self.q1.put({"action":this_scenario,
-                     "cam":cam, 
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+            camera_num = 'e'
         
-        self.e_ans.wait()
-        answer = self.q_answer.get()
-        self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(18)
-        self.qScenario.viewInfo.setFont(font)
+        tm = time.localtime()
+        time_name = str(tm.tm_mon)+str(tm.tm_mday)+str(tm.tm_hour)+str(tm.tm_min)+str(tm.tm_sec)
+        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_name}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
 
-        self.e_ans.clear()
-        #uid = pwd.getpwnam("etri_ai2").pw_uid
-        #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)         
+        if not DEBUG_FLAG1:
+            self.q1.put({"action":this_scenario,
+                        "cam":camera_num, 
+                    "skeleton": skeleton})
+            print("[Qthread obj] is q1 empty?", self.q1.empty())
+            self.e_sk.set()
+            print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
+            
+            self.e_ans.wait()
+            answer = self.q_answer.get()
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(18)
+            self.qScenario.viewInfo.setFont(font)
 
+            self.e_ans.clear()
+            
     def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
         left_arms = ['l_shoulder', 'l_elbow', 'l_hand']
         right_arms = ['head', 'r_shoulder',  'r_elbow', 'r_hand']
