@@ -98,11 +98,13 @@ class QMyMainWindow(QWidget):
         #self.cameraindex = 0
 
         self.PWD = os.getcwd()
+        self.btn = qButtons(self, self.PWD)
+
         self.imgviwerRGB = PhotoViewer(self,"RGB", ENABLE_PYK4A)
         
         #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
-        self.qScenario = qScenario(self, self.PWD, q_answer)
+        self.qScenario = qScenario(self, self.PWD, q_answer, self.btn)
 
         self.config = setConfig() # to be added
         #self.qSkeleton = qSkeleton()
@@ -121,9 +123,26 @@ class QMyMainWindow(QWidget):
         self.setMaximumSize(2048, 1600)
         self.setWindowTitle('Operating Module for NIA 21 Data Capture')
 
-        self.btn = qButtons(self, self.PWD)
+        # fix 2021/01/07
+        #self.btn = qButtons(self, self.PWD)
         self.coord = np.arange(10)*0.1 + 0.05
 
+        # fix 2021/01/07
+        self.camera_choice = {1: 1,
+                         2: 1,
+                         3: 0,
+                         4: 1,
+                         5: 1,
+                         6: 1,
+                         7: 1,
+                         8: 0,
+                         9: 0,
+                         10:1,
+                         11:1,
+                         12:1,
+                         13:0,
+                         14:1
+                         }
 
         if ENABLE_PYK4A:
             # Modify camera configuration
@@ -133,7 +152,7 @@ class QMyMainWindow(QWidget):
 
             # Start cameras using modified configuration
             print("INIT, device index", self.btn.cameranum.currentIndex())
-            self.device = pykinect.start_device(device_index=self.btn.cameranum.currentIndex(), config=self.device_config)
+            self.device = pykinect.start_device(device_index=1, config=self.device_config)
 
             # Initialize the body tracker
             self.bodyTracker = pykinect.start_body_tracker()
@@ -258,7 +277,8 @@ class QMyMainWindow(QWidget):
             print("Saving images done.")    
             print("SAVE, device index", self.btn.cameranum.currentIndex())
 
-            self.device = pykinect.start_device(device_index=self.btn.cameranum.currentIndex(), config=self.device_config)
+            ###
+            self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], config=self.device_config)
             self.bodyTracker = pykinect.start_body_tracker()
             self.qthreadrec.reset(self.device, self.bodyTracker)
         else:
@@ -423,14 +443,34 @@ class QMyMainWindow(QWidget):
             self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))        
         else:
             pass
-            
-    # add 
+
+    # add 20210107
+    def actionChanged(self):
+        print("action changed", self.btn.action_num.currentIndex())
+        actionidx = self.btn.action_num.currentIndex() + 1
+        a = 1
+        e = 0
+        
+        self.startcamera(self.camera_choice[actionidx])
+        self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
+
+    def scoreChanged(self, text):
+        self.qScenario.scorenum.setText(f'Score : {text}')
+
+    # fix 20210107
     def cameraChanged(self):
+        print("camera changed", self.btn.cameranum.currentIndex())
+        cameraidx = self.btn.cameranum.currentIndex()
+        self.startcamera(cameraidx)
+
+    # add 20210107
+    def startcamera(self, cameraidx):
+        
+        #self.qScenario.onchanged(cameraidx)
+
         self.device.close()
         self.bodyTracker.destroy()
-        #self.qthreadrec.quit()
-        print("camera changed", self.btn.cameranum.currentIndex())
-        #self.cameraindex = self.btn.cameranum.currentIndex()
+        
         if ENABLE_PYK4A:
             # Modify camera configuration
             self.device_config = pykinect.default_configuration
@@ -438,8 +478,8 @@ class QMyMainWindow(QWidget):
             self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
 
             # Start cameras using modified configuration
-            print("CAMERA CHANGED, device index", self.btn.cameranum.currentIndex())
-            self.device = pykinect.start_device(device_index=self.btn.cameranum.currentIndex(), config=self.device_config)
+            print("ACTION CHANGED, device index", cameraidx)
+            self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
 
             # Initialize the body tracker
             self.bodyTracker = pykinect.start_body_tracker()
@@ -449,12 +489,12 @@ class QMyMainWindow(QWidget):
                     #           self.PWD, self.btn.cameranum.currentIndex(),
                     #           self.q1, self.e_sk, self.e_ans, self.q_answer)
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
-                                self.PWD, self.btn.cameranum.currentIndex(), 
+                                self.PWD, cameraidx, 
                                 self.q1, self.e_sk, self.e_ans, self.q_answer)
         self.skindexbtn0.clicked.connect(self.qthreadrec.select_sk0)
         self.skindexbtn1.clicked.connect(self.qthreadrec.select_sk1)
         self.skindexbtn2.clicked.connect(self.qthreadrec.select_sk2)
-    # todo class and score
+ 
     @pyqtSlot()
     def updateScenarioNo(self):
         # self.ScenarioNo = self.qScenario.cBoxSSelect.currentIndex()

@@ -135,21 +135,13 @@ class qThreadRecord(QThread):
 
     # todo data tree  
     def save_multiproc(self):
-        #print("_______________________")
-        #print(len(self.stackColor))
-        #print(self.stackColor)
         self.stackColor = np.array(self.stackColor)
         # 모든 스켈레톤이 다있는 프레임 
-        #skarr  = ku.kinect2mobile_direct(self.stackJoint[maxframe_idx])
         self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
-
         nframes = len(self.skarr_list[0])
         
         i_person_exist = np.ones(nframes, dtype=bool)
-        #print("i_person_exist", i_person_exist)
         for karr in self.skarr_list:
-            #print("nframes", nframes)
-            #print("len(karr)", len(karr))
             i_non_empty = np.ones(nframes, dtype=bool)
             for name in karr.dtype.names:
                 i_non_empty *= np.array(karr[name] > 0)
@@ -171,9 +163,9 @@ class qThreadRecord(QThread):
         #jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
         #c(path_root, data, idx0, Locale, ID
         if self.camera_num == 1 :
-            camera_num = 'e_'
-        elif self.camera_num == 0:
             camera_num = 'a_'
+        elif self.camera_num == 0:
+            camera_num = 'e_'
 
         #for i, color in enumerate(self.stackColor):
         #Save only one jpg
@@ -182,7 +174,6 @@ class qThreadRecord(QThread):
         cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
 
         #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
-
         # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
         return skimage
 
@@ -196,8 +187,14 @@ class qThreadRecord(QThread):
         print("[Qthread obj] camera_num", self.camera_num)
         
         #scene = ku.kinect2mobile_direct(self.stackJoint)
-        this_scenario = self.qScenario.class_num.currentText()
-        this_score = self.qScenario.score_num.currentText()
+        
+        # FIX   20210107
+        # this_scenario = self.qScenario.class_num.currentText()
+        # this_score = self.qScenario.score_num.currentText()
+
+        # self.action_num.currentText()랑 연결
+        this_scenario = self.btn.action_num.currentText()
+        this_score = self.btn.score_num.currentText()
         
         if not DEBUG_FLAG1:
             sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
@@ -211,8 +208,9 @@ class qThreadRecord(QThread):
             camera_num = 'e'
 
         tm = time.localtime()
-        time_name = str(tm.tm_mon)+str(tm.tm_mday)+str(tm.tm_hour)+str(tm.tm_min)+str(tm.tm_sec)
-        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_name}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
+        #time_name = str(tm.tm_mon)+str(tm.tm_mday)+str(tm.tm_hour)+str(tm.tm_min)+str(tm.tm_sec)
+
+        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
         if not DEBUG_FLAG1:
             self.q1.put({"action":this_scenario,

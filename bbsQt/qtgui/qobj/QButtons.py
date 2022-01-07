@@ -22,6 +22,7 @@ class qButtons(QObject):
 		self.curtimeLabel = QLabel()
 		self.curtimeLabel.setMinimumWidth(70)
 		self.curtimeLabel.setText("")
+		self.curtimeLabel.setFont(QFont("Arial", 12, QFont.Bold))
 
 		# self.BtnFoo = QPushButton()
 		# self.BtnFoo.setCheckable(True)
@@ -55,15 +56,19 @@ class qButtons(QObject):
 
 		self.capturetimeal = QLabel()
 		self.capturetimeal.setText('capture time : ')
+		self.capturetimeal.setFont(QFont("Arial", 12, QFont.Bold))
 
 		self.capturetime = QLabel()
 		self.capturetime.setText('0')
+		self.capturetime.setFont(QFont("Arial", 12, QFont.Bold))
 
 		self.endtimeal = QLabel()
 		self.endtimeal.setText('end check(T/F) : ')
+		self.endtimeal.setFont(QFont("Arial", 12, QFont.Bold))
 
 		self.endtime = QLabel()
 		self.endtime.setText('F')
+		self.endtime.setFont(QFont("Arial", 12, QFont.Bold))
 
 
 		self.BtnPathOnOff = QPushButton()
@@ -85,11 +90,34 @@ class qButtons(QObject):
 
 		self.option.currentIndexChanged.connect(self.qmain.optionChanged)
 
+		self.camera_name = QLabel()
+		self.camera_name.setText('Camera option : ')
+		self.camera_name.setFont(QFont("Arial", 12, QFont.Bold))
+
 		self.cameranum = QComboBox()
-		self.cameranum.addItem("a")
 		self.cameranum.addItem("e")
+		self.cameranum.addItem("a")
 		self.cameranum.currentIndexChanged.connect(self.qmain.cameraChanged)
 
+
+		self.action_name = QLabel()
+		self.action_name.setText('Select Scenario : ')
+		self.action_name.setFont(QFont("Arial", 12, QFont.Bold))
+		
+		self.action_num = QComboBox()
+		[self.action_num.addItem(f"{i}") for i in range(1, 15)]
+		self.action_num.currentIndexChanged.connect(self.qmain.actionChanged)
+
+		self.score_name = QLabel()
+		self.score_name.setText('Select Scenario Score : ')
+		self.score_name.setFont(QFont("Arial", 12, QFont.Bold))
+		
+		self.score_num = QComboBox()
+		[self.score_num.addItem(f"{i}") for i in range(5)]
+		#self.score_num.currentIndexChanged.connect(self.qmain.scoreChanged)
+		self.score_num.activated[str].connect(self.qmain.scoreChanged)
+
+		#self.score_num.activated[str].connect(self.onchanged)
 
 		self.BtnCalib.clicked.connect(self.qmain.updateOnPlay)
 		self.BtnCalib.clicked.connect(self.qmain.calibration2)
@@ -112,13 +140,19 @@ class qButtons(QObject):
 		HBlayoutEdits.addWidget(self.BtnCalib)
 		HBlayoutEdits.addWidget(self.LbFPS)
 		# fix 2021/12/23
-		HBlayoutEdits.addWidget(self.cameranum)
-		HBlayoutEdits.addWidget(self.option)
+		HBlayoutEdits.addWidget(self.action_name)
+		HBlayoutEdits.addWidget(self.action_num)
+		HBlayoutEdits.addWidget(self.score_name)
+		HBlayoutEdits.addWidget(self.score_num)
+		HBlayoutEdits.addWidget(self.temp)
+		#HBlayoutEdits.addWidget(self.camera_name)
+		#HBlayoutEdits.addWidget(self.cameranum)
+		#HBlayoutEdits.addWidget(self.option)
 		HBlayoutEdits.addWidget(self.temp)
 		HBlayoutEdits.addWidget(self.capturetimeal)
 		HBlayoutEdits.addWidget(self.capturetime)
 		HBlayoutEdits.addWidget(self.temp)
-		HBlayoutEdits.addWidget(self.endtimeal)
-		HBlayoutEdits.addWidget(self.endtime)
+		#HBlayoutEdits.addWidget(self.endtimeal)
+		#HBlayoutEdits.addWidget(self.endtime)
 
 		return HBlayoutEdits

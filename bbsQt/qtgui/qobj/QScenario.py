@@ -29,11 +29,12 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 
 
 class qScenario(QObject):
-	def __init__(self, qmain, pwd, q_answer, ):
+	def __init__(self, qmain, pwd, q_answer, btn):
 		super(qScenario, self).__init__(qmain)
 		self.obj = ""
 		self.PWD = pwd
 		self.qmain = qmain	
+		self.btn = btn	
 
 		self.text_answer = ""
 		self.q_answer = q_answer
@@ -351,14 +352,19 @@ class qScenario(QObject):
 		#self.sizeInfo.setText(self.showSizeInfo())
 		QApplication.processEvents()
 
-	# fix 2021/12/22
+	# fix 2021/01/07
 	def onchanged(self, text):
-		self.scorenum.setText(f'Score : {self.score_num.currentText()}')
-		self.scenarionum.setText(f'Scenario : {self.class_num.currentText()}')
 
-    
+		# self.scorenum.setText(f'Score : {self.score_num.currentText()}')
+		# self.scenarionum.setText(f'Scenario : {self.class_num.currentText()}')
+        # self.scorenum 수정 필요 ! 지금 2개임 
+		self.scorenum.setText(f'Score : {text}')
+		#self.scenarionum.setText(f'Scenario : {text}')
+
 	def videoplay(self):
-		video_name = glob(DIR_VIDEO+f"?{self.class_num.currentText()}_{self.score_num.currentText()}_*.mp4")[0]
+		# fix 2021/01/07
+        #video_name = glob(DIR_VIDEO+f"?{self.class_num.currentText()}_{self.score_num.currentText()}_*.mp4")[0]
+		video_name = glob(DIR_VIDEO+f"?{self.btn.action_num.currentIndex()+1}_{self.btn.score_num.currentText()}_*.mp4")[0]
 
 		try:
 			p = subprocess.Popen([BIN_PLAYER, video_name])
@@ -642,9 +648,9 @@ class qScenario(QObject):
 		classlabel.setText("class:")
 		#LayoutViewers.addWidget(classlabel, alignment=Qt.AlignTop)
 
-		self.class_num = QComboBox()
-		[self.class_num.addItem(f"{i}") for i in range(1, 15)]
-		self.class_num.activated[str].connect(self.onchanged)
+		# self.class_num = QComboBox()
+		# [self.class_num.addItem(f"{i}") for i in range(1, 15)]
+		# self.class_num.activated[str].connect(self.onchanged)
 
 		#LayoutViewers.addWidget(self.class_num, alignment=Qt.AlignTop)
 
@@ -652,22 +658,22 @@ class qScenario(QObject):
 		scorelabel.setText("score:")
 		#LayoutViewers.addWidget(scorelabel, alignment=Qt.AlignTop)
 
-		self.score_num = QComboBox()
-		[self.score_num.addItem(f"{i}") for i in range(5)]
-		self.score_num.activated[str].connect(self.onchanged)
+		# self.score_num = QComboBox()
+		# [self.score_num.addItem(f"{i}") for i in range(5)]
+		# self.score_num.activated[str].connect(self.onchanged)
 
 		#LayoutViewers.addWidget(self.score_num, alignment=Qt.AlignTop)		
 
 
 		LayoutScenario = QVBoxLayout()
-		LayoutScenario.setAlignment(Qt.AlignTop)
-		qLabelName = QLabel()
-		qLabelName.setText("Select Scenario")
-		LayoutScenario.addWidget(qLabelName,1)
+		# LayoutScenario.setAlignment(Qt.AlignTop)
+		# qLabelName = QLabel()
+		# qLabelName.setText("Select Scenario")
+		# LayoutScenario.addWidget(qLabelName,1)
 		
-		# fix
-		LayoutScenario.addWidget(self.class_num,1)
-		LayoutScenario.addWidget(self.score_num,1)
+		# # fix
+		# LayoutScenario.addWidget(self.class_num,1)
+		# LayoutScenario.addWidget(self.score_num,1)
 
 		HVlayoutMain.addLayout(LayoutScenario, 2)
 
@@ -685,12 +691,12 @@ class qScenario(QObject):
 
 		# scenario update txt label /fix 2021/12/22
 		self.scenarionum = QLabel()
-		self.scenarionum.setText('Scenario : ')
+		self.scenarionum.setText(f'Scenario : {self.btn.action_num.currentIndex() + 1}')
 		LayoutSV.addWidget(self.scenarionum)
 
 		# score update txt label /fix 2021/12/22
 		self.scorenum = QLabel()
-		self.scorenum.setText(str('Score : '))
+		self.scorenum.setText(f'Score : {self.btn.score_num.currentIndex()}')
 		LayoutSV.addWidget(self.scorenum)
 
 		# # socre name label /fix 2021/12/22
