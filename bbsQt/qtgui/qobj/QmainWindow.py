@@ -187,61 +187,13 @@ class QMyMainWindow(QWidget):
         self.startRecord.connect(self.recordImages)
 
         self.qScenario.end.setDisabled(True)
+        #self.qScenario.save.setDisabled(True)
 
     def st(self):
         self.btn.endtime.setText("F")
 
     def end(self):
         self.btn.endtime.setText("T")
-
-    # fixed
-    def pnt(self):
-        print(self.qthreadrec.pic_Count)
-        self.stackPoints.append(self.qthreadrec.pic_Count)
-    # fixed
-    def overwrite(self):
-        if os.path.isdir(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/BT/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}") :
-            t1 = time.time()
-            shutil.rmtree(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/BT/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}")
-            shutil.rmtree(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/RGB/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}")
-            shutil.rmtree(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/IR/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}")
-            shutil.rmtree(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/DEPTH/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}")
-            self.stackPoints = pd.DataFrame(self.stackPoints)
-        
-
-            self.qthreadrec.setRun(False)
-
-            self.qthreadrec.mkd(self.Locale,
-                                 self.config.Angle, 
-                                 self.qScenario.currentRecSeq,
-                                 self.ScenarioNo,
-                                 str(self.btn.option.currentText()), 
-                                 self.qScenario.SubjectID,
-                                 self.qScenario.Correction)
-            
-            self.stackPoints.to_csv(f"{self.PWD}/{self.Locale}/{str(self.qScenario.SubjectID).zfill(3)}/{str(self.btn.option.currentText())}/BT/{self.config.Angle}/{self.ScenarioNo}/{self.qScenario.currentRecSeq}/points_data.csv")
-            self.qthreadrec.save_multiproc()
-
-            while self.qthreadrec.is_recoding():
-                time.sleep(2)
-
-            t2 = time.time()
-
-            self.qthreadrec.resetstate()
-
-            print("time during saving images: {} sec.".format(t2 - t1))
-
-            self.resetRecordInterface()
-
-            self.btn.endtime.setText("F")
-
-            print("Saving images done.")
-        else:
-            msgBox1 = QMessageBox()
-            msgBox1.setText("No overwrite")
-            msgBox1.exec()    
-
-    def save(self):
         checkfile = f"{self.PWD}/bodytracking_data.csv"
         #print(checkfile)
         if not(os.path.isfile(checkfile)) :
@@ -288,6 +240,11 @@ class QMyMainWindow(QWidget):
             msgBox1 = QMessageBox()
             msgBox1.setText("Check Score!")
             msgBox1.exec()    
+
+    # fixed
+    def pnt(self):
+        print(self.qthreadrec.pic_Count)
+        self.stackPoints.append(self.qthreadrec.pic_Count)
 
     def setLayout(self):
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
@@ -351,7 +308,7 @@ class QMyMainWindow(QWidget):
         self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
 
         self.qScenario.end.clicked.connect(self.end)
-        self.qScenario.save.clicked.connect(self.save)
+        #self.qScenario.save.clicked.connect(self.save)
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
