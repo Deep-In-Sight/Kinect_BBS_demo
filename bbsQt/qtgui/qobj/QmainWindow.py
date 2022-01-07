@@ -186,6 +186,8 @@ class QMyMainWindow(QWidget):
         # self.startRecord.connect(self.moveCheckerCoord)
         self.startRecord.connect(self.recordImages)
 
+        self.qScenario.end.setDisabled(True)
+
     def st(self):
         self.btn.endtime.setText("F")
 
@@ -281,6 +283,7 @@ class QMyMainWindow(QWidget):
             self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], config=self.device_config)
             self.bodyTracker = pykinect.start_body_tracker()
             self.qthreadrec.reset(self.device, self.bodyTracker)
+            self.qScenario.end.setDisabled(True)
         else:
             msgBox1 = QMessageBox()
             msgBox1.setText("Check Score!")
@@ -380,6 +383,7 @@ class QMyMainWindow(QWidget):
 
             self.qthreadrec.setRun(True)
 
+            self.qScenario.end.setEnabled(True)
             while self.qthreadrec.is_recoding():
                 # print("recording")
                 QApplication.processEvents()
