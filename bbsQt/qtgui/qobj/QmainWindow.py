@@ -343,9 +343,9 @@ class QMyMainWindow(QWidget):
         LayoutMain.addLayout(self.qScenario.getLayout(),49)
 
         # # add 2021.12.27  skindexbox connect 
-        self.skindexbtn0.clicked.connect(self.qthreadrec.select_sk0)
-        self.skindexbtn1.clicked.connect(self.qthreadrec.select_sk1)
-        self.skindexbtn2.clicked.connect(self.qthreadrec.select_sk2)
+        self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
+        self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
+        self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
 
         self.qScenario.end.clicked.connect(self.end)
         self.qScenario.save.clicked.connect(self.save)
@@ -491,9 +491,9 @@ class QMyMainWindow(QWidget):
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
                                 self.PWD, cameraidx, 
                                 self.q1, self.e_sk, self.e_ans, self.q_answer)
-        self.skindexbtn0.clicked.connect(self.qthreadrec.select_sk0)
-        self.skindexbtn1.clicked.connect(self.qthreadrec.select_sk1)
-        self.skindexbtn2.clicked.connect(self.qthreadrec.select_sk2)
+        self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
+        self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
+        self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
  
     @pyqtSlot()
     def updateScenarioNo(self):
