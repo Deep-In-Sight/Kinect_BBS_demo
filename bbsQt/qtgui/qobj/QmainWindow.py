@@ -56,8 +56,7 @@ def get_layout(mylabel):
     return VBlayoutMain
 
 
-def load_image():
-    fn_img = "default_img.jpg"
+def load_image(fn_img = "imgs/instruct_1.png"):
     img = cv2.imread(fn_img)
     #img = imgutil.rgb2gray(img)
     img = cv2.resize(img, (480, 270))
@@ -396,6 +395,7 @@ class QMyMainWindow(QWidget):
         
         self.startcamera(self.camera_choice[actionidx])
         self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
+        self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
 
     def scoreChanged(self, text):
         self.qScenario.scorenum.setText(f'Score : {text}')

@@ -146,9 +146,9 @@ class qScenario(QObject):
         except:
             print("cannot find video...")
 
-    def updateSize(self):
-        # self.sizeInfo.setText(self.showSizeInfo())
-        pass
+    #def updateSize(self):
+    #    # self.sizeInfo.setText(self.showSizeInfo())
+    #    pass
 
 
     def showinfo(self):
@@ -357,24 +357,12 @@ class qScenario(QObject):
         self.RecordFrameInput.returnPressed.connect(self.setMinRecordFrame)
         self.RECstartTimeInput.returnPressed.connect(self.setRECstartTime)
 
-        # for tt, timer in zip([0,10,20,30,40,50], self.timers):
-        #     timer.clicked.connect(lambda: self.set_countdown(tt))
-        #     print(tt)
-        #     print(timer)
-        # #[timer.clicked.connect(lambda: self.set_countdown(tt)) for (tt, timer) in zip([0,10,20,30,40,50], self.timers)]
-
         self.timers[0].clicked.connect(lambda: self.set_countdown(0))
         self.timers[1].clicked.connect(lambda: self.set_countdown(10))
         self.timers[2].clicked.connect(lambda: self.set_countdown(20))
         self.timers[3].clicked.connect(lambda: self.set_countdown(30))
         self.timers[4].clicked.connect(lambda: self.set_countdown(40))
         self.timers[5].clicked.connect(lambda: self.set_countdown(50))
-        #self.set00.clicked.connect(lambda: self.set_countdown(0))
-        #self.set10.clicked.connect(lambda: self.set_countdown(10))
-        #self.set20.clicked.connect(lambda: self.set_countdown(20))
-        #self.set30.clicked.connect(lambda: self.set_countdown(30))
-        #self.set40.clicked.connect(lambda: self.set_countdown(40))
-        #self.set50.clicked.connect(lambda: self.set_countdown(50))
         self.cnt.clicked.connect(self.qmain.pnt)
         
         # self.MaxRangeInput.returnPressed.connect(self.maxRangeChanged)

@@ -79,7 +79,6 @@ def run_communicator(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock):
 
     
 def main():
-    print("hi")
     KEYPATH = "./"  
     lock = mplti.Lock()### 
     ctx = mplti.get_context('spawn') ###

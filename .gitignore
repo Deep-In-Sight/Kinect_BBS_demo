@@ -2,6 +2,11 @@
 *.jpg
 *-checkpoint.ipynb
 *__pycache__
+*.mp4
+*.pickle 
+*.tar.gz
+*.txt
+*.dat
 
 # C++ objects and libs
 *.slo
