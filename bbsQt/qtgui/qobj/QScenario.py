@@ -251,56 +251,7 @@ class qScenario(QObject):
 
         self.timers = [self.add_timer_button(tt) for tt in [0,10,20,30,40,50]]
         for timer in self.timers:
-            LayoutRST.addWidget(timer)
-        #self.set00 = self.add_timer_button(0)
-        #self.set10 = self.add_timer_button(10)
-        #self.set20 = self.add_timer_button(20)
-        #self.set30 = self.add_timer_button(30)
-        #self.set40 = self.add_timer_button(40)
-        #self.set50 = self.add_timer_button(50)
-        #LayoutSRST.addWidget(self.set00)
-        
-        #LayoutSRST.addWidget(self.set10)
-        #LayoutSRST.addWidget(self.set20)
-        #LayoutSRST.addWidget(self.set30)
-        #LayoutSRST.addWidget(self.set40)
-        #LayoutSRST.addWidget(self.set50)
-
-        # self.set00 = QPushButton()
-        # self.set00.setCheckable(False)
-        # self.set00.setText('00s')
-        # self.set00.setMinimumHeight(40)
-        # LayoutSRST.addWidget(self.set00)
-
-        # self.set10 = QPushButton()
-        # self.set10.setCheckable(False)
-        # self.set10.setText('10s')
-        # self.set10.setMinimumHeight(40)
-        # LayoutSRST.addWidget(self.set10)
-
-        # self.set20 = QPushButton()
-        # self.set20.setCheckable(False)
-        # self.set20.setText('20s')
-        # self.set20.setMinimumHeight(40)
-        # LayoutSRST.addWidget(self.set20)
-
-        # self.set30 = QPushButton()
-        # self.set30.setCheckable(False)
-        # self.set30.setText('30s')
-        # self.set30.setMinimumHeight(40)
-        # LayoutSRST.addWidget(self.set30)
-
-        # self.set40 = QPushButton()
-        # self.set40.setCheckable(False)
-        # self.set40.setText('40s')
-        # self.set40.setMinimumHeight(40)
-        # LayoutSRST.addWidget(self.set40)
-
-        # self.set50 = QPushButton()
-        # self.set50.setCheckable(False)
-        # self.set50.setText('50s')
-        # self.set50.setMinimumHeight(40)
-        # LayoutSRST.addWidget(self.set50)
+            LayoutSRST.addWidget(timer)
 
         HVlayoutMain.addWidget(LayoutRecordStart, 10)
         HVlayoutMain.addLayout(LayoutLocale, 10)
