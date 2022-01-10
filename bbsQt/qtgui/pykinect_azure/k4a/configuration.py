@@ -51,7 +51,7 @@ class Configuration:
 		return _k4a.k4a_device_configuration_t(_k4a.K4A_IMAGE_FORMAT_COLOR_BGRA32, \
 											_k4a.K4A_COLOR_RESOLUTION_720P,\
 											_k4a.K4A_DEPTH_MODE_WFOV_2X2BINNED,\
-											_k4a.K4A_FRAMES_PER_SECOND_30,\
+											_k4a.K4A_FRAMES_PER_SECOND_15,\
 											False,\
 											0,\
 											_k4a.K4A_WIRED_SYNC_MODE_STANDALONE,\

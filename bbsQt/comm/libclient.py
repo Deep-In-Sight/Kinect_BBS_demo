@@ -4,22 +4,8 @@ import json
 import io
 import struct
 import tarfile
-# from bbsQt.constants import DIR_KEY_SERVER, HOST, S_ACCOUNT, S_PASSWORD, SCP_PORT
 
 BLOCKSIZE = 2**16
-
-# import paramiko
-# from scp import SCPClient
-#from datetime import datetime
-#from datetime import timedelta
-
-# def createSSHClient(server, port, user, password):
-#     client = paramiko.SSHClient()
-#     client.load_system_host_keys()
-#     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#     client.connect(server, port, user, password)
-#     return client
-
 
 def untar(fn_tar):
     if fn_tar.endswith("tar.gz"):
@@ -102,7 +88,8 @@ class Message:
         }
         jsonheader_bytes = self._json_encode(jsonheader, "utf-8")
         message_hdr = struct.pack(">H", len(jsonheader_bytes))
-        #print(message_hdr)
+        print("Finally... client is sending:")
+        print(jsonheader)
         #print(jsonheader_bytes)
         #print(content_bytes)
         message = message_hdr + jsonheader_bytes + content_bytes

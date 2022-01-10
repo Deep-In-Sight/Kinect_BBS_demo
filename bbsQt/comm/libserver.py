@@ -12,6 +12,7 @@ request_search = {
 }
 
 BLOCKSIZE = 2**16
+from bbsQt.constants import TEST_CLIENT
 
 
 def untar(fn_tar):
@@ -120,12 +121,17 @@ class Message:
         return response
 
     def _create_response_key(self):
+        if TEST_CLIENT:
+            #self.e_key.set()  
+            self.e_ans.set()
+
         #action = self.request.get("action")
         #if action == "set":
             #query = self.request.get("value")
             #answer = request_search.get(query) or f'No match for "{query}".'
-        self.e_key.set()
-        self.e_ans.wait()
+        else:
+            self.e_key.set()
+            self.e_ans.wait()
         print("[_create_response_key] e_ans is set")
         content = {"result": "Evaluator is ready"}
         #else:
@@ -140,7 +146,9 @@ class Message:
         return response
 
     def _create_response_ctext(self, fn):
-        self.e_ans.wait()
+        if TEST_CLIENT:
+            fn = './pred_0.dat'
+        
         print("_create_response_ctext,  e_ans is set")
         content = fn
         f = open(content, 'rb')
@@ -156,7 +164,7 @@ class Message:
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
-            print("[process_events], EVENT_WRITE")
+            #print("[process_events], EVENT_WRITE")
             self.write()
 
     def read(self):
@@ -168,7 +176,7 @@ class Message:
         if self._jsonheader_len is not None:
             if self.jsonheader is None:
                 self.process_jsonheader()
-        print("processed Json Header")
+        #print("processed Json Header")
 
         if self.jsonheader:
             if self.request is None:
@@ -235,21 +243,8 @@ class Message:
         data = self._recv_buffer[:content_len]
         self._recv_buffer = self._recv_buffer[content_len:]
         if self.jsonheader["content-type"] == "key":
-            self.request = data
-
-            # fn_file = self.jsonheader['note']
-            # fn_list = untar(fn_file)
-            # print("received file", fn_list, "from", self.addr)
-
-            #encoding = self.jsonheader["content-encoding"]
-            #self.request = self._json_decode(data, encoding)
-            #print("received request", repr(self.request), "from", self.addr)
-        
+            self.request = data        
         elif self.jsonheader["content-type"] == "ctxt":
-            self.request = data
-            print(self.jsonheader.keys())
-            print("received file", self.jsonheader['note'], "from", self.addr)
-        elif "file" in self.jsonheader["content-type"]:
             self.request = data
             print(self.jsonheader.keys())
             print("received file", self.jsonheader['note'], "from", self.addr)
@@ -266,30 +261,15 @@ class Message:
         # Set selector to listen for write events, we're done reading.
         self._set_selector_events_mask("w")
 
-    #def _create
-
     def create_response(self):
         print("[libserver] in create_response")
         if self.jsonheader["content-type"] == "key":
             # Save received file
-            with open(self.jsonheader['note'], "wb") as f:
-                f.write(self.request)
-            # Untar received file
-            #fn_file = self.jsonheader['note']
-            fn_list = untar("./keys.tar.gz")
+            fn_list = self.jsonheader['note']
             print("[libserver] received file", fn_list, "from", self.addr)
-
-        #     response = self._create_response_key()
-        if self.jsonheader["content-type"] == "text/json":
-            # Untar received file
-            #fn_file = self.jsonheader['note']
-            if self.jsonheader['note'] == "key":
-                print("AAAAAAAAAAAA")
-                #print(fn_file)
-                fn_list = untar("./keys.tar.gz")
-                print("[libserver] received file", fn_list, "from", self.addr)
-
-            response = self._create_response_key()            
+            
+            # tell server is ready?
+            response = self._create_response_key()
         elif self.jsonheader["content-type"] == "ctxt":
             filename =self.jsonheader['note'] 
             with open(filename, "wb") as f:
@@ -297,11 +277,15 @@ class Message:
             print("[libserver] saving query ctxt done")
             self.q_text.put(filename)
             self.e_enc.set()
-            self.e_ans.wait()# Wait for evaluator's answer
-            output_file = self.q_text.get()
-            response = self._create_response_ctext(output_file["filename"])
-            
-            
+            if TEST_CLIENT:
+                self.e_enc.clear()    
+                output_file = {"root_path":'./',  # Not using root path
+                        "filename":"preds.tar.gz"}
+            else:
+                # Evaluator.start_evaluate_loop() 기다리기
+                self.e_ans.wait()# Wait for evaluator's answer
+                output_file = self.q_text.get()
+            response = self._create_response_ctext(output_file["filename"])            
         elif "file" in self.jsonheader["content-type"]:
             with open(self.jsonheader['note'], "wb") as f:
                 f.write(self.request)

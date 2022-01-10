@@ -8,8 +8,8 @@ from bbsQt.comm import app_client
 from bbsQt.core.encryptor import HEAAN_Encryptor
 
 from PyQt5.QtWidgets import QApplication
+from bbsQt.constants import DEBUG
 
-TEST=True
 
 def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     app = QApplication(sys.argv)
@@ -21,8 +21,37 @@ def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     #e_quit.wait()
     #quit
 
+
+
+########################## DEBUGGING ############################
+from bbsQt.core.evaluator import HEAAN_Evaluator
+def run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./server/"):
+    e_key.wait()
+    henc = HEAAN_Evaluator(lock, server_path, e_ans)
+    e_key.clear()
+    print("[MAIN] Running evaluation loop")
+    henc.start_evaluate_loop(q_text, e_enc, e_ans)
+
+def debug_eval(q1, q_text, lock, e_sk, e_key, e_enc, e_ans):
+    import pickle
+    action=1
+    cam='e'
+    test_data_dir = "./models/"
+    dataset = pickle.load(open(test_data_dir + f"BBS_dataset_{action}_{cam}_unnormed.pickle", "rb"))
+    X_valid = dataset["valid_x"][12:13]
+    y_valid = dataset["valid_y"][12:13]
+    print("ANSWER", y_valid)
+    
+    q1.put({"action":action,
+            "cam":cam, 
+            "skeleton": X_valid})
+    e_sk.set()
+
+    #run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./server/")
+
+
 def run_encryptor(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
-    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path, test=TEST)
+    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
      #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 
@@ -87,23 +116,26 @@ def main():
     e_quit = multiprocessing.Event()
     e_quit.clear()
 
-    p_socket = mplti.Process(target=run_communicator, 
-            args=(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock), daemon=False)
-    p_socket.start()
-
-    
     p_enc = mplti.Process(target=run_encryptor, 
                     args=(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock), daemon=False)
     p_enc.start()
 
-    #p_qt = mplti.Process(target=run_temp_qt, args=(q1, lock, e_sk), daemon=True) # 임시
-    p_qt = mplti.Process(target=run_qt_app, 
-                        args=(q1, q_answer, lock, e_sk, e_ans), daemon=False) # 진짜
-    # ## signal quit()  
-    p_qt.start()
+    if not DEBUG:
+        p_socket = mplti.Process(target=run_communicator, 
+                args=(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock), daemon=False)
+        p_socket.start()
+        
+        p_qt = mplti.Process(target=run_qt_app, 
+                            args=(q1, q_answer, lock, e_sk, e_ans), daemon=False) # 진짜
+        # ## signal quit()  
+        p_qt.start()
 
-    #e_key.set()
+    else:
+        p_debug = mplti.Process(target=debug_eval, 
+                args=(q1, q_text, lock, e_sk, e_key, e_enc, e_ans), daemon=False)
+        p_debug.start()
 
+        
     e_quit.wait()
     p_socket.join()
     p_socket.close()
@@ -114,22 +146,7 @@ def main():
     
     sys.exit()
     #e_quit.wait()
-    
-    
-    
 
 
 if __name__ == '__main__':
 	main()
-
-    # while True:
-    #     qq = q1.get()
-    #     print(qq.keys())
-    #     if q1.empty(): break
-
-    # p.close()
-    # p2.close()
-    
-
-    
-    
