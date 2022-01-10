@@ -1,5 +1,5 @@
 import numpy as np
-import os
+#import os
 import tarfile
 import pickle
 import torch
@@ -11,12 +11,11 @@ import fase
 fase.USE_FPGA = FPGA
 from fase.core.heaan import he
 from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
-from time import time
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
 
-
+from bbsQt.constants import DEBUG
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
@@ -36,15 +35,15 @@ class Param():
         if self.logn == None:
             self.logn = int(np.log2(n))
 
-def key_found(key_path):
-    all_found = []
-    for fn in FN_KEYS:
-        this_fn = key_path + fn
-        found = os.path.isfile(this_fn)
-        all_found.append(found)
-        print(f"{this_fn} is","found" if found else "missing" )
+# def key_found(key_path):
+#     all_found = []
+#     for fn in FN_KEYS:
+#         this_fn = key_path + fn
+#         found = os.path.isfile(this_fn)
+#         all_found.append(found)
+#         print(f"{this_fn} is","found" if found else "missing" )
     
-    return np.all(all_found)
+#     return np.all(all_found)
 
 
 def compress_files(fn_tar, fn_list):
@@ -58,7 +57,7 @@ def print_binary(s):
 
 def show_file_content(fn):
     with open(fn, 'rb') as fbin:
-        line = fbin.read(100)
+        line = fbin.read(2000)
         print("\n <<<<file in binary format>>>>", line)
         print("\n <<<<file in HEX>>>>", print_binary(line))
 
@@ -82,25 +81,26 @@ class HEAAN_Evaluator():
         self.algo = he.SchemeAlgo(self.scheme)
         self.scheme.loadLeftRotKey(1)
         
-        self.load_models()
+        self.prepare_model_load()
 
         print("[Encryptor] HEAAN is ready")
         e_ans.set()
 
-    def load_models(self):
-        self.models = {}
-        dilatation_factor = 10
-        polynomial_degree = 10
+    def prepare_model_load(self,
+                           dilatation_factor = 10,
+                           polynomial_degree = 10):
+        """
+        Prepare a polynomial form of tanh function
+        to load requested models.
 
+        Models will be stored as dict
+        """
+        self.models = {}
+        
         self.my_tm_tanh = NeuralTreeMaker(torch.tanh, 
                             use_polynomial=True,
                             dilatation_factor=dilatation_factor, 
                             polynomial_degree=polynomial_degree)
-        # for cam in ['a','e']:
-        #     for action in range(1,15):
-        #         model = self.load_model(action, cam)
-        #         self.models.update({f"{action}":model})
-        #print(f"loading 14 models took {time() - t0:.2f}")
 
     def load_model(self, action, cam):
         print("[Evaluator] Loading trained NRF models")
@@ -108,70 +108,63 @@ class HEAAN_Evaluator():
         t0 = time()
         fn = self.server_path+f"models/Nmodel_{action}_{cam}.pickle"
         Nmodel = pickle.load(open(fn, "rb"))
-        #print("Loaded a model...", fn)
         
         h_rf = HomomorphicNeuralRandomForest(Nmodel)
-        #print("[EVAL.model_loader] HRF loaded for class", action)
         nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
                                                             self.scheme,
                                                             self.parms,
                                                             self.my_tm_tanh.coeffs,
                                                             do_reduction = False,
-                                                            #save_check=True
                                                             )
-        print("[EVAL.model_loader] HNRF model loaded for class", action)
-            
+        print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f}seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
-        self.models.update({f"{action}_{cam}":nrf_evaluator})    
-        
-        print("updated models", self.models)    
+        self.models.update({f"{action}_{cam}":nrf_evaluator})            
+        print("Model dict updated")    
 
     def _quick_check(self):
         scheme = self.scheme
         return True
 
     def run_model(self, action, cam, ctx):
-        print("Running model for class", action)
+        """Run model. If a model is not ready, load it first.
+        """
         try:
             model = self.models[f"{action}_{cam}"]
         except:
+            print("[Evaluator] Model not loaded yet")
+            print(f"[Evaluator] Loading model for class {action} and camera {cam}")
             self.load_model(action, cam)
-            print(f"Loading model for class {action} and camera {cam}")
             model = self.models[f"{action}_{cam}"]
 
-        #featurizer = self.models[f"{cc}"]['featurizer']
-        print("[Evaluator] running model...")
-        #ctx = featurizer.encrypt(data)
+        print("[EVALUATOR] running model...")
         return model(ctx)
-        #return self.predict(data)
 
     def start_evaluate_loop(self, q_text, e_enc, e_ans, tar=True):
         """
         filename : ctxt_a05_{i}.dat, where a05 means action #5.
         """
-        print("[EVALUATOR] starting_evaluate_loop")
+        print("[EVALUATOR] evaluate_loop started")
         while True:
             e_enc.wait()
             print("[EVALUATOR] e_enc set")
             fn_data = self.server_path + q_text.get()
-            #fn_data = data['filename']
-            print(fn_data)
-            #action = int(fn_data.split("ctx_a")[1][:2])
+            print("[EVALUATOR] got a file", fn_data)
             _, action, cam, _ = fn_data.split("_")
             action = int(action)
-            print("[evaluator] action class:", action)
+            print("[EVALUATOR] action class:", action)
 
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
             show_file_content(fn_data)
             e_enc.clear()
-            t0 =time()
+            
+            t0 = time()
             preds = self.run_model(action, cam, ctx)
-            print(f"Prediction took {time()-t0:.2f} seconds")
+            print(f"[EVALUATOR] Prediction took {time()-t0:.2f} seconds")
 
             fn_preds = []
             for i, pred in enumerate(preds):
-                print("PRED", i, pred)
+                #print("PRED", i, pred)
                 fn = self.server_path+f"pred_{i}.dat"
                 he.SerializationUtils.writeCiphertext(pred, fn)
                 fn_preds.append(fn)

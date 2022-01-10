@@ -136,10 +136,6 @@ def main():
         p_debug.start()
 
         
-    
-
-    #e_key.set()
-
     e_quit.wait()
     p_socket.join()
     p_socket.close()
@@ -150,22 +146,7 @@ def main():
     
     sys.exit()
     #e_quit.wait()
-    
-    
-    
 
 
 if __name__ == '__main__':
 	main()
-
-    # while True:
-    #     qq = q1.get()
-    #     print(qq.keys())
-    #     if q1.empty(): break
-
-    # p.close()
-    # p2.close()
-    
-
-    
-    

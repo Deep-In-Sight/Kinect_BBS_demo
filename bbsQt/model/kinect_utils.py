@@ -104,7 +104,7 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True):
             else:
                 break
 
-    nperson = 4
+    nperson = 4 # Assuming no more than 4 people will be recorded.
     mdtype = bbpp.get_dtypes(skeleton="COMMON")
     marrs = [np.zeros(len(klist), dtype=mdtype) for i in range(nperson)]
     
