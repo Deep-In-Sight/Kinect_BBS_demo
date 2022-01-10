@@ -37,20 +37,6 @@ def kinect2mobile_direct(klist, remove_zeros=True):
        KINECT_BBS names are different from 
     """
     
-    # K2M = {"SHOULDER_LEFT":"l_shoulder",
-    #        "SHOULDER_RIGHT":"r_shoulder",
-    #        "ELBOW_LEFT":"l_elbow", 
-    #        "ELBOW_RIGHT":"r_elbow", 
-    #        "WRIST_LEFT":"l_hand", 
-    #        "WRIST_RIGHT":"r_hand",
-    #        "HIP_LEFT":"l_hip", 
-    #        "HIP_RIGHT":"r_hip", 
-    #        "KNEE_LEFT":"l_knee", 
-    #        "KNEE_RIGHT":"r_knee",
-    #        "ANKLE_LEFT":"l_foot", 
-    #        "ANKLE_RIGHT":"r_foot",
-    #        "NOSE":"head"} # Assume Kinect nose == common head
-
     if remove_zeros:
         # remove preceeding non-detections
         while True:
@@ -102,20 +88,6 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True):
        
        KINECT_BBS names are different from 
     """
-    
-    # K2M = {"SHOULDER_LEFT":"l_shoulder",
-    #        "SHOULDER_RIGHT":"r_shoulder",
-    #        "ELBOW_LEFT":"l_elbow", 
-    #        "ELBOW_RIGHT":"r_elbow", 
-    #        "WRIST_LEFT":"l_hand", 
-    #        "WRIST_RIGHT":"r_hand",
-    #        "HIP_LEFT":"l_hip", 
-    #        "HIP_RIGHT":"r_hip", 
-    #        "KNEE_LEFT":"l_knee", 
-    #        "KNEE_RIGHT":"r_knee",
-    #        "ANKLE_LEFT":"l_foot", 
-    #        "ANKLE_RIGHT":"r_foot",
-    #        "NOSE":"head"} # Assume Kinect nose == common head
 
     if remove_zeros:
         # remove preceeding non-detections

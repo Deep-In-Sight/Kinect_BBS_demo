@@ -43,31 +43,45 @@ def merge_main_npy(main_list, prefix=""):
         main[i]['npy'] = prefix+fn_npy(cam, ID, class_name, score, mp)
     return main
 
-##### Standardization
-
-from bbsQt.model import BBS_pp_utils as bbpp
-common_joints = bbpp.COMMON_JOINT
-xy_joint_inds = dict([(name,i) for i, name in enumerate([prefix+cj for cj in common_joints for prefix in ["x", "y"]])])
-
-def joint_length(joint, j1:str, j2:str):
-
-    """measure lentgh of a joint from j1 to j2"""
-    x1 = joint[xy_joint_inds["x"+j1]]
-    x2 = joint[xy_joint_inds["x"+j2]]
-    y1 = joint[xy_joint_inds["y"+j1]]
-    y2 = joint[xy_joint_inds["y"+j2]]
-    return np.sqrt((x1-x2)**2 + (y1-y2)**2)
-
-def shift_to_zero(skeleton, nframe=2, njoints=30):
-    early_frame_x = skeleton[:nframe*njoints:2]
-    early_frame_y = skeleton[1:nframe*njoints:2]
-
-    ix_nz = np.nonzero(early_frame_x)
-    iy_nz = np.nonzero(early_frame_y)
-
-    mean_x = np.mean(early_frame_x[ix_nz])
-    mean_y = np.mean(early_frame_y[iy_nz])
+def smoothed_frame_sample(scene, fps = 1, window_size = 5):
+    """일정 시간에 한번씩 ... 영상 길이가 다를 경우에 뒤를 0으로 채워야함 
+    """
+    FPS_ORIGINAL=10 # 인 것 같음...
     
-    skeleton[::2] -= mean_x 
-    skeleton[1::2] -= mean_y 
-    return skeleton
+    nskip = int(FPS_ORIGINAL/fps)
+    nframe = np.ceil((len(scene) - window_size)/ nskip).astype(int)
+
+    sub = np.zeros(nframe, dtype=scene.dtype) #scene.dtype - frame
+
+    for i in range(nframe):
+        temp = scene[i*nskip:i*nskip+window_size]
+
+        for feat in temp.dtype.names: # recarry라서 한 번에 np.mean 불가능
+            sub[i][feat] = np.median(temp[feat])
+
+    return sub
+
+
+def smoothed_frame_N(scene, nframe = 10, window_size = 5, shift=0):
+    FPS_ORIGINAL=10 # 인 것 같음...
+    
+    nskip = int((len(scene)-shift) / nframe)
+    #nframe = np.ceil((len(scene) - window_size)/ nskip).astype(int)
+
+    sub = np.zeros(nframe, dtype=scene.dtype) #scene.dtype - frame
+
+    for i in range(nframe):
+        temp = scene[i*nskip+shift:i*nskip+window_size+shift]
+
+        for feat in temp.dtype.names: # recarry라서 한 번에 np.mean 불가능
+            sub[i][feat] = np.median(temp[feat])
+
+    return sub
+
+
+def ravel_rec(sub, return_feature=False):
+    vec=[]
+    for line in sub:
+        vec.extend([line[ff] for ff in line.dtype.names if ff not in "frame"])
+
+    return np.array(vec)
