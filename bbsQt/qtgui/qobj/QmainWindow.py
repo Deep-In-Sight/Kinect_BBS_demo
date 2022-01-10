@@ -4,18 +4,16 @@ import numpy as np
 import os
 import cv2
 import pandas as pd
-import shutil
 
-
-from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES
+#from bbsQt.model import rec_utils as ru
+from bbsQt.constants import NFRAMES, CAM_LIST
 
 #from PIL import Image
 #import random
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
-from PyQt5.QtGui import QPixmap, QIcon, QImage, QFont
+from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PyQt5.QtPrintSupport import *
 
 from ..config import Config as setConfig
@@ -30,12 +28,11 @@ from datetime import datetime
 
 #import qobj.QSkeleton
 import time
-
-from bbsQt.qtgui.qobj import QButtons
+#from bbsQt.qtgui.qobj import QButtons
 
 ENABLE_PYK4A = True
 from ..pykinect_azure import pykinect
-from . import image as imgutil
+#from . import image as imgutil
 
 pykinect.initialize_libraries(track_body=True)
 
@@ -47,7 +44,6 @@ def getIcon(path):
     app_icon.addFile(os.path.join(path, '48x48.png'),   QSize(48,48))
     app_icon.addFile(os.path.join(path, '256x256.png'), QSize(256,256))
     return app_icon
-
 
 
 def get_layout(mylabel):
@@ -128,21 +124,7 @@ class QMyMainWindow(QWidget):
         self.coord = np.arange(10)*0.1 + 0.05
 
         # fix 2021/01/07
-        self.camera_choice = {1: 1,
-                         2: 1,
-                         3: 0,
-                         4: 1,
-                         5: 1,
-                         6: 1,
-                         7: 1,
-                         8: 0,
-                         9: 0,
-                         10:1,
-                         11:1,
-                         12:1,
-                         13:0,
-                         14:1
-                         }
+        self.camera_choice = CAM_LIST
 
         if ENABLE_PYK4A:
             # Modify camera configuration

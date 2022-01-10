@@ -108,7 +108,10 @@ class qScenario(QObject):
         currentTime = QTime.currentTime()
         curtime     = currentTime.toString('hh:mm:ss')
         hh,mm,ss     = map(int,curtime.split(":"))
-
+        if ss > seconds:
+            curtime     = currentTime.addSecs(60).toString('hh:mm:ss')
+            hh,mm,ss     = map(int,curtime.split(":"))
+        
         hh = ("00" + str(hh))[-2:]
         mm = ("00" + str(mm))[-2:]
         ss = ("00" + str(seconds))[-2:]
@@ -161,6 +164,14 @@ class qScenario(QObject):
     def setCorrection(self):
         self.Correction = int(self.CorrectionInput.text())
         self.update()
+
+    def add_timer_button(self, seconds):
+        timer = QPushButton()
+        timer.setCheckable(False)
+        timer.setText(f'{seconds:02d}s')
+        timer.setMinimumHeight(40)
+        return timer
+        
 
     def getLayout(self):
         HBlayoutMain = QHBoxLayout() 
@@ -237,41 +248,59 @@ class qScenario(QObject):
         LayoutSRST.setAlignment(Qt.AlignTop)
         LayoutSRST.setAlignment(Qt.AlignRight)
 
-        self.set00 = QPushButton()
-        self.set00.setCheckable(False)
-        self.set00.setText('00s')
-        self.set00.setMinimumHeight(40)
-        LayoutSRST.addWidget(self.set00)
 
-        self.set10 = QPushButton()
-        self.set10.setCheckable(False)
-        self.set10.setText('10s')
-        self.set10.setMinimumHeight(40)
-        LayoutSRST.addWidget(self.set10)
+        self.timers = [self.add_timer_button(tt) for tt in [0,10,20,30,40,50]]
+        for timer in self.timers:
+            LayoutRST.addWidget(timer)
+        #self.set00 = self.add_timer_button(0)
+        #self.set10 = self.add_timer_button(10)
+        #self.set20 = self.add_timer_button(20)
+        #self.set30 = self.add_timer_button(30)
+        #self.set40 = self.add_timer_button(40)
+        #self.set50 = self.add_timer_button(50)
+        #LayoutSRST.addWidget(self.set00)
+        
+        #LayoutSRST.addWidget(self.set10)
+        #LayoutSRST.addWidget(self.set20)
+        #LayoutSRST.addWidget(self.set30)
+        #LayoutSRST.addWidget(self.set40)
+        #LayoutSRST.addWidget(self.set50)
 
-        self.set20 = QPushButton()
-        self.set20.setCheckable(False)
-        self.set20.setText('20s')
-        self.set20.setMinimumHeight(40)
-        LayoutSRST.addWidget(self.set20)
+        # self.set00 = QPushButton()
+        # self.set00.setCheckable(False)
+        # self.set00.setText('00s')
+        # self.set00.setMinimumHeight(40)
+        # LayoutSRST.addWidget(self.set00)
 
-        self.set30 = QPushButton()
-        self.set30.setCheckable(False)
-        self.set30.setText('30s')
-        self.set30.setMinimumHeight(40)
-        LayoutSRST.addWidget(self.set30)
+        # self.set10 = QPushButton()
+        # self.set10.setCheckable(False)
+        # self.set10.setText('10s')
+        # self.set10.setMinimumHeight(40)
+        # LayoutSRST.addWidget(self.set10)
 
-        self.set40 = QPushButton()
-        self.set40.setCheckable(False)
-        self.set40.setText('40s')
-        self.set40.setMinimumHeight(40)
-        LayoutSRST.addWidget(self.set40)
+        # self.set20 = QPushButton()
+        # self.set20.setCheckable(False)
+        # self.set20.setText('20s')
+        # self.set20.setMinimumHeight(40)
+        # LayoutSRST.addWidget(self.set20)
 
-        self.set50 = QPushButton()
-        self.set50.setCheckable(False)
-        self.set50.setText('50s')
-        self.set50.setMinimumHeight(40)
-        LayoutSRST.addWidget(self.set50)
+        # self.set30 = QPushButton()
+        # self.set30.setCheckable(False)
+        # self.set30.setText('30s')
+        # self.set30.setMinimumHeight(40)
+        # LayoutSRST.addWidget(self.set30)
+
+        # self.set40 = QPushButton()
+        # self.set40.setCheckable(False)
+        # self.set40.setText('40s')
+        # self.set40.setMinimumHeight(40)
+        # LayoutSRST.addWidget(self.set40)
+
+        # self.set50 = QPushButton()
+        # self.set50.setCheckable(False)
+        # self.set50.setText('50s')
+        # self.set50.setMinimumHeight(40)
+        # LayoutSRST.addWidget(self.set50)
 
         HVlayoutMain.addWidget(LayoutRecordStart, 10)
         HVlayoutMain.addLayout(LayoutLocale, 10)
@@ -376,12 +405,25 @@ class qScenario(QObject):
         self.RecordTimeInput.returnPressed.connect(self.setMinRecordTime)
         self.RecordFrameInput.returnPressed.connect(self.setMinRecordFrame)
         self.RECstartTimeInput.returnPressed.connect(self.setRECstartTime)
-        self.set00.clicked.connect(lambda: self.set_countdown(0))
-        self.set10.clicked.connect(lambda: self.set_countdown(10))
-        self.set20.clicked.connect(lambda: self.set_countdown(20))
-        self.set30.clicked.connect(lambda: self.set_countdown(30))
-        self.set40.clicked.connect(lambda: self.set_countdown(40))
-        self.set50.clicked.connect(lambda: self.set_countdown(50))
+
+        # for tt, timer in zip([0,10,20,30,40,50], self.timers):
+        #     timer.clicked.connect(lambda: self.set_countdown(tt))
+        #     print(tt)
+        #     print(timer)
+        # #[timer.clicked.connect(lambda: self.set_countdown(tt)) for (tt, timer) in zip([0,10,20,30,40,50], self.timers)]
+
+        self.timers[0].clicked.connect(lambda: self.set_countdown(0))
+        self.timers[1].clicked.connect(lambda: self.set_countdown(10))
+        self.timers[2].clicked.connect(lambda: self.set_countdown(20))
+        self.timers[3].clicked.connect(lambda: self.set_countdown(30))
+        self.timers[4].clicked.connect(lambda: self.set_countdown(40))
+        self.timers[5].clicked.connect(lambda: self.set_countdown(50))
+        #self.set00.clicked.connect(lambda: self.set_countdown(0))
+        #self.set10.clicked.connect(lambda: self.set_countdown(10))
+        #self.set20.clicked.connect(lambda: self.set_countdown(20))
+        #self.set30.clicked.connect(lambda: self.set_countdown(30))
+        #self.set40.clicked.connect(lambda: self.set_countdown(40))
+        #self.set50.clicked.connect(lambda: self.set_countdown(50))
         self.cnt.clicked.connect(self.qmain.pnt)
         
         # self.MaxRangeInput.returnPressed.connect(self.maxRangeChanged)
