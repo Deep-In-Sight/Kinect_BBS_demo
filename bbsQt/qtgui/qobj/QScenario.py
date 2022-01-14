@@ -138,7 +138,6 @@ class qScenario(QObject):
 
     def videoplay(self):
         # fix 2021/01/07
-        #video_name = glob(DIR_VIDEO+f"?{self.class_num.currentText()}_{self.score_num.currentText()}_*.mp4")[0]
         video_name = glob(DIR_VIDEO+f"?{self.btn.action_num.currentIndex()+1}_{self.btn.score_num.currentText()}_*.mp4")[0]
 
         try:
@@ -152,7 +151,8 @@ class qScenario(QObject):
 
 
     def showinfo(self):
-        info      = f" {self.text_answer} <<< Waiting for prediction... >>>\n"
+        #{self.text_answer} 
+        info      = f" <<< Waiting for prediction... >>>\n"
         return info
 
     def setRecordTime(self, t):

@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
 from bbsQt.constants import NFRAMES, DEBUG_FLAG1
+from bbsQt.model.Fall_predict import Score_updator
 
 WAIT = 0.01
 
@@ -55,8 +56,8 @@ class qThreadRecord(QThread):
             self.path_save = f"{self.PWD}/images"
 
     def reset(self, k4a, bt):
-        self.k4a = k4a
-        self.bt = bt
+            self.k4a = k4a
+            self.bt = bt
 
     def mkd(self, Locale, SubjectID, ScenarioNo):
         self.Locale = Locale
@@ -206,6 +207,9 @@ class qThreadRecord(QThread):
 
         pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
+
+        fn_scores = f"/{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
+
         if not DEBUG_FLAG1:
             self.q1.put({"action":this_scenario,
                         "cam":camera_num, 
@@ -216,10 +220,22 @@ class qThreadRecord(QThread):
             
             self.e_ans.wait()
             answer = self.q_answer.get()
-            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
+            #self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
+            
+            # Update this score
+            scu = Score_updator(fn_scores)
+            scu.update(this_scenario, answer)
+            all_txt = scu.text_output()
+            scu.write_txt()
+            fall_pred = scu.get_fall_prediction()
+            if fall_pred == -1:
+                self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n")
+            else:
+                self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n" + fall_pred)
+
             font = QFont()
             font.setBold(True)
-            font.setPointSize(18)
+            font.setPointSize(16)
             self.qScenario.viewInfo.setFont(font)
 
             self.e_ans.clear()

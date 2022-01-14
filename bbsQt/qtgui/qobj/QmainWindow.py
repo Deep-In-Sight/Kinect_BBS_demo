@@ -170,6 +170,18 @@ class QMyMainWindow(QWidget):
         self.qScenario.end.setDisabled(True)
         #self.qScenario.save.setDisabled(True)
 
+
+        ############################
+        LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
+        LayoutFallPred.setAlignment(Qt.AlignTop)
+        LayoutFallPred.setAlignment(Qt.AlignLeft)
+
+        # Score board
+        #self.ScoreboardLabel = QLabel()
+        #self.ScoreboardLabel.setText("TESTTEST")
+        #LayoutFallPred.addLayout(get_layout(self.ScoreboardLabel))
+
+
     def st(self):
         self.btn.endtime.setText("F")
 
@@ -241,7 +253,6 @@ class QMyMainWindow(QWidget):
         #LayoutViewers.addLayout(self.imgviwerIRtest.getLayout(),1)
         
         self.skimageLabel = QLabel()
-        
         self.skimageLabel.setPixmap(load_image())
         
         # add 2021.12.27 skindexbtn
@@ -290,6 +301,19 @@ class QMyMainWindow(QWidget):
 
         self.qScenario.end.clicked.connect(self.end)
         #self.qScenario.save.clicked.connect(self.save)
+
+        ### Fall prediction freom 14 BBS scores
+        # LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
+        # LayoutFallPred.setAlignment(Qt.AlignTop)
+        # LayoutFallPred.setAlignment(Qt.AlignLeft)
+
+        # # Score board
+        #self.ScoreboardLabel = QLabel()
+        #self.ScoreboardLabel.setText("TESTTEST")
+        #LayoutMain.addLayout(get_layout(self.ScoreboardLabel))
+        # LayoutFallPred.addLayout(get_layout(self.ScoreboardLabel))
+
+
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -487,7 +511,7 @@ class QMyMainWindow(QWidget):
             self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
             t0 = t1
 
-            self.qScenario.updateSize()            
+            #self.qScenario.updateSize()            
             QApplication.processEvents()
 
         i = 0
@@ -503,7 +527,7 @@ class QMyMainWindow(QWidget):
             self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
             t0 = t1            
 
-            self.qScenario.updateSize()        
+            #self.qScenario.updateSize()        
             QApplication.processEvents()
 
     def initplot(self):
@@ -529,7 +553,7 @@ class QMyMainWindow(QWidget):
             self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
             t0 = t1
         
-            self.qScenario.updateSize()
+            #self.qScenario.updateSize()
             QApplication.processEvents()            
 
         i = 0
@@ -545,7 +569,7 @@ class QMyMainWindow(QWidget):
             self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
             t0 = t1            
 
-            self.qScenario.updateSize()        
+            #self.qScenario.updateSize()        
             QApplication.processEvents()
 
     def closeEvent(self, event):
