@@ -34,7 +34,8 @@ CFG_50cm = {
 
 
 
-class Config():
+class Config(): 
+	
 	def __init__(self):
 		self.cfg_30cm = CFG_30cm
 		self.cfg_50cm = CFG_50cm
