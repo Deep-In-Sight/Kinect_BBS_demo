@@ -7,10 +7,11 @@ import subprocess
 from bbsQt.constants import DIR_VIDEO, BIN_PLAYER
 from glob import glob
 
+
 BTN_MIN_WIDTH         = 100
 BTN_MAX_WIDTH         = 200
 ICON_MIN_WIDTH         = 30
-ICON_MIN_HEIGHT     = 32
+ICON_MIN_HEIGHT     =  32
 
 recordconfig = setConfig()
 
@@ -25,14 +26,19 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
     return btn
 
 class qScenario(QObject):
+    """! Class about scenarios.
+    
+    """
     def __init__(self, qmain, pwd, q_answer, btn):
         super(qScenario, self).__init__(qmain)
         self.obj = ""
+        ## QmainWindow.QMyMainWindow.PWD
         self.PWD = pwd
         self.qmain = qmain    
         self.btn = btn    
 
         self.text_answer = ""
+        ## QmainWindow.QMyMainWindow.q_answer
         self.q_answer = q_answer
 
         self.ScenarioNo = 0
@@ -146,7 +152,7 @@ class qScenario(QObject):
             print("cannot find video...")
 
     #def updateSize(self):
-    #    # self.sizeInfo.setText(self.showSizeInfo())
+    #    self.sizeInfo.setText(self.showSizeInfo())
     #    pass
 
 
@@ -281,7 +287,6 @@ class qScenario(QObject):
         HVlayoutMain.addLayout(LayoutRecordStartStep, 40)
 
 
-        ###############################
         LayoutRecordEnd = QLabel()
         LayoutRecordEnd.setText("SAVE")
         font = QFont()
@@ -314,7 +319,6 @@ class qScenario(QObject):
 
         HVlayoutMain.addWidget(LayoutRecordEnd, 10)
         HVlayoutMain.addLayout(LayoutSE, 10)
-        ###############################
 
         LayoutScenarioNum = QHBoxLayout()
         LayoutScenarioNum.setAlignment(Qt.AlignTop)

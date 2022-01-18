@@ -3,13 +3,19 @@
 
 * [Quick Tutorials](doc/md/QuickTutorials.md)
 
+* [test](doc/md/test.md)
+
 * Guide
-    * Environment
+    * Getting Started
+        * Dependency 
+        1. bbb
+        2. aaa
     * Start QT APP
     * Scenario 
     * Score
     * BBS data
     * Camera setting  
+
 * Main Modules
     * [core](file:./d9/d0f/namespacecore.html) HEAAN encryptor library  
     * [model](file:./db/dee/namespacemodel.html) BBS Data preprocessing utils and FHERF model 

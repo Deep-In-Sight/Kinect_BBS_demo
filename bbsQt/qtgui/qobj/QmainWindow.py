@@ -1,5 +1,4 @@
-#import sys
-#import ntpath
+
 import numpy as np
 import os
 import cv2
@@ -36,7 +35,10 @@ from ..pykinect_azure import pykinect
 
 pykinect.initialize_libraries(track_body=True)
 
+
 def getIcon(path):
+    """!Function to get an icon image.
+    """
     app_icon = QIcon()
     app_icon.addFile(os.path.join(path, '16x16.png'),   QSize(16,16))
     app_icon.addFile(os.path.join(path, '24x24.png'),   QSize(24,24))
@@ -47,6 +49,12 @@ def getIcon(path):
 
 
 def get_layout(mylabel):
+    """!Function to get layout
+
+    @param mylabel  Qt.label
+
+    @returns QVBoxLayout
+    """
     VBlayoutMain = QVBoxLayout()
     VBlayoutMain.setAlignment(Qt.AlignTop)
     VBlayoutMain.setAlignment(Qt.AlignLeft)
@@ -57,7 +65,11 @@ def get_layout(mylabel):
 
 
 def load_image(fn_img = "imgs/instruct_1.png"):
-    img = cv2.imread(fn_img)
+    """!Function to get base images
+    
+    @returns QT.QPixmal image
+    """
+    img = cv2.imread(fn_image)
     #img = imgutil.rgb2gray(img)
     img = cv2.resize(img, (480, 270))
     img = img[:,:,::-1]
@@ -69,25 +81,32 @@ def load_image(fn_img = "imgs/instruct_1.png"):
 
 
 class QMyMainWindow(QWidget):
-    """ BBSAPP main window class
+    """
+    BBSAPP main window class
 
-    There is a thread in the BBSAPP main window class
     """
     startRecord = pyqtSignal()
+    # Functions
     def __init__(self, q1, e_sk, q_answer, e_ans):
-        """
-        q1 = mp.queue to put skeleton 
-        e_sk = mp.event to signal skeleton is ready
+        """! QT Gui class initializer 
+
+        @param q1       mp.queue to put skeleton 
+        @param e_sk     mp.event to signal skeleton is ready
+        @param q_answer The value of the answer received from the server
+        @param e_ans    The variable that waits for the answer to come out
         """
         super(QMyMainWindow, self).__init__()
+
+        ## mp.queue to put skeleton 
         self.q1 = q1
+        ##  mp.event to signal skeleton is ready
         self.e_sk = e_sk
         self.onPlay = False
         self.ScenarioNo = 1
         self.ScenarioPathOn = False
         self.n_alpha = 20
         self.increasing_alpha = True
-        self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
+        self.Locale = 'en_us' 
 
         self.q_answer = q_answer
         self.e_ans = e_ans
@@ -187,9 +206,13 @@ class QMyMainWindow(QWidget):
 
 
     def st(self):
+        """!Function that displays on the endtime button when you start shooting.
+        """
         self.btn.endtime.setText("F")
 
     def end(self):
+        """!Function that ends the shoot.
+        """
         self.btn.endtime.setText("T")
         checkfile = f"{self.PWD}/bodytracking_data.csv"
         #print(checkfile)
@@ -240,10 +263,16 @@ class QMyMainWindow(QWidget):
 
     # fixed
     def pnt(self):
+
         print(self.qthreadrec.pic_Count)
         self.stackPoints.append(self.qthreadrec.pic_Count)
 
     def setLayout(self):
+        """!Function to get main layout
+
+        @see
+        You can modify the layout in this function.
+        """
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
         LayoutMain.setAlignment(Qt.AlignTop)        
         LayoutMain.setAlignment(Qt.AlignLeft)    
@@ -320,6 +349,8 @@ class QMyMainWindow(QWidget):
 
 
     def resetRecordInterface(self):
+        """!Function that resets the interface.
+        """
         if self.qScenario.Ready.isChecked():
             self.qScenario.Ready.click()
 
@@ -367,10 +398,12 @@ class QMyMainWindow(QWidget):
             msgBox1.exec()    
 
     def checkRecordability(self):
+        """!Check if I can save it.
+        """
         #timesync = self.qScenario.RECstartTime == self.btn.curtimeLabel.text()
         if self.qScenario.RECstartTime.split(':')[1] == self.btn.curtimeLabel.text().split(':')[1]:
             if (self.qScenario.RECstartTime.split(':')[2] == self.btn.curtimeLabel.text().split(':')[2]) or (int(self.qScenario.RECstartTime.split(':')[2]) + 1 == int(self.btn.curtimeLabel.text().split(':')[2])) or (int(self.qScenario.RECstartTime.split(':')[2]) + 2 == int(self.btn.curtimeLabel.text().split(':')[2])) :
-                timesync = True
+                timesync = Truew
             else:
                 timesync = False
         else:
@@ -381,6 +414,7 @@ class QMyMainWindow(QWidget):
             self.startRecord.emit()
 
     def showTime(self):
+
         currentTime = QTime.currentTime()
         displayTxt = currentTime.toString('hh:mm:ss')
         self.btn.curtimeLabel.setText(displayTxt)
@@ -577,6 +611,8 @@ class QMyMainWindow(QWidget):
             QApplication.processEvents()
 
     def closeEvent(self, event):
+        """!Function of closing the BBS App.
+        """
         msgbox     = QMessageBox()
         msgbox.setIcon(QMessageBox.Question)
         reply     = msgbox.question(self, "",

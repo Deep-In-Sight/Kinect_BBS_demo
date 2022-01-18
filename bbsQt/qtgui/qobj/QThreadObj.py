@@ -1,3 +1,5 @@
+from tkinter.font import BOLD
+from xmlrpc.client import boolean
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -16,16 +18,33 @@ from bbsQt.model import rec_utils as ru
 from bbsQt.constants import NFRAMES, DEBUG_FLAG1
 from bbsQt.model.Fall_predict import Score_updator
 
+## It's 0.01 seconds...
 WAIT = 0.01
 
 class qThreadRecord(QThread):
-    
+    """!qThread that actually makes the camera work.
+    """
     def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
+        """! QThread class initializer initializer
+        @param k4a          kinect device
+        @param bt           body tracker 
+        @param LbFPS        Camera FPS
+        @param qScenario    The variable that waits for the answer to come out
+        @param PWD          Current working directory received from QmainWindow
+        @param camera_num   Kinect's device number
+        @param q_1          Q of multiprocessing libaray to get skeleton.
+        @param e_sk         Handler who communicates with the server.
+        @param e_ans        Handler who communicates with the server.
+        @param q_answer     The value of the answer received from the server
+
+        """
         super().__init__()
+
         self.stackColor = []
         self.stackIR = []
         self.stackDepth = []
         self.stackJoint = []
+
         self.k4a = k4a
         self.bt = bt
         self.isRun = False
@@ -33,18 +52,30 @@ class qThreadRecord(QThread):
         self.qScenario = qScenario
         self.Ncpu = 2
         self.pic_Count = 0
+        ## QmainWindow.QMyMainWindow.PWD
         self.PWD = PWD
+        ## Kinect's device number
         self.camera_num = camera_num
+        ## QmainWindow.QMyMainWindow.q1
         self.q1 = q1
+        ## QmainWindow.QMyMainWindow.e_sk
         self.e_sk = e_sk
-
+        ## QmainWindow.QMyMainWindow.e_ans
         self.e_ans = e_ans
+        ## QmainWindow.QMyMainWindow.q_answer
         self.q_answer = q_answer
 
     def setRun(self, Run):
+        """!It is a handler that can control the status of the camera in the QMainWindow.
+
+        @param Run boolean type 
+        """
         self.isRun = Run
 
     def init(self, PWD, Locale, SubjectID, btn):
+        """!Initialize the variable.
+        
+        """
         self.PWD = PWD
         self.Locale = Locale
         self.SubjectID = SubjectID
@@ -56,10 +87,14 @@ class qThreadRecord(QThread):
             self.path_save = f"{self.PWD}/images"
 
     def reset(self, k4a, bt):
-            self.k4a = k4a
-            self.bt = bt
+        """!Turn off the camera and keep the same device.
+            
+        """
+        self.k4a = k4a
+        self.bt = bt
 
     def mkd(self, Locale, SubjectID, ScenarioNo):
+        """! Create a directory to store images and body trekking."""
         self.Locale = Locale
         self.SubjectID = SubjectID
         self.ScenarioNo = ScenarioNo
@@ -75,6 +110,9 @@ class qThreadRecord(QThread):
         self.wait()        
 
     def resetstate(self):
+        """! A function that initializes variable.
+
+        """
         self.stackColor = []
         self.stackIR = []
         self.stackDepth = []
@@ -85,6 +123,8 @@ class qThreadRecord(QThread):
         return self.isRun 
     
     def run(self):
+        """! A function to run a camera.
+        """
         t_elapsed = 0
         nframes = 0
         i = 0
@@ -132,6 +172,8 @@ class qThreadRecord(QThread):
 
     # todo data tree  
     def save_multiproc(self):
+        """! TBD
+        """
         self.stackColor = np.array(self.stackColor)
         # 모든 스켈레톤이 다있는 프레임 
         self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
@@ -175,7 +217,8 @@ class qThreadRecord(QThread):
         return skimage
 
     def select_sk(self, skindex=0):
-        
+        """! TBD
+        """
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
         print(f'[Qthread obj] skeleton index : {skindex}')
@@ -242,6 +285,18 @@ class qThreadRecord(QThread):
         
             
     def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
+        """!A function that receives an array of skeleton and draws on jpg.
+        @param json_to_arr_list     Skeleton list
+        @param jpg_list             saved jpg list
+        @param idx                  saved jpg inde
+        @param save                 1 = save or 0 = not save **default = 1** 
+
+        @return pixmap
+
+        @see QT Pixmap detailed explanation is here.... \n
+        [QT pixmap](https://doc.qt.io/qt-5/qpixmap.html#QPixmap-4)
+
+        """
         left_arms = ['l_shoulder', 'l_elbow', 'l_hand']
         right_arms = ['head', 'r_shoulder',  'r_elbow', 'r_hand']
         body = ['head','l_shoulder', 'r_shoulder', 'r_hip', 'l_hip', 'l_shoulder']
@@ -276,6 +331,12 @@ class qThreadRecord(QThread):
         #plt.show()
 
     def load_image(self, idx):
+        """! A function that receives jpg's index and changes the image to a Qpixmap.
+
+        @param idx Receive the jpg index
+
+        @return pixmap 
+        """
         fn_img = f'image/img_00{idx}.jpg'
         img = cv2.imread(fn_img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
