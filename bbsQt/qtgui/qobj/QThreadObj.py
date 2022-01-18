@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES, DEBUG_FLAG1
+from bbsQt.constants import NFRAMES, DEBUG_FLAG1, VERBOSE
 from bbsQt.model.Fall_predict import Score_updator
 
 WAIT = 0.01
@@ -175,11 +175,23 @@ class qThreadRecord(QThread):
         return skimage
 
     def select_sk(self, skindex=0):
+        """! Skeleton selector
+        @param skindex index of the main skeleton in the skeleton list
+        
+        @return None
+
+        @see 
+
+        @remark
+
+        문장
+
+        """
         
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
-        print(f'[Qthread obj] skeleton index : {skindex}')
-        print("[Qthread obj] camera_num", self.camera_num)
+        if not VERBOSE: print(f'[Qthread obj] skeleton index : {skindex}')
+        if not VERBOSE: print("[Qthread obj] camera_num", self.camera_num)
         
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         
@@ -191,11 +203,10 @@ class qThreadRecord(QThread):
         this_scenario = self.btn.action_num.currentText()
         this_score = self.btn.score_num.currentText()
         
-        if not DEBUG_FLAG1:
-            sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
-                                    nframe=NFRAMES[f'{this_scenario}'],#ScenarioNo}'], 
-                                    shift=1)
-            skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+        sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
+                                nframe=NFRAMES[f'{this_scenario}'],
+                                shift=1)
+        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
             
         if self.camera_num == 0:
             camera_num = 'a'
@@ -203,42 +214,42 @@ class qThreadRecord(QThread):
             camera_num = 'e'
 
         tm = time.localtime()
-        #time_name = str(tm.tm_mon)+str(tm.tm_mday)+str(tm.tm_hour)+str(tm.tm_min)+str(tm.tm_sec)
+        time_mark = f"{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
 
-        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
+        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
-
         fn_scores = f"/{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
 
-        if not DEBUG_FLAG1:
-            self.q1.put({"action":this_scenario,
-                        "cam":camera_num, 
-                    "skeleton": skeleton})
-            print("[Qthread obj] is q1 empty?", self.q1.empty())
-            self.e_sk.set()
-            print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-            
-            self.e_ans.wait()
-            answer = self.q_answer.get()
-            #self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}')
-            
-            # Update this score
-            scu = Score_updator(fn_scores)
-            scu.update(this_scenario, answer)
-            all_txt = scu.text_output()
-            scu.write_txt()
-            fall_pred = scu.get_fall_prediction()
-            if fall_pred == -1:
-                self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n")
-            else:
-                self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n" + fall_pred)
+        #if DEBUG_FLAG1:
+        #    pass
+        #else:
 
-            font = QFont()
-            font.setBold(True)
-            font.setPointSize(16)
-            self.qScenario.viewInfo.setFont(font)
+        self.q1.put({"action":this_scenario,
+                     "cam":camera_num, 
+                     "skeleton": skeleton})
+        self.e_sk.set()
 
-            self.e_ans.clear()
+        # Wait for server's answer        
+        self.e_ans.wait()
+        answer = self.q_answer.get()
+        
+        # Update this score
+        scu = Score_updator(fn_scores)
+        scu.update(this_scenario, answer)
+        all_txt = scu.text_output()
+        scu.write_txt()
+        fall_pred = scu.get_fall_prediction()
+        if fall_pred == -1:
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n")
+        else:
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n" + fall_pred)
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(16)
+        self.qScenario.viewInfo.setFont(font)
+
+        self.e_ans.clear()
         
             
     def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):

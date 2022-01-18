@@ -2,6 +2,17 @@ import numpy as np
 
 class Score_updator():
     def __init__(self, fn=None):
+        """! Keep track of BBS scores and make fall danger predictions
+
+    @param fn filename to save BBS scores    
+
+    @see [Usefulness of the Berg Balance Scale in Stroke Rehabilitation: A Systematic Review](https://doi.org/10.2522/ptj.20070205)
+    
+    @remark
+    Refer to [Chapter 7](https://www.sciencedirect.com/science/article/pii/B9780323609128000075) of *Guccione's Geriatric Physical Therapy* for in-depth discussion on 
+    using BBS score as fall predictor.
+"""
+
         if fn is not None:
             try:
                 self.load_txt(fn)
@@ -60,11 +71,11 @@ class Score_updator():
 
     def get_fall_prediction(self):
         tot = self.get_sum()
-        bins = [0,36,45,57]
+        bins = [0,20,40,57]
         prediction = ["error: Not all actions are assessed",
-                      "High risk of falling in X month",
-                      "Medium risk of falling in X month", 
-                      "Low risk of falling",
+                      "낙상 위험이 매우 높습니다!!",
+                      "낙상의 위험이 있습니다. 조심하세요.", 
+                      "낙상의 위험이 낮습니다.",
                       -1]
 
         return prediction(np.digitize(tot, bins))

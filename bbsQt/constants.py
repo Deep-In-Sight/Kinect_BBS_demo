@@ -80,3 +80,4 @@ FPGA=False
 DEBUG_FLAG1 = True
 TEST_CLIENT=False
 DEBUG=False
+VERBOSE=True
