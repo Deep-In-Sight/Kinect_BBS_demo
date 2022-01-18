@@ -5,12 +5,14 @@ import os
 import pickle
 import tarfile
 from bbsQt.constants import FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG
-from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
+from fase.hnrf.hetree import HNRF
+from fase.hnrf import heaan_nrf
+from fase.hnrf.tree import NeuralTreeMaker
+import torch
+
 #from sklearn import preprocessing
 
 from time import time
-#from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
-#from fase.hnrf import heaan_nrf 
 class HomomorphicTreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
@@ -127,7 +129,7 @@ class HEAAN_Encryptor():
         for action in range(1,15):
             for cam in ['a','e']:
                 Nmodel = pickle.load(open(f"./models/Nmodel_{action}_{cam}.pickle", "rb"))
-                h_rf = HomomorphicNeuralRandomForest(Nmodel)
+                h_rf = HNRF(Nmodel)
                 featurizers.append((f"{action}_{cam}",HomomorphicTreeFeaturizer(h_rf.return_comparator(), scheme, parms)))
                 
         self.featurizers = dict(featurizers)
@@ -182,19 +184,10 @@ class HEAAN_Encryptor():
            
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
-            t0 = time()
-            
+            t0 = time()            
 
             skeleton = sk['skeleton']
-            # import pickle
-            # action=1
-            # cam='e'
-            # test_data_dir = "./models/"
-            # dataset = pickle.load(open(test_data_dir + f"BBS_dataset_{action}_{cam}_unnormed.pickle", "rb"))
-            # X_valid = dataset["valid_x"][12:13]
-            # #y_valid = dataset["valid_y"][12:13]
-            # skeleton = X_valid
-            
+
             if DEBUG:
                 scaled = sc.transform(skeleton)
             else:
@@ -258,15 +251,6 @@ class HEAAN_Encryptor():
             
                 print(f"Predicted score: {np.argmax(preds)}")
 
-                
-            # ############
-            # ddd = decrypt(self.scheme, self.secretKey, ctx1, self.parms)
-            # ctx2 = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
-            # he.SerializationUtils.readCiphertext(ctx2, fn)
-            # ddd2 = decrypt(self.scheme, self.secretKey, ctx2, self.parms)
-            # print(ddd)
-            # print(ddd2)
-            ###########
             q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
             if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
             e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
@@ -357,8 +341,6 @@ class HEAAN_Encryptor():
         self.scheme2.loadLeftRotKey(1)
 
     def load_models(self):
-        from fase.hnrf.tree import NeuralTreeMaker
-        import torch
         self.models = {}
         dilatation_factor = 10
         polynomial_degree = 10
@@ -369,7 +351,7 @@ class HEAAN_Encryptor():
                             polynomial_degree=polynomial_degree)
         
     def load_model(self, action, cam):
-        from fase.hnrf import heaan_nrf
+        
         print("[Evaluator] Loading trained NRF models")
 
         t0 = time()
@@ -377,7 +359,7 @@ class HEAAN_Encryptor():
         Nmodel = pickle.load(open(fn, "rb"))
         #print("Loaded a model...", fn)
         
-        h_rf = HomomorphicNeuralRandomForest(Nmodel)
+        h_rf = HNRF(Nmodel)
         #print("[EVAL.model_loader] HRF loaded for class", action)
         nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
                                                             self.scheme2,

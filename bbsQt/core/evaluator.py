@@ -5,17 +5,15 @@ import pickle
 import torch
 from time import time
 
-from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA
+from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA, DEBUG
 
 import fase
 fase.USE_FPGA = FPGA
 from fase.core.heaan import he
-from fase.hnrf.cryptotree import HomomorphicNeuralRandomForest
+from fase.hnrf.hetree import HNRF
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
-
-from bbsQt.constants import DEBUG
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
@@ -34,16 +32,6 @@ class Param():
         self.logQboot = logQboot
         if self.logn == None:
             self.logn = int(np.log2(n))
-
-# def key_found(key_path):
-#     all_found = []
-#     for fn in FN_KEYS:
-#         this_fn = key_path + fn
-#         found = os.path.isfile(this_fn)
-#         all_found.append(found)
-#         print(f"{this_fn} is","found" if found else "missing" )
-    
-#     return np.all(all_found)
 
 
 def compress_files(fn_tar, fn_list):
@@ -109,8 +97,8 @@ class HEAAN_Evaluator():
         fn = self.server_path+f"models/Nmodel_{action}_{cam}.pickle"
         Nmodel = pickle.load(open(fn, "rb"))
         
-        h_rf = HomomorphicNeuralRandomForest(Nmodel)
-        nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
+        h_rf = HNRF(Nmodel)
+        nrf_evaluator = heaan_nrf.HETreeEvaluator.from_model(h_rf,
                                                             self.scheme,
                                                             self.parms,
                                                             self.my_tm_tanh.coeffs,
