@@ -34,20 +34,20 @@ def run_server(q_text, evaluator_ready, e_enc, e_ans):
             events = sel.select(timeout=None)
             for key, mask in events:
                 ### No need to care about keys
-                # if key.data is None:
-                #     # read and register incoming message
-                #     accept_wrapper(key.fileobj, q_text, e_enc, e_ans) 
-                # else:
-                message = key.data
-                try:
-                    message.process_events(mask)
-                except Exception:
-                    print(
-                        "main: error: exception for",
-                        f"{message.addr}:\n{traceback.format_exc()}",
-                    )
-                    message.close()
-                    print("[server comm] message closed")
+                if key.data is None:
+                    # read and register incoming message
+                    accept_wrapper(key.fileobj, q_text, e_enc, e_ans) 
+                else:
+                    message = key.data
+                    try:
+                        message.process_events(mask)
+                    except Exception:
+                        print(
+                            "main: error: exception for",
+                            f"{message.addr}:\n{traceback.format_exc()}",
+                        )
+                        message.close()
+                        print("[server comm] message closed")
     except KeyboardInterrupt:
         print("caught keyboard interrupt, exiting")
     finally:
