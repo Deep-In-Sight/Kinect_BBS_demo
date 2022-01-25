@@ -182,7 +182,7 @@ class HEAAN_Encryptor():
             cam = CAM_NAMES[action] # No need to depend on the undeterministic camera order.
 
             sc = self.scalers[f"{action}_{cam}"]
-            fn = f"ctx_{action:02d}_{cam}.dat"
+            fn = f"ctx_{action:02d}_{cam}_.dat"
            
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
