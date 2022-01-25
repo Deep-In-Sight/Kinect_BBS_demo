@@ -190,15 +190,32 @@ class HEAAN_Encryptor():
 
             skeleton = sk['skeleton']
 
+            # if DEBUG:
+            #     scaled = sc.transform(skeleton)
+            # else:
+            #     rav_sub = skeleton[0]
+            #     scaled = sc.transform(rav_sub.reshape(1,-1))
+            
             if DEBUG:
                 scaled = sc.transform(skeleton)
             else:
-                rav_sub = skeleton[0]
+                rav_sub = skeleton#[0]
+                print("rav_sub", rav_sub.min(), rav_sub.max())
                 scaled = sc.transform(rav_sub.reshape(1,-1))
             
+            print("scaled", scaled.shape)
+            print(scaled.min(), scaled.max())
+
+            # Still some values can surpass 1.0. 
+            # I need a more strict rule for standardization.. 
+            # The following is an ad-hoc measure.
+            
             sc0 = scaled[0]
-            sc0 = (sc0 - sc0.min()) / (2*(sc0.max() - sc0.min())) + 0.5*np.mean(sc0)
+            sc_min = min((sc0.min(), 0)) # shift if min is negative 
+            sc0 -= sc_min
+            sc0 /= sc0.max()*1.02 # Just to give some padding area
             print("MIN", sc0.min(), "MAX", sc0.max())
+
             ctx1 = featurizer.encrypt(sc0)
             pickle.dump(sc0, open("scaled.pickle", "wb"))
             if debug: print(f"Featurizing done in {time() - t0:.2f}s")
