@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QApplication
 from bbsQt.constants import DEBUG
 
 
-def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
+def run_qt_app(q1, q_answer, e_sk , e_ans):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
     imageEditor = QMyMainWindow(q1, e_sk, q_answer, e_ans) ### 여기가 아닌가? 
@@ -22,17 +22,16 @@ def run_qt_app(q1, q_answer, lock, e_sk , e_ans):
     #quit
 
 
-
 ########################## DEBUGGING ############################
 from bbsQt.core.evaluator import HEAAN_Evaluator
-def run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./server/"):
+def run_evaluator(q_text, e_key, e_enc, e_ans, server_path="./server/"):
     e_key.wait()
-    henc = HEAAN_Evaluator(lock, server_path, e_ans)
+    henc = HEAAN_Evaluator(server_path, e_ans)
     e_key.clear()
     print("[MAIN] Running evaluation loop")
     henc.start_evaluate_loop(q_text, e_enc, e_ans)
 
-def debug_eval(q1, q_text, lock, e_sk, e_key, e_enc, e_ans):
+def debug_eval(q1, q_text, e_sk, e_key, e_enc, e_ans):
     import pickle
     action=1
     cam='e'
@@ -50,16 +49,16 @@ def debug_eval(q1, q_text, lock, e_sk, e_key, e_enc, e_ans):
     #run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./server/")
 
 
-def run_encryptor(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock, key_path="./"):
-    henc = HEAAN_Encryptor(q_text, e_key, lock, key_path)
+def run_encryptor(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, key_path="./serkey/"):
+    henc = HEAAN_Encryptor(key_path)
      #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 
 
-def run_communicator(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock):
+def run_communicator(q1, q_text, e_enc, e_enc_ans):
     # 1. send keys to server and do quick check
-    e_key.wait()
-    app_client.run_share_key(q_text, e_key, lock)
+    #e_key.wait()
+    #app_client.run_share_key(q_text, e_key, lock)
 
     while True:
         print("[run comm] waiting for ctxt.....")
@@ -67,7 +66,7 @@ def run_communicator(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock):
         print("[run_comm] e_enc passed. Ctxt is ready")
         fn_dict = q1.get()
         print("[run_comm] file name:", fn_dict)
-        answer = app_client.query(fn_dict, lock)
+        answer = app_client.query(fn_dict)
         e_enc.clear()
         
         print("[run_comm] got an answer", answer)
@@ -92,8 +91,8 @@ def main():
     q_answer = ctx.Queue(maxsize=8)
 
     # Key exists
-    e_key = multiprocessing.Event()
-    e_key.clear()
+    #e_key = multiprocessing.Event()
+    #e_key.clear()
     
     # Skeleton exists
     e_sk = multiprocessing.Event()
@@ -116,22 +115,22 @@ def main():
     e_quit.clear()
 
     p_enc = mplti.Process(target=run_encryptor, 
-                    args=(q1, q_text, q_answer, e_key, e_sk, e_enc, e_ans, e_enc_ans, lock), daemon=False)
+                    args=(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans), daemon=False)
     p_enc.start()
 
     if not DEBUG:
         p_socket = mplti.Process(target=run_communicator, 
-                args=(e_key, q1, q_text, e_enc, e_quit, e_ans, e_enc_ans, lock), daemon=False)
+                args=(q1, q_text, e_enc, e_enc_ans), daemon=False)
         p_socket.start()
         
         p_qt = mplti.Process(target=run_qt_app, 
-                            args=(q1, q_answer, lock, e_sk, e_ans), daemon=False) # 진짜
+                            args=(q1, q_answer, e_sk, e_ans), daemon=False) # 진짜
         # ## signal quit()  
         p_qt.start()
 
     else:
         p_debug = mplti.Process(target=debug_eval, 
-                args=(q1, q_text, lock, e_sk, e_key, e_enc, e_ans), daemon=False)
+                args=(q1, q_text, lock, e_sk, e_enc, e_ans), daemon=False)
         p_debug.start()
 
         

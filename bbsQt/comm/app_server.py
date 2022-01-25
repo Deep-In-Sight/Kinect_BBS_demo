@@ -6,15 +6,15 @@ from bbsQt.constants import HOST, PORT
 
 sel = selectors.DefaultSelector()
 
-def accept_wrapper(sock, q_text, e_key, e_enc, e_ans):
+def accept_wrapper(sock, q_text, e_enc, e_ans):
     conn, addr = sock.accept()  # Should be ready to read
     print("[server comm] accepted connection from", addr)
     conn.setblocking(False)
-    message = libserver.Message(sel, conn, addr, q_text, e_key, e_enc, e_ans)
+    message = libserver.Message(sel, conn, addr, q_text, e_enc, e_ans)
     sel.register(conn, selectors.EVENT_READ, data=message)
 
 
-def run_server(q_text, e_key, e_enc, e_ans, lock):
+def run_server(q_text, evaluator_ready, e_enc, e_ans):
     """
     The resultant prediction file name is assumed.
     """
@@ -27,24 +27,27 @@ def run_server(q_text, e_key, e_enc, e_ans, lock):
     lsock.setblocking(False)
     sel.register(lsock, selectors.EVENT_READ, data=None)
 
+    # wait for the model 
+    evaluator_ready.wait()
     try:
         while True:
             events = sel.select(timeout=None)
             for key, mask in events:
-                if key.data is None:
-                    # read and register incoming message
-                    accept_wrapper(key.fileobj, q_text, e_key, e_enc, e_ans) 
-                else:
-                    message = key.data
-                    try:
-                        message.process_events(mask)
-                    except Exception:
-                        print(
-                            "main: error: exception for",
-                            f"{message.addr}:\n{traceback.format_exc()}",
-                        )
-                        message.close()
-                        print("[server comm] message closed")
+                ### No need to care about keys
+                # if key.data is None:
+                #     # read and register incoming message
+                #     accept_wrapper(key.fileobj, q_text, e_enc, e_ans) 
+                # else:
+                message = key.data
+                try:
+                    message.process_events(mask)
+                except Exception:
+                    print(
+                        "main: error: exception for",
+                        f"{message.addr}:\n{traceback.format_exc()}",
+                    )
+                    message.close()
+                    print("[server comm] message closed")
     except KeyboardInterrupt:
         print("caught keyboard interrupt, exiting")
     finally:

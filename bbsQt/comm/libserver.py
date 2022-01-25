@@ -5,11 +5,6 @@ import io
 import struct
 import tarfile
 
-request_search = {
-    "morpheus": "Follow the white rabbit. \U0001f430",
-    "ring": "In the caves beneath the Misty Mountains. \U0001f48d",
-    "\U0001f436": "\U0001f43e Playing ball! \U0001f3d0",
-}
 
 BLOCKSIZE = 2**16
 from bbsQt.constants import TEST_CLIENT
@@ -23,11 +18,10 @@ def untar(fn_tar):
         tar.close()
         return members
 class Message:
-    def __init__(self, selector, sock, addr, q_text, e_key, e_enc, e_ans):
+    def __init__(self, selector, sock, addr, q_text, e_enc, e_ans):
         self.selector = selector
         self.sock = sock
         self.addr = addr
-        self.e_key = e_key
         self.e_enc = e_enc
         self.e_ans = e_ans
         self.q_text = q_text
@@ -106,12 +100,7 @@ class Message:
 
     def _create_response_json_content(self):
         action = self.request.get("action")
-        if action == "search":
-            query = self.request.get("value")
-            answer = request_search.get(query) or f'No match for "{query}".'
-            content = {"result": answer}
-        else:
-            content = {"result": f'Error: invalid action "{action}".'}
+        content = {"result": f'Error: invalid action "{action}".'}
         content_encoding = "utf-8"
         response = {
             "content_bytes": self._json_encode(content, content_encoding),
@@ -125,10 +114,6 @@ class Message:
             #self.e_key.set()  
             self.e_ans.set()
 
-        #action = self.request.get("action")
-        #if action == "set":
-            #query = self.request.get("value")
-            #answer = request_search.get(query) or f'No match for "{query}".'
         else:
             self.e_key.set()
             self.e_ans.wait()

@@ -176,6 +176,7 @@ class qThreadRecord(QThread):
 
     def select_sk(self, skindex=0):
         """! Skeleton selector
+        
         @param skindex index of the main skeleton in the skeleton list
         
         @return None
@@ -183,6 +184,7 @@ class qThreadRecord(QThread):
         @see 
 
         @remark
+        
 
         문장
 

@@ -9,17 +9,17 @@ from bbsQt.core.evaluator import HEAAN_Evaluator
 from PyQt5.QtWidgets import QApplication#, QMainWindow
 from bbsQt.constants import TEST_CLIENT
 
-def run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./"):
-    e_key.wait()
-    henc = HEAAN_Evaluator(lock, server_path, e_ans)
-    e_key.clear()
+def run_evaluator(q_text, evaluator_ready, e_enc, e_ans, server_path="./"):
+    #evaluator_ready.wait()
+    henc = HEAAN_Evaluator(server_path, evaluator_ready)
+    #evaluator_ready.clear()
     if not TEST_CLIENT:
         print("[MAIN] Running evaluation loop")
         henc.start_evaluate_loop(q_text, e_enc, e_ans)
 
-def run_communicator(e_key, q_text, e_enc, e_ans, lock):
+def run_communicator(evaluator_ready, q_text, e_enc, e_ans):
     # 1. send keys to server and do quick check
-    app_server.run_server(q_text, e_key, e_enc, e_ans, lock)
+    app_server.run_server(q_text, evaluator_ready, e_enc, e_ans)
     #e_enc.wait()
     #app_server.query(q1, lock, e_enc, e_quit)
 
@@ -33,8 +33,8 @@ def main():
     q_text = ctx.Queue(maxsize=8)
 
     # Key existence
-    e_key = multiprocessing.Event()
-    e_key.clear()
+    evaluator_ready = multiprocessing.Event()
+    evaluator_ready.clear()
 
     # Ciphertext saved
     e_enc = multiprocessing.Event()
@@ -48,16 +48,16 @@ def main():
     e_quit.clear()
 
     p_socket = mplti.Process(target=run_communicator, 
-                            args=(e_key, q_text, e_enc, e_ans, lock), 
+                            args=(evaluator_ready, q_text, e_enc, e_ans), 
                             daemon=False)
     p_socket.start()
 
     p_enc = mplti.Process(target=run_evaluator, 
-                          args=(q_text, lock, e_key, e_enc, e_ans), 
+                          args=(q_text, evaluator_ready, e_enc, e_ans), 
                           daemon=False)
     p_enc.start()
 
-    #e_key.set()
+    #evaluator_ready.set()
 
     e_quit.wait()
     p_socket.join()

@@ -4,16 +4,14 @@ import numpy as np
 import os 
 import pickle
 import tarfile
-from bbsQt.constants import FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG
+from bbsQt.constants import CAM_LIST, CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK
 from fase.hnrf.hetree import HNRF
 from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
 import torch
 
-#from sklearn import preprocessing
-
 from time import time
-class HomomorphicTreeFeaturizer:
+class HETreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
        이것만 따로 class를 만들고 CKKS context 보내기 좀 귀찮은데? 
@@ -82,11 +80,11 @@ def compress_files(fn_tar, fn_list):
         for name in fn_list:
             tar.add(name)
 
-
 class HEAAN_Encryptor():
-    def __init__(self, q_text, e_key, lock, key_path, 
-                debug=True, tar=False):
-        #lock.acquire()# 이렇게 하는건가? 
+    def __init__(self, key_path="./serkey/", 
+                debug=True):
+        
+        self.model_dir = "./models/"
 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
@@ -98,23 +96,26 @@ class HEAAN_Encryptor():
         self.key_path = key_path
         if debug: print("[ENCRYPTOR] key path", key_path)
 
-        self.ring = he.Ring()
-        
-        self.secretKey = he.SecretKey(self.ring)
-        self.scheme = he.Scheme(self.secretKey, self.ring, is_serialized, key_path)
-        self.algo = he.SchemeAlgo(self.scheme)
-        self.scheme.addLeftRotKey(self.secretKey, 1)
+        # Make dir for keys
+        if not os.path.isdir(key_path): os.mkdir(key_path)
 
-        if tar:
-            fn_tar = "keys.tar.gz"
-            compress_files(fn_tar, [key_path+'serkey/'+fn for fn in FN_KEYS])
-            q_text.put({"root_path":key_path+'serkey/', 
-                       "keys_to_share":fn_tar})
-        else:
-            # Copy without tar
-            q_text.put({"root_path":key_path + 'serkey/',
-                    "keys_to_share":FN_KEYS})
-        e_key.set()
+        self.ring = he.Ring()
+        self.secretKey = he.SecretKey(key_path+FN_SK)
+        self.scheme = he.Scheme(self.ring, is_serialized, key_path)
+        self.algo = he.SchemeAlgo(self.scheme)
+        #self.scheme.addLeftRotKey(self.secretKey, 1)
+
+        # No need to care about keys!!
+        # if tar:
+        #     fn_tar = "keys.tar.gz"
+        #     compress_files(fn_tar, [key_path+fn for fn in FN_KEYS])
+        #     q_text.put({"root_path":key_path, 
+        #                "keys_to_share":fn_tar})
+        # else:
+        #     # Copy without tar
+        #     q_text.put({"root_path":key_path,
+        #             "keys_to_share":FN_KEYS})
+        # e_key.set()
 
         self.set_featurizers()
         self.load_scalers()
@@ -127,10 +128,10 @@ class HEAAN_Encryptor():
 
         featurizers =[]
         for action in range(1,15):
-            for cam in ['a','e']:
-                Nmodel = pickle.load(open(f"./models/Nmodel_{action}_{cam}.pickle", "rb"))
-                h_rf = HNRF(Nmodel)
-                featurizers.append((f"{action}_{cam}",HomomorphicTreeFeaturizer(h_rf.return_comparator(), scheme, parms)))
+            cam = CAM_NAMES[action]
+            Nmodel = pickle.load(open(self.model_dir+f"Nmodel_{action}_{cam}.pickle", "rb"))
+            h_rf = HNRF(Nmodel)
+            featurizers.append((f"{action}_{cam}", HETreeFeaturizer(h_rf.return_comparator(), scheme, parms)))
                 
         self.featurizers = dict(featurizers)
 
@@ -138,9 +139,9 @@ class HEAAN_Encryptor():
         
         scalers =[]
         for action in range(1,15):
-            for cam in ['a','e']:
-                sc = pickle.load(open(f'./models/scaler_{action}_{cam}.pickle', "rb"))
-                scalers.append((f"{action}_{cam}", sc))
+            cam = CAM_NAMES[action]
+            sc = pickle.load(open(self.model_dir+f'scaler_{action}_{cam}.pickle', "rb"))
+            scalers.append((f"{action}_{cam}", sc))
             
         self.scalers = dict(scalers)
 
@@ -162,7 +163,7 @@ class HEAAN_Encryptor():
         scheme = self.scheme
         parms = self.parms
 
-        i=0
+        #i=0
         while True:
             e_sk.wait()  ## FLOW CONTROL
             print("[Encryptor] good to go") 
@@ -177,10 +178,11 @@ class HEAAN_Encryptor():
             if debug: print("[Encryptor] Got a skeleton, Encrypting...")
             if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
             action = int(sk['action'])
-            cam = sk['cam']
+            #cam = sk['cam']
+            cam = CAM_NAMES[action] # No need to depend on the undeterministic camera order.
 
             sc = self.scalers[f"{action}_{cam}"]
-            fn = f"ctx_{action:02d}_{cam}_{i}.dat"
+            fn = f"ctx_{action:02d}_{cam}.dat"
            
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
@@ -207,49 +209,49 @@ class HEAAN_Encryptor():
             he.SerializationUtils.writeCiphertext(ctx1, fn)
             if debug: print("[Encryptor] Ctxt wrote")
 
-            if DEBUG:
-                self.setup_eval(server_path="./")
-                dec=decrypt(self.scheme, self.secretKey, ctx1, self.parms)
-                print("[encryptor] decrypt ctxt1", dec[:20])
-                del ctx1
-                ctx1 = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
-                he.SerializationUtils.readCiphertext(ctx1, fn)
-                dec=decrypt(self.scheme, self.secretKey, ctx1, self.parms)
-                print("[encryptor] decrypt ctxt1 again", dec[:20])
-                #show_file_content(fn)
-                #t0 =time()
-                results = self.run_model(action, cam, ctx1)
-                print(f"Prediction took {time()-t0:.2f} seconds")
+            # if DEBUG:
+            #     self.setup_eval(server_path="./")
+            #     dec=decrypt(self.scheme, self.secretKey, ctx1, self.parms)
+            #     print("[encryptor] decrypt ctxt1", dec[:20])
+            #     del ctx1
+            #     ctx1 = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
+            #     he.SerializationUtils.readCiphertext(ctx1, fn)
+            #     dec=decrypt(self.scheme, self.secretKey, ctx1, self.parms)
+            #     print("[encryptor] decrypt ctxt1 again", dec[:20])
+            #     #show_file_content(fn)
+            #     #t0 =time()
+            #     results = self.run_model(action, cam, ctx1)
+            #     print(f"Prediction took {time()-t0:.2f} seconds")
 
-                # Save prediction
-                fn_preds = []
-                for i, pred in enumerate(results):
-                    print("PRED", i, pred)
-                    #fn = self.server_path+f"pred_{i}.dat"
-                    fn = f"pred_{i}.dat"
-                    he.SerializationUtils.writeCiphertext(pred, fn)
-                    fn_preds.append(fn)
-                    print(pred)
+            #     # Save prediction
+            #     fn_preds = []
+            #     for i, pred in enumerate(results):
+            #         print("PRED", i, pred)
+            #         #fn = self.server_path+f"pred_{i}.dat"
+            #         fn = f"pred_{i}.dat"
+            #         he.SerializationUtils.writeCiphertext(pred, fn)
+            #         fn_preds.append(fn)
+            #         print(pred)
                 
-                #fn_preds = [f"pred_{i}.dat" for i in range(5)]
-                # Load predictions
-                print("fn_preds", fn_preds)
-                logq = 180
-                preds=[]
-                for fn_ctx in fn_preds:
-                    print("[encryptor] make an empty ctxt")
-                    ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
-                    print("[encryptor] load ctxt", fn_ctx)
-                    he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
-                    print("[encryptor] decrypt ctxt", ctx_pred)
-                    dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
-                    print("[encryptor] append decrypted ctxt")
-                    preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
-                    print("[encryptor] decrypted prediction array", dec[:10])
-                    del ctx_pred
-                del ctx1 
+            #     #fn_preds = [f"pred_{i}.dat" for i in range(5)]
+            #     # Load predictions
+            #     print("fn_preds", fn_preds)
+            #     logq = 180
+            #     preds=[]
+            #     for fn_ctx in fn_preds:
+            #         print("[encryptor] make an empty ctxt")
+            #         ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
+            #         print("[encryptor] load ctxt", fn_ctx)
+            #         he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
+            #         print("[encryptor] decrypt ctxt", ctx_pred)
+            #         dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
+            #         print("[encryptor] append decrypted ctxt")
+            #         preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
+            #         print("[encryptor] decrypted prediction array", dec[:10])
+            #         del ctx_pred
+            #     del ctx1 
             
-                print(f"Predicted score: {np.argmax(preds)}")
+            #     print(f"Predicted score: {np.argmax(preds)}")
 
             q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
             if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
@@ -321,7 +323,7 @@ class HEAAN_Encryptor():
             q_answer.put(ans_str)  ## FLOW CONTROL
             e_ans.set()  ## FLOW CONTROL
 
-            i+=1
+            #i+=1
     
     def setup_eval(self, server_path="./"):
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -361,7 +363,7 @@ class HEAAN_Encryptor():
         
         h_rf = HNRF(Nmodel)
         #print("[EVAL.model_loader] HRF loaded for class", action)
-        nrf_evaluator = heaan_nrf.HomomorphicTreeEvaluator.from_model(h_rf,
+        nrf_evaluator = heaan_nrf.HETreeEvaluator.from_model(h_rf,
                                                             self.scheme2,
                                                             self.parms2,
                                                             self.my_tm_tanh.coeffs,

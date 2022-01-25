@@ -10,22 +10,22 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][2]
+location = ['DI', 'ETRI', 'local'][0]
 
-NFRAMES={'1':6,
-         '2':6,
-         '3':6,
-         '4':6,
-         '5':6,
-         '6':6,
-         '7':6,
-         '8':6,
-         '9':6,
-         '10':6,
-         '11':6,
-         '12':6,
-         '13':6,
-         '14':6}
+NFRAMES={'1':8,
+         '2':8,
+         '3':8,
+         '4':8,
+         '5':8,
+         '6':8,
+         '7':8,
+         '8':8,
+         '9':8,
+         '10':8,
+         '11':8,
+         '12':8,
+         '13':8,
+         '14':8}
 
 CAM_LIST= {1: 1,
            2: 1,
@@ -42,8 +42,24 @@ CAM_LIST= {1: 1,
            13:0,
            14:1}
 
+CAM_NAMES= {1: "e",
+           2: "e",
+           3: "a",
+           4: "e",
+           5: "e",
+           6: "e",
+           7: "e",
+           8: "a",
+           9: "a",
+           10:"e",
+           11:"e",
+           12:"e",
+           13:"a",
+           14:"e"}
+
+
 if location == "DI":
-    HOST = '10.100.82.55'
+    HOST = '10.100.82.17'
     PORT = 2345
     BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key.py'
@@ -73,6 +89,8 @@ elif location == "ETRI":
     DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
     
 SCP_PORT = 22
+
+FN_SK = "SECRETKEY.dat"
 
 FPGA=False
 

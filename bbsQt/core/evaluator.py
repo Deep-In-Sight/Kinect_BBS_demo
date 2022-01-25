@@ -51,8 +51,7 @@ def show_file_content(fn):
 
 
 class HEAAN_Evaluator():
-    def __init__(self, lock, server_path, e_ans):
-        lock.acquire()# 이렇게 하는건가? 
+    def __init__(self, server_path, evaluator_ready):
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
@@ -72,7 +71,7 @@ class HEAAN_Evaluator():
         self.prepare_model_load()
 
         print("[Encryptor] HEAAN is ready")
-        e_ans.set()
+        evaluator_ready.set()
 
     def prepare_model_load(self,
                            dilatation_factor = 10,
