@@ -14,6 +14,7 @@ class Score_updator():
 """
 
         if fn is not None:
+            self.fn = fn
             try:
                 self.load_txt(fn)
             except:
@@ -21,6 +22,7 @@ class Score_updator():
                 self._score_dict = dict([(act,sc) for act, sc in zip(range(1,15), [-1]*14)])    
         else:
             self._score_dict = dict([(act,sc) for act, sc in zip(range(1,15), [-1]*14)])
+        
         
     def load_txt(self, fn):
         new_scores = []
@@ -35,6 +37,7 @@ class Score_updator():
         
     def update(self, action, score):
         self._score_dict.update({action: score})
+        self.write_txt(self.fn)
         
     def text_output(self):
         scores = self._score_dict
@@ -54,7 +57,8 @@ class Score_updator():
 13    :    {scores[13]}   
 14    :    {scores[14]}   """
 
-    def write_txt(self, fn):
+    def write_txt(self, fn=None):
+        if fn == None: fn = self.fn
         with open(fn, "w") as f:
             f.write(self.text_output())
 
