@@ -6,7 +6,7 @@ import multiprocessing as mplti
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_server
 from bbsQt.core.evaluator import HEAAN_Evaluator
-from PyQt5.QtWidgets import QApplication#, QMainWindow
+#from PyQt5.QtWidgets import QApplication#, QMainWindow
 from bbsQt.constants import TEST_CLIENT
 
 def run_evaluator(q_text, evaluator_ready, e_enc, e_ans, server_path="./"):

@@ -10,7 +10,7 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logn':14,
                         'n':1*2**14}
 
-location = ['DI', 'ETRI', 'local'][0]
+location = ['DI', 'ETRI', 'local'][2]
 
 NFRAMES={'1':8,
          '2':8,
@@ -95,7 +95,7 @@ FN_SK = "SECRETKEY.dat"
 FPGA=False
 
 ############# DEBUGGING ##############
-DEBUG_FLAG1 = True
+DEBUG_FLAG1 = False
 TEST_CLIENT=False
 DEBUG=False
 VERBOSE=True

@@ -146,6 +146,25 @@ class HEAAN_Evaluator():
             e_enc.clear()
             
             t0 = time()
+            
+            debugging = True
+            if debugging:
+                fn_preds = []
+                for i in range(5):
+                    fn = self.server_path+f"pred_{i}.dat"
+                    fn_preds.append(fn)
+                fn_tar = FN_PREDS#"preds.tar.gz"
+                print("@@@@@@@@@@@@ compressing files")
+                compress_files(fn_tar, fn_preds)
+                q_text.put({"root_path":self.server_path,  # Not using root path
+                        "filename":self.server_path+fn_tar})
+                e_ans.set()
+                continue
+            else:
+                pass
+            ###############################################
+
+
             preds = self.run_model(action, cam, ctx)
             print(f"[EVALUATOR] Prediction took {time()-t0:.2f} seconds")
 

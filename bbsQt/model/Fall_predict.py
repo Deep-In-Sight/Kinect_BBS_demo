@@ -76,7 +76,7 @@ class Score_updator():
     def get_fall_prediction(self):
         tot = self.get_sum()
         bins = [0,20,40,57]
-        prediction = ["error: Not all actions are assessed",
+        prediction = ["낙상 예측을 위해 모든 항목을 측정해주세요",
                       "낙상 위험이 매우 높습니다!!",
                       "낙상의 위험이 있습니다. 조심하세요.", 
                       "낙상의 위험이 낮습니다.",

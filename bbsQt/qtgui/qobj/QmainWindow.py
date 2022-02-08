@@ -70,7 +70,7 @@ def load_image(fn_img = "imgs/instruct_1.png"):
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk, q_answer, e_ans):
+    def __init__(self, q1, q_answer, e_sk, e_ans):
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -116,7 +116,7 @@ class QMyMainWindow(QWidget):
         self.setGeometry(100, 100, 1200, 850)
         self.setMinimumSize(1000, 600)
         self.setMaximumSize(2048, 1600)
-        self.setWindowTitle('Operating Module for NIA 21 Data Capture')
+        self.setWindowTitle('Kinect BBS demo')
 
         # fix 2021/01/07
         #self.btn = qButtons(self, self.PWD)

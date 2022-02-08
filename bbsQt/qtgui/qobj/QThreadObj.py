@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES, DEBUG_FLAG1, VERBOSE
+from bbsQt.constants import NFRAMES, VERBOSE
 from bbsQt.model.Fall_predict import Score_updator
 
 WAIT = 0.01
@@ -220,7 +220,7 @@ class qThreadRecord(QThread):
 
         pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
-        fn_scores = f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
+        fn_scores = f"{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
 
         #if DEBUG_FLAG1:
         #    pass
@@ -230,26 +230,33 @@ class qThreadRecord(QThread):
                      "cam":camera_num, 
                      "skeleton": skeleton})
         self.e_sk.set()
-
-        # Wait for server's answer        
+        #############
+        # Encryptor runs...
+        # Then send ctxt to server
+        # and Wait for server's answer
         self.e_ans.wait()
-        answer = self.q_answer.get()
+        self.e_sk.clear() # Just in case...
         
+        answer = self.q_answer.get()
+        answer_int = int(answer.split(":")[-1])
+
+        print("\n\n Undating Scores------- \n\n")
         # Update this score
         scu = Score_updator(fn_scores)
-        scu.update(this_scenario, answer)
+        scu.update(int(this_scenario), answer_int)
         all_txt = scu.text_output()
         scu.write_txt()
         fall_pred = scu.get_fall_prediction()
         if fall_pred == -1:
-            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n")
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n")
         else:
-            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n' + all_txt + "\n" + fall_pred)
+            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n" + fall_pred)
 
         font = QFont()
-        font.setBold(True)
-        font.setPointSize(16)
+        #font.setBold(True)
+        font.setPointSize(14)
         self.qScenario.viewInfo.setFont(font)
+        print("\n\n Undating Scores----- DONE------ \n\n")
 
         self.e_ans.clear()
         

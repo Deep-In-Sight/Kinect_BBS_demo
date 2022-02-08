@@ -14,7 +14,7 @@ from bbsQt.constants import DEBUG
 def run_qt_app(q1, q_answer, e_sk , e_ans):
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
-    imageEditor = QMyMainWindow(q1, e_sk, q_answer, e_ans) ### 여기가 아닌가? 
+    imageEditor = QMyMainWindow(q1, q_answer, e_sk, e_ans) ### 여기가 아닌가? 
     imageEditor.show()
     quit = app.exec_()
     #sys.exit(app.exec_())
@@ -30,23 +30,6 @@ def run_evaluator(q_text, e_key, e_enc, e_ans, server_path="./server/"):
     e_key.clear()
     print("[MAIN] Running evaluation loop")
     henc.start_evaluate_loop(q_text, e_enc, e_ans)
-
-def debug_eval(q1, q_text, e_sk, e_key, e_enc, e_ans):
-    import pickle
-    action=1
-    cam='e'
-    test_data_dir = "./models/"
-    dataset = pickle.load(open(test_data_dir + f"BBS_dataset_{action}_{cam}_unnormed.pickle", "rb"))
-    X_valid = dataset["valid_x"][12:13]
-    y_valid = dataset["valid_y"][12:13]
-    print("ANSWER", y_valid)
-    
-    q1.put({"action":action,
-            "cam":cam, 
-            "skeleton": X_valid})
-    e_sk.set()
-
-    #run_evaluator(q_text, lock, e_key, e_enc, e_ans, server_path="./server/")
 
 
 def run_encryptor(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, key_path="./serkey/"):
@@ -118,20 +101,14 @@ def main():
                     args=(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans), daemon=False)
     p_enc.start()
 
-    if not DEBUG:
-        p_socket = mplti.Process(target=run_communicator, 
-                args=(q1, q_text, e_enc, e_enc_ans), daemon=False)
-        p_socket.start()
-        
-        p_qt = mplti.Process(target=run_qt_app, 
-                            args=(q1, q_answer, e_sk, e_ans), daemon=False) # 진짜
-        # ## signal quit()  
-        p_qt.start()
-
-    else:
-        p_debug = mplti.Process(target=debug_eval, 
-                args=(q1, q_text, lock, e_sk, e_enc, e_ans), daemon=False)
-        p_debug.start()
+    p_socket = mplti.Process(target=run_communicator, 
+            args=(q1, q_text, e_enc, e_enc_ans), daemon=False)
+    p_socket.start()
+    
+    p_qt = mplti.Process(target=run_qt_app, 
+                        args=(q1, q_answer, e_sk, e_ans), daemon=False) # 진짜
+    # ## signal quit()  
+    p_qt.start()
 
         
     e_quit.wait()
