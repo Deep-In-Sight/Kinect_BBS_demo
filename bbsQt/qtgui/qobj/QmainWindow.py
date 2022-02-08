@@ -432,6 +432,12 @@ class QMyMainWindow(QWidget):
 
     # add 20210107
     def startcamera(self, cameraidx):
+        try: 
+            self.skindexbtn0.clicked.disconnect() 
+            self.skindexbtn1.clicked.disconnect() 
+            self.skindexbtn2.clicked.disconnect() 
+        except Exception: 
+            pass
         
         #self.qScenario.onchanged(cameraidx)
 
