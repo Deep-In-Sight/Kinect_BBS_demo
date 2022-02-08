@@ -220,7 +220,7 @@ class qThreadRecord(QThread):
 
         pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
-        fn_scores = f"/{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
+        fn_scores = f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
 
         #if DEBUG_FLAG1:
         #    pass
