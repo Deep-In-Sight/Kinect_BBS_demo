@@ -100,6 +100,7 @@ class HEAAN_Encryptor():
         if not os.path.isdir(key_path): os.mkdir(key_path)
 
         self.ring = he.Ring()
+        print("Loading secret key", key_path+FN_SK)
         self.secretKey = he.SecretKey(key_path+FN_SK)
         self.scheme = he.Scheme(self.ring, is_serialized, key_path)
         self.algo = he.SchemeAlgo(self.scheme)
@@ -212,7 +213,8 @@ class HEAAN_Encryptor():
             sc0 = scaled[0]
             sc_min = min((sc0.min(), 0)) # shift if min is negative 
             sc0 -= sc_min
-            sc0 /= sc0.max()*1.02 # Just to give some padding area
+            sc0 += 1e-3
+            sc0 /= (sc0.max()*1.05) # Just to give some padding area
             print("MIN", sc0.min(), "MAX", sc0.max())
 
             ctx1 = featurizer.encrypt(sc0)
@@ -263,9 +265,7 @@ class HEAAN_Encryptor():
             # 복호화된 결과 QT로 전송
             q_answer.put(ans_str)  ## FLOW CONTROL
             e_ans.set()  ## FLOW CONTROL
-            print("\n\n END OF ecryptor loop___")
-            time.sleep(1)
-            print("is e_sk set?", e_sk.is_set())
+            #print("is e_sk set?", e_sk.is_set())
 
             #i+=1
     

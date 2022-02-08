@@ -240,7 +240,6 @@ class qThreadRecord(QThread):
         answer = self.q_answer.get()
         answer_int = int(answer.split(":")[-1])
 
-        print("\n\n Undating Scores------- \n\n")
         # Update this score
         scu = Score_updator(fn_scores)
         scu.update(int(this_scenario), answer_int)
@@ -256,7 +255,6 @@ class qThreadRecord(QThread):
         #font.setBold(True)
         font.setPointSize(14)
         self.qScenario.viewInfo.setFont(font)
-        print("\n\n Undating Scores----- DONE------ \n\n")
 
         self.e_ans.clear()
         

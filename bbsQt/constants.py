@@ -2,6 +2,7 @@
 FN_KEYS = ["ENCRYPTION.txt",
            "MULTIPLICATION.txt",
            "ROTATION_1.txt"]
+FN_SK = "secret.key"
 
 FN_PREDS = 'preds.tar.gz'
 
@@ -59,7 +60,7 @@ CAM_NAMES= {1: "e",
 
 
 if location == "DI":
-    HOST = '10.100.82.17'
+    HOST = '10.100.82.89'
     PORT = 2345
     BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key.py'
@@ -89,8 +90,6 @@ elif location == "ETRI":
     DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
     
 SCP_PORT = 22
-
-FN_SK = "SECRETKEY.dat"
 
 FPGA=False
 

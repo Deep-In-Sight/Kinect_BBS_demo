@@ -72,20 +72,4 @@ def main():
 
 if __name__ == '__main__':
 
-    # if len(sys.argv) != 2:
-    #     print("usage:", sys.argv[0], "choose one: [DI, ETRI, local]")
-    #     sys.exit(1)
-    # location = sys.argv[1]
     main()
-
-    # while True:
-    #     qq = q1.get()
-    #     print(qq.keys())
-    #     if q1.empty(): break
-
-    # p.close()
-    # p2.close()
-    
-
-    
-    

@@ -14,6 +14,7 @@ from fase.hnrf.hetree import HNRF
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
+from fase.core.common import HEAANContext
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
@@ -62,12 +63,21 @@ class HEAAN_Evaluator():
         self.key_path = server_path + 'serkey/'
         print("[ENCRYPTOR] key path", self.key_path)
 
-        self.ring = he.Ring()
-        
-        self.scheme = he.Scheme(self.ring, True, self.server_path)
-        self.algo = he.SchemeAlgo(self.scheme)
-        self.scheme.loadLeftRotKey(1)
-        
+        hec = HEAANContext(logn, logp, logq, rot_l=[1], 
+                   key_path=self.key_path,
+                   FN_SK="secret.key",
+                   boot=False, 
+                   is_owner=True,
+                   load_sk=True
+                  )
+        #self.ring = he.Ring()
+        #self.scheme = he.Scheme(self.ring, True, self.server_path)
+        #self.algo = he.SchemeAlgo(self.scheme)
+        #self.scheme.loadLeftRotKey(1)
+
+        ## DEBUGGING
+        #self.sk = he.SecretKey(self.key_path + 'secret.key')
+        self.hec = hec
         self.prepare_model_load()
 
         print("[Encryptor] HEAAN is ready")
@@ -97,12 +107,13 @@ class HEAAN_Evaluator():
         Nmodel = pickle.load(open(fn, "rb"))
         
         h_rf = HNRF(Nmodel)
-        nrf_evaluator = heaan_nrf.HETreeEvaluator.from_model(h_rf,
-                                                            self.scheme,
-                                                            self.parms,
-                                                            self.my_tm_tanh.coeffs,
-                                                            do_reduction = False,
-                                                            )
+        nrf_evaluator = heaan_nrf.HETreeEvaluator(h_rf,
+                                                    self.hec._scheme,
+                                                    self.hec.parms,
+                                                    self.my_tm_tanh.coeffs,
+                                                    do_reduction = False,
+                                                    sk = self.hec.sk ### DEBUGGING
+                                                    )
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
         self.models.update({f"{action}_{cam}":nrf_evaluator})            
@@ -147,7 +158,7 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            debugging = True
+            debugging = False
             if debugging:
                 fn_preds = []
                 for i in range(5):
@@ -162,6 +173,11 @@ class HEAAN_Evaluator():
                 continue
             else:
                 pass
+            ###############################################
+
+            # DEBUGGING
+            print("CTX OK?")
+            print(self.hec.decrypt(ctx))
             ###############################################
 
 
