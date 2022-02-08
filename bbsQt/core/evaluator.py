@@ -5,7 +5,7 @@ import pickle
 import torch
 from time import time
 
-from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA, DEBUG
+from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA
 
 import fase
 fase.USE_FPGA = FPGA
@@ -103,7 +103,7 @@ class HEAAN_Evaluator():
                                                             self.my_tm_tanh.coeffs,
                                                             do_reduction = False,
                                                             )
-        print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f}seconds")
+        print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
         self.models.update({f"{action}_{cam}":nrf_evaluator})            
         print("Model dict updated")    

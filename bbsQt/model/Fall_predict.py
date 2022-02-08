@@ -82,4 +82,4 @@ class Score_updator():
                       "낙상의 위험이 낮습니다.",
                       -1]
 
-        return prediction(np.digitize(tot, bins))
+        return prediction[np.digitize(tot, bins)]
