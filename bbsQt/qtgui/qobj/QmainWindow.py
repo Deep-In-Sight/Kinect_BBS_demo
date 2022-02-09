@@ -206,29 +206,33 @@ class QMyMainWindow(QWidget):
             
             # skimage 를 뽑고 이걸 skimage label 넣는다. 
             skimage = self.qthreadrec.save_multiproc()
-            self.skimageLabel.setPixmap(skimage)
+            if skimage == -1:
+                cameraidx = self.btn.cameranum.currentIndex()
+                self.startcamera(cameraidx)
+            else:    
+                self.skimageLabel.setPixmap(skimage)
 
-            while self.qthreadrec.is_recoding():
-                time.sleep(2)
+                while self.qthreadrec.is_recoding():
+                    time.sleep(2)
 
-            t2 = time.time()
+                t2 = time.time()
 
-            self.qthreadrec.resetstate()
+                self.qthreadrec.resetstate()
 
-            print("time during saving images: {} sec.".format(t2 - t1))
+                print("time during saving images: {} sec.".format(t2 - t1))
 
-            self.resetRecordInterface()
+                self.resetRecordInterface()
 
-            self.btn.endtime.setText("F")
+                self.btn.endtime.setText("F")
 
-            print("Saving images done.")    
-            print("SAVE, device index", self.btn.cameranum.currentIndex())
+                print("Saving images done.")    
+                print("SAVE, device index", self.btn.cameranum.currentIndex())
 
-            ###
-            self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], config=self.device_config)
-            self.bodyTracker = pykinect.start_body_tracker()
-            self.qthreadrec.reset(self.device, self.bodyTracker)
-            self.qScenario.end.setDisabled(True)
+                ###
+                self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], config=self.device_config)
+                self.bodyTracker = pykinect.start_body_tracker()
+                self.qthreadrec.reset(self.device, self.bodyTracker)
+                self.qScenario.end.setDisabled(True)
         else:
             msgBox1 = QMessageBox()
             msgBox1.setText("Check Score!")

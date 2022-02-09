@@ -10,7 +10,6 @@ import pickle
 
 import matplotlib.pyplot as plt 
 
-
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
 from bbsQt.constants import NFRAMES, VERBOSE
@@ -134,7 +133,18 @@ class qThreadRecord(QThread):
     def save_multiproc(self):
         self.stackColor = np.array(self.stackColor)
         # 모든 스켈레톤이 다있는 프레임 
-        self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
+        
+        # In case on skeleton was captured
+        try:
+            self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
+        except:
+            self.qScenario.viewInfo.setText(f"Failed to detect any skeleton, Try again")
+            font = QFont()
+            #font.setBold(True)
+            font.setPointSize(14)
+            self.qScenario.viewInfo.setFont(font)
+            return -1
+
         nframes = len(self.skarr_list[0])
         
         i_person_exist = np.ones(nframes, dtype=bool)
@@ -209,7 +219,7 @@ class qThreadRecord(QThread):
                                 nframe=NFRAMES[f'{this_scenario}'],
                                 shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-            
+
         if self.camera_num == 0:
             camera_num = 'a'
         elif self.camera_num == 1:
