@@ -5,7 +5,7 @@ import pickle
 import torch
 from time import time
 
-from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA
+from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA, CAM_NAMES
 
 import fase
 fase.USE_FPGA = FPGA
@@ -52,7 +52,7 @@ def show_file_content(fn):
 
 
 class HEAAN_Evaluator():
-    def __init__(self, server_path, evaluator_ready):
+    def __init__(self, server_path, evaluator_ready=None):
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
@@ -81,7 +81,7 @@ class HEAAN_Evaluator():
         self.prepare_model_load()
 
         print("[Encryptor] HEAAN is ready")
-        evaluator_ready.set()
+        if evaluator_ready is not None: evaluator_ready.set()
 
     def prepare_model_load(self,
                            dilatation_factor = 10,
@@ -107,12 +107,16 @@ class HEAAN_Evaluator():
         Nmodel = pickle.load(open(fn, "rb"))
         
         h_rf = HNRF(Nmodel)
+        try:
+            sk = self.hec.sk
+        except:
+            sk = None
         nrf_evaluator = heaan_nrf.HETreeEvaluator(h_rf,
                                                     self.hec._scheme,
                                                     self.hec.parms,
                                                     self.my_tm_tanh.coeffs,
                                                     do_reduction = False,
-                                                    sk = self.hec.sk ### DEBUGGING
+                                                    sk = sk#self.hec.sk ### DEBUGGING
                                                     )
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
@@ -158,27 +162,27 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            debugging = False
-            if debugging:
-                fn_preds = []
-                for i in range(5):
-                    fn = self.server_path+f"pred_{i}.dat"
-                    fn_preds.append(fn)
-                fn_tar = FN_PREDS#"preds.tar.gz"
-                print("@@@@@@@@@@@@ compressing files")
-                compress_files(fn_tar, fn_preds)
-                q_text.put({"root_path":self.server_path,  # Not using root path
-                        "filename":self.server_path+fn_tar})
-                e_ans.set()
-                continue
-            else:
-                pass
-            ###############################################
+            # debugging = False
+            # if debugging:
+            #     fn_preds = []
+            #     for i in range(5):
+            #         fn = self.server_path+f"pred_{i}.dat"
+            #         fn_preds.append(fn)
+            #     fn_tar = FN_PREDS#"preds.tar.gz"
+            #     print("@@@@@@@@@@@@ compressing files")
+            #     compress_files(fn_tar, fn_preds)
+            #     q_text.put({"root_path":self.server_path,  # Not using root path
+            #             "filename":self.server_path+fn_tar})
+            #     e_ans.set()
+            #     continue
+            # else:
+            #     pass
+            # ###############################################
 
-            # DEBUGGING
-            print("CTX OK?")
-            print(self.hec.decrypt(ctx))
-            ###############################################
+            # # DEBUGGING
+            # print("CTX OK?")
+            # print(self.hec.decrypt(ctx))
+            # ###############################################
 
 
             preds = self.run_model(action, cam, ctx)
@@ -197,5 +201,23 @@ class HEAAN_Evaluator():
                         "filename":self.server_path+fn_tar})
             e_ans.set()
 
-    def eval_once(self, ctxt):
-        
+    def eval_once(self, fn_data, action):
+        ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
+        he.SerializationUtils.readCiphertext(ctx, fn_data)
+        show_file_content(fn_data)
+
+        print("action", action)
+        cam = CAM_NAMES[action]
+        print("cam", cam)
+
+        t0 = time()
+        preds = self.run_model(action, cam, ctx)
+        print(f"[EVALUATOR] Prediction took {time()-t0:.2f} seconds")
+
+        fn_preds = []
+        for i, pred in enumerate(preds):
+            #print("PRED", i, pred)
+            
+            fn = self.server_path+f"predict{i}.dat" # name changed
+            he.SerializationUtils.writeCiphertext(pred, fn)
+            fn_preds.append(fn)
