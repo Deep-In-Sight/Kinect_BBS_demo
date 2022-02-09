@@ -3,6 +3,7 @@ import fase.HEAAN as he
 import numpy as np
 import os 
 import pickle
+import time
 import tarfile
 from bbsQt.constants import CAM_LIST, CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK
 from fase.hnrf.hetree import HNRF
@@ -10,7 +11,7 @@ from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
 import torch
 
-import time
+from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
 class HETreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
@@ -184,8 +185,6 @@ class HEAAN_Encryptor():
             sc = self.scalers[f"{action}_{cam}"]
             fn = f"ctx_{action:02d}_{cam}_.dat"
            
-            featurizer = self.featurizers[f"{action}_{cam}"]
-            if debug: print("Featurizing skeleton...")
             t0 = time.time()            
 
             skeleton = sk['skeleton']
@@ -200,6 +199,10 @@ class HEAAN_Encryptor():
                 scaled = sc.transform(skeleton)
             else:
                 rav_sub = skeleton#[0]
+                skeleton = shift_to_zero(skeleton)
+                body = measure_lengths(skeleton)
+                skeleton /= body['body'] 
+                pickle.dump(skeleton, open("skeleton_org.pickle", "wb"))
                 print("rav_sub", rav_sub.min(), rav_sub.max())
                 scaled = sc.transform(rav_sub.reshape(1,-1))
             
@@ -217,6 +220,8 @@ class HEAAN_Encryptor():
             sc0 /= (sc0.max()*1.05) # Just to give some padding area
             print("MIN", sc0.min(), "MAX", sc0.max())
 
+            featurizer = self.featurizers[f"{action}_{cam}"]
+            if debug: print("Featurizing skeleton...")
             ctx1 = featurizer.encrypt(sc0)
             pickle.dump(sc0, open("scaled.pickle", "wb"))
             if debug: print(f"Featurizing done in {time.time() - t0:.2f}s")
