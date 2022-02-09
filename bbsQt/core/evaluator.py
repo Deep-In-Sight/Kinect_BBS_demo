@@ -196,3 +196,6 @@ class HEAAN_Evaluator():
                 q_text.put({"root_path":self.server_path,  # Not using root path
                         "filename":self.server_path+fn_tar})
             e_ans.set()
+
+    def eval_once(self, ctxt):
+        

@@ -2,6 +2,9 @@ import socket
 import numpy as np
 import time
 import shutil
+
+from bbsQt.core.evaluator import HEAAN_Evaluator
+
 # HOST = "172.30.98.224"
 HOST = ["192.168.35.75","10.100.82.90"][1]
 PORT = 2345
@@ -47,7 +50,8 @@ while True:
 		######################################################
 		## ADD code to generate predict0.dat ... predict4.dat HERE
 
-
+        henc = HEAAN_Evaluator(server_path, evaluator_ready)
+        henc.eval_once(ctxt)
 
 		## Testing delay ###
 		shutil.copy(data, "predict0.dat")
