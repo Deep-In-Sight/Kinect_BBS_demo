@@ -162,27 +162,27 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            # debugging = False
-            # if debugging:
-            #     fn_preds = []
-            #     for i in range(5):
-            #         fn = self.server_path+f"pred_{i}.dat"
-            #         fn_preds.append(fn)
-            #     fn_tar = FN_PREDS#"preds.tar.gz"
-            #     print("@@@@@@@@@@@@ compressing files")
-            #     compress_files(fn_tar, fn_preds)
-            #     q_text.put({"root_path":self.server_path,  # Not using root path
-            #             "filename":self.server_path+fn_tar})
-            #     e_ans.set()
-            #     continue
-            # else:
-            #     pass
-            # ###############################################
+            debugging = True
+            if debugging:
+                fn_preds = []
+                for i in range(5):
+                    fn = self.server_path+f"pred_{i}.dat"
+                    fn_preds.append(fn)
+                fn_tar = FN_PREDS#"preds.tar.gz"
+                print("@@@@@@@@@@@@ compressing files")
+                compress_files(fn_tar, fn_preds)
+                q_text.put({"root_path":self.server_path,  # Not using root path
+                        "filename":self.server_path+fn_tar})
+                e_ans.set()
+                continue
+            else:
+                pass
+            ###############################################
 
-            # # DEBUGGING
-            # print("CTX OK?")
-            # print(self.hec.decrypt(ctx))
-            # ###############################################
+            # DEBUGGING
+            #print("CTX OK?")
+            #print(self.hec.decrypt(ctx))
+            ###############################################
 
 
             preds = self.run_model(action, cam, ctx)
