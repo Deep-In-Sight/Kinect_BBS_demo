@@ -36,7 +36,6 @@ def kinect2mobile_direct(klist, remove_zeros=True):
        
        KINECT_BBS names are different from 
     """
-    
     if remove_zeros:
         # remove preceeding non-detections
         while True:

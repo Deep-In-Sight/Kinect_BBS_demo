@@ -99,7 +99,10 @@ class QMyMainWindow(QWidget):
         
         #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
-        self.qScenario = qScenario(self, self.PWD, q_answer, self.btn)
+        
+
+        self.startRecord.connect(self.recordImages)
+        self.qScenario = qScenario(self, self.PWD, q_answer, self.btn, self.startRecord)
 
         self.config = setConfig() # to be added
         #self.qSkeleton = qSkeleton()
@@ -157,19 +160,13 @@ class QMyMainWindow(QWidget):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.showTime)
-        self.timer.timeout.connect(self.checkRecordability)
         self.timer.start(1000)
 
 
         self.imgviwerRGB.emitDispImgSize.connect(self.qScenario.setRgbDispSize)
         self.imgviwerSkeleton.emitDispImgSize.connect(self.qScenario.setDepthDispSize)
-
-        # self.startRecord.connect(self.moveCheckerCoord)
-        self.startRecord.connect(self.recordImages)
-
         self.qScenario.end.setDisabled(True)
         #self.qScenario.save.setDisabled(True)
-
 
         ############################
         LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
@@ -318,7 +315,6 @@ class QMyMainWindow(QWidget):
         # LayoutFallPred.addLayout(get_layout(self.ScoreboardLabel))
 
 
-
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
             self.qScenario.Ready.click()
@@ -365,20 +361,6 @@ class QMyMainWindow(QWidget):
             if self.qScenario.Ready.isChecked():
                 self.qScenario.Ready.click()
             msgBox1.exec()    
-
-    def checkRecordability(self):
-        #timesync = self.qScenario.RECstartTime == self.btn.curtimeLabel.text()
-        if self.qScenario.RECstartTime.split(':')[1] == self.btn.curtimeLabel.text().split(':')[1]:
-            if (self.qScenario.RECstartTime.split(':')[2] == self.btn.curtimeLabel.text().split(':')[2]) or (int(self.qScenario.RECstartTime.split(':')[2]) + 1 == int(self.btn.curtimeLabel.text().split(':')[2])) or (int(self.qScenario.RECstartTime.split(':')[2]) + 2 == int(self.btn.curtimeLabel.text().split(':')[2])) :
-                timesync = True
-            else:
-                timesync = False
-        else:
-            timesync = False
-
-        ready = self.qScenario.Ready.isChecked()
-        if timesync and ready:
-            self.startRecord.emit()
 
     def showTime(self):
         currentTime = QTime.currentTime()
