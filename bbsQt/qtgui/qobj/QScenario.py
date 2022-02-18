@@ -124,7 +124,7 @@ class qScenario(QObject):
         try:
             p = subprocess.Popen([BIN_PLAYER, video_name])
         except:
-            print("cannot find video...")
+            print("ERROR: cannot find video...")
 
     def showinfo(self):
         #{self.text_answer} 

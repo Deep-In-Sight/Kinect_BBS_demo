@@ -3,7 +3,7 @@ import os
 import cv2
 import pandas as pd
 
-from bbsQt.constants import CAM_LIST
+from bbsQt.constants import CAM_LIST, VERBOSE
 
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
@@ -64,27 +64,25 @@ class QMyMainWindow(QWidget):
         e_sk = mp.event to signal skeleton is ready
         """
         super(QMyMainWindow, self).__init__()
+        ### Multiprocessing queue messages
         self.q1 = q1
         self.e_sk = e_sk
-        self.onPlay = False
-        self.ScenarioNo = 1
-        self.ScenarioPathOn = False
-        self.increasing_alpha = True
-        self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
-
         self.q_answer = q_answer
         self.e_ans = e_ans
-        self.recordReady = False
+
+        self.onPlay = False
+        self.ScenarioNo = 1
+        #self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
+        self.Locale = "G1"
+
+        #self.recordReady = False
         
         # add 2021/12/23 
         self.PWD = os.getcwd()
         self.btn = qButtons(self, self.PWD)
 
         self.imgviwerRGB = PhotoViewer(self,"RGB", ENABLE_PYK4A)
-        
-        #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
-        
 
         self.startRecord.connect(self.recordImages)
         self.stopRecord.connect(self.end)
@@ -100,38 +98,15 @@ class QMyMainWindow(QWidget):
         self.setWindowTitle('Kinect BBS demo')
 
         # fix 2021/01/07
-        self.coord = np.arange(10)*0.1 + 0.05
+        self.camera_choice = CAM_LIST    
 
-        # fix 2021/01/07
-        self.camera_choice = CAM_LIST
-
-        if ENABLE_PYK4A:
-            # Modify camera configuration
-            self.device_config = pykinect.default_configuration
-            self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
-            self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
-
-            # Start cameras using modified configuration
-            print("INIT, device index", self.btn.cameranum.currentIndex())
-            self.device = pykinect.start_device(device_index=1, config=self.device_config)
-
-            # Initialize the body tracker
-            self.bodyTracker = pykinect.start_body_tracker()
-        else:
-            self.pyK4A = None
-        
-        #print("[QMAIN]", self.btn.cameranum.currentIndex())
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
-                                        self.PWD, self.btn.cameranum.currentIndex(), 
-                                        self.q1, self.e_sk, self.e_ans, self.q_answer)
-
+        self._init_camera(1)
         self.setLayout()
 
         self.stackColor = []
-        self.stackIR = []
         self.stackDepth = []
         self.stackSkeleton = []
-        self.stackPoints = []
+        # self.stackPoints = []
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.showTime)
@@ -146,29 +121,25 @@ class QMyMainWindow(QWidget):
         LayoutFallPred.setAlignment(Qt.AlignTop)
         LayoutFallPred.setAlignment(Qt.AlignLeft)
 
-    def st(self):
-        self.btn.endtime.setText("F")
-
     def end(self):
-        print("[QMAIN] end function called")
         self.btn.endtime.setText("T")
         checkfile = f"{self.PWD}/bodytracking_data.csv"
-        #print(checkfile)
         if not(os.path.isfile(checkfile)) :
             t1 = time.time()
 
             self.device.close()
             self.bodyTracker.destroy()
 
-            self.stackPoints = pd.DataFrame(self.stackPoints)
+            # self.stackPoints = pd.DataFrame(self.stackPoints)
+            # print("EEEEEEEEEEEENNNNNNNNNNNNNNNNNNNDDDDDDDDDDDDDDD")
+            # print("STACK POINTS")
+            # print(self.stackPoints)
+            # print("__________________________")
 
             self.qthreadrec.setRun(False)
 
             self.qthreadrec.mkd(self.Locale, self.qScenario.SubjectID, self.ScenarioNo)
 
-            print("Main Windows: is q1 empty?", self.q1.empty())
-            print("Main Windows: is e_sk set?", self.e_sk.is_set())
-            
             # skimage 를 뽑고 이걸 skimage label 넣는다. 
             skimage = self.qthreadrec.save_multiproc()
             if skimage == -1:
@@ -177,6 +148,7 @@ class QMyMainWindow(QWidget):
             else:    
                 self.skimageLabel.setPixmap(skimage)
 
+                # recording 하는 동안 sleep으로 기다리기? 음.. 
                 while self.qthreadrec.is_recoding():
                     time.sleep(2)
 
@@ -184,24 +156,25 @@ class QMyMainWindow(QWidget):
 
                 self.qthreadrec.resetstate()
 
-                print("time during saving images: {} sec.".format(t2 - t1))
+                if not VERBOSE: print("time during saving images: {} sec.".format(t2 - t1))
 
                 self.resetRecordInterface()
 
                 self.btn.endtime.setText("F")
 
-                print("Saving images done.")    
-                print("SAVE, device index", self.btn.cameranum.currentIndex())
+                if not VERBOSE: print("Saving done. device index", self.btn.cameranum.currentIndex())
 
                 ###
-                self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], config=self.device_config)
+                self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], 
+                                                    config=self.device_config)
                 self.bodyTracker = pykinect.start_body_tracker()
                 self.qthreadrec.reset(self.device, self.bodyTracker)
-                #self.qScenario.end.setDisabled(True)
-        else:
-            msgBox1 = QMessageBox()
-            msgBox1.setText("Check Score!")
-            msgBox1.exec()    
+        
+        # Every reached?? 
+        #else:
+        #    msgBox1 = QMessageBox()
+        #    msgBox1.setText("Check Score!")
+        #    msgBox1.exec()    
 
     def setLayout(self):
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
@@ -244,7 +217,7 @@ class QMyMainWindow(QWidget):
         skBBoxLayout.addWidget(self.skindexbtn2)
         LayoutViewers.addLayout(skBBoxLayout)
 
-        LayoutViewers.addLayout(QVBoxLayout(),7)
+        LayoutViewers.addLayout(QVBoxLayout(),7) # 이건 뭐지? 모양 맞추기용?
 
         LayoutFunctions = QHBoxLayout()
 
@@ -265,26 +238,23 @@ class QMyMainWindow(QWidget):
 
     @pyqtSlot()
     def recordImages(self):
-        self.year = str(datetime.today().year % 100).zfill(2)
-        self.month = str(datetime.today().month).zfill(2)
-        self.day = str(datetime.today().day).zfill(2)
+        # self.year = str(datetime.today().year % 100).zfill(2)
+        # self.month = str(datetime.today().month).zfill(2)
+        # self.day = str(datetime.today().day).zfill(2)
 
-        self.yymmdd = self.year + self.month + self.day
+        # self.yymmdd = self.year + self.month + self.day
 
-        self.Locale = "G1"#self.qScenario.locale_option.currentText()
-        self.stackPoints = []
+        #self.qScenario.locale_option.currentText()
+        # self.stackPoints = []
             
-        t0 = time.time()
+        #t0 = time.time()
 
         self.qthreadrec.init(self.PWD, 
                                 self.Locale,
                                 self.qScenario.SubjectID,
                                 self.btn
                                 )
-        print("!!!!!!!!!! Qthread initialized")
-
         self.qthreadrec.start()
-
         self.qthreadrec.setRun(True)
 
         #self.qScenario.end.setEnabled(True)
@@ -292,46 +262,33 @@ class QMyMainWindow(QWidget):
             # print("recording")
             QApplication.processEvents()
         
-        t1 = time.time()
-
-        print("recording done. start to save images")
-        print("time during recording: {} sec.".format(t1 - t0))
+        #t1 = time.time()
 
     def showTime(self):
         currentTime = QTime.currentTime()
         displayTxt = currentTime.toString('hh:mm:ss')
         self.btn.curtimeLabel.setText(displayTxt)
 
-    def optionChanged(self):
-        print(self.btn.option.currentIndex())
-        if self.btn.option.currentIndex() == 0:
-            self.imgviwerIR.minval = self.config.cfg_30cm["ir_minval"]
-            self.imgviwerIR.MinRangeInput.setText(str(self.imgviwerIR.minval))
-            self.imgviwerIR.maxval = self.config.cfg_30cm["ir_maxval"]
-            self.imgviwerIR.MaxRangeInput.setText(str(self.imgviwerIR.maxval))            
-
-            self.imgviwerDepth.minval = self.config.cfg_30cm["depth_minval"]
-            self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
-            self.imgviwerDepth.maxval = self.config.cfg_30cm["depth_maxval"]
-            self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))
+    # def optionChanged(self):
+    #     print(self.btn.option.currentIndex())
+    #     if self.btn.option.currentIndex() == 0:
+    #         self.imgviwerDepth.minval = self.config.cfg_30cm["depth_minval"]
+    #         self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
+    #         self.imgviwerDepth.maxval = self.config.cfg_30cm["depth_maxval"]
+    #         self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))
             
-        elif self.btn.option.currentIndex() == 1:
-            self.imgviwerIR.minval = self.config.cfg_50cm["ir_minval"]
-            self.imgviwerIR.MinRangeInput.setText(str(self.imgviwerIR.minval))
-            self.imgviwerIR.maxval = self.config.cfg_50cm["ir_maxval"]
-            self.imgviwerIR.MaxRangeInput.setText(str(self.imgviwerIR.maxval))            
-
-            self.imgviwerDepth.minval = self.config.cfg_50cm["depth_minval"]
-            self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
-            self.imgviwerDepth.maxval = self.config.cfg_50cm["depth_maxval"]
-            self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))        
+    #     elif self.btn.option.currentIndex() == 1:
+    #         self.imgviwerDepth.minval = self.config.cfg_50cm["depth_minval"]
+    #         self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
+    #         self.imgviwerDepth.maxval = self.config.cfg_50cm["depth_maxval"]
+    #         self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))        
 
     # add 20210107
     def actionChanged(self):
-        print("action changed", self.btn.action_num.currentIndex())
+        if not VERBOSE: print("action changed", self.btn.action_num.currentIndex())
         actionidx = self.btn.action_num.currentIndex() + 1
-        a = 1
-        e = 0
+        #a = 1
+        #e = 0
         
         self.startcamera(self.camera_choice[actionidx])
         self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
@@ -342,9 +299,28 @@ class QMyMainWindow(QWidget):
 
     # fix 20210107
     def cameraChanged(self):
-        print("camera changed", self.btn.cameranum.currentIndex())
+        if not VERBOSE: print("camera changed", self.btn.cameranum.currentIndex())
         cameraidx = self.btn.cameranum.currentIndex()
         self.startcamera(cameraidx)
+
+    def _init_camera(self, cameraidx):
+        #if ENABLE_PYK4A:
+        # Modify camera configuration
+        self.device_config = pykinect.default_configuration
+        self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
+        self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
+
+        # Start cameras using modified configuration
+        if not VERBOSE: print("ACTION CHANGED, device index", cameraidx)
+        self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
+
+        # Initialize the body tracker
+        self.bodyTracker = pykinect.start_body_tracker()
+        #else:
+        #    self.pyK4A = None
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
+                                self.PWD, cameraidx, 
+                                self.q1, self.e_sk, self.e_ans, self.q_answer)
 
     # add 20210107
     def startcamera(self, cameraidx):
@@ -360,23 +336,8 @@ class QMyMainWindow(QWidget):
         self.device.close()
         self.bodyTracker.destroy()
         
-        if ENABLE_PYK4A:
-            # Modify camera configuration
-            self.device_config = pykinect.default_configuration
-            self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
-            self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
+        self._init_camera(cameraidx)
 
-            # Start cameras using modified configuration
-            print("ACTION CHANGED, device index", cameraidx)
-            self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
-
-            # Initialize the body tracker
-            self.bodyTracker = pykinect.start_body_tracker()
-        else:
-            self.pyK4A = None
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
-                                self.PWD, cameraidx, 
-                                self.q1, self.e_sk, self.e_ans, self.q_answer)
         self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
         self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
         self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
@@ -422,21 +383,19 @@ class QMyMainWindow(QWidget):
             #self.qScenario.updateSize()            
             QApplication.processEvents()
 
-        i = 0
-        while self.onPlay and not(ENABLE_PYK4A):
-            print("displaying img")
-        
-            self.imgviwerRGB.setImgPath(f"{self.PWD}/images/transformed_color0-{i}.jpg")
+        # i = 0
+        # while self.onPlay and not(ENABLE_PYK4A):        
+        #     self.imgviwerRGB.setImgPath(f"{self.PWD}/images/transformed_color0-{i}.jpg")
 
-            self.imgviwerRGB.start()
-            i+=1
-            if i>4: i=0
-            t1 = time.time()
-            self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
-            t0 = t1            
+        #     self.imgviwerRGB.start()
+        #     i+=1
+        #     if i>4: i=0
+        #     t1 = time.time()
+        #     self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
+        #     t0 = t1            
 
-            #self.qScenario.updateSize()        
-            QApplication.processEvents()
+        #     #self.qScenario.updateSize()        
+        #     QApplication.processEvents()
 
     def closeEvent(self, event):
         msgbox     = QMessageBox()

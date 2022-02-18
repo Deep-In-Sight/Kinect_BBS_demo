@@ -52,21 +52,20 @@ class qButtons(QObject):
 		self.endtime.setFont(QFont("Arial", 12, QFont.Bold))
 
 
-		self.BtnPathOnOff = QPushButton()
-		self.BtnPathOnOff.setCheckable(True)
-		self.BtnPathOnOff.setIcon(QIcon(os.path.join(self.PWD,'res','line.png')))
-		self.BtnPathOnOff.setText('Pat[H] On/Off')
-		self.BtnPathOnOff.setMinimumWidth(ICON_MIN_WIDTH)
-		self.BtnPathOnOff.setMinimumHeight(ICON_MIN_HEIGHT)
-		self.BtnPathOnOff.setToolTip('')
+		# self.BtnPathOnOff = QPushButton()
+		# self.BtnPathOnOff.setCheckable(True)
+		# self.BtnPathOnOff.setIcon(QIcon(os.path.join(self.PWD,'res','line.png')))
+		# self.BtnPathOnOff.setText('Pat[H] On/Off')
+		# self.BtnPathOnOff.setMinimumWidth(ICON_MIN_WIDTH)
+		# self.BtnPathOnOff.setMinimumHeight(ICON_MIN_HEIGHT)
+		# self.BtnPathOnOff.setToolTip('')
 
 		self.LbFPS = QLabel()
 		self.LbFPS.setMinimumWidth(70)
 
-		self.option = QComboBox()
-		self.option.addItem("BBS")
-
-		self.option.currentIndexChanged.connect(self.qmain.optionChanged)
+		# self.option = QComboBox()
+		# self.option.addItem("BBS")
+		# self.option.currentIndexChanged.connect(self.qmain.optionChanged)
 
 		self.cameranum = QComboBox()
 		self.cameranum.addItem("e")

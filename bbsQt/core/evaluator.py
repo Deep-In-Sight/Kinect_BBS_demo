@@ -73,10 +73,6 @@ class HEAAN_Evaluator():
                    is_owner=True,
                    load_sk=True
                   )
-        #self.ring = he.Ring()
-        #self.scheme = he.Scheme(self.ring, True, self.server_path)
-        #self.algo = he.SchemeAlgo(self.scheme)
-        #self.scheme.loadLeftRotKey(1)
 
         ## DEBUGGING
         #self.sk = he.SecretKey(self.key_path + 'secret.key')
@@ -165,7 +161,7 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            debugging = True
+            debugging = False
             if debugging:
                 fn_preds = []
                 for i in range(5):
@@ -178,8 +174,7 @@ class HEAAN_Evaluator():
                         "filename":self.server_path+fn_tar})
                 e_ans.set()
                 continue
-            else:
-                pass
+
             ###############################################
 
             # DEBUGGING
