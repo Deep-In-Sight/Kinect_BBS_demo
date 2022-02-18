@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QPixmap, QImage, QFont
 from PyQt5.QtPrintSupport import *
 import time
 import numpy as np
@@ -122,13 +122,6 @@ class qThreadRecord(QThread):
                 t0 = t1
         self.isRun = False
 
-
-    # def getcnt(self):
-    #     return self.pic_Count
-
-    # def get_color(self):
-    #     return self.stackColor
-
     # todo data tree  
     def save_multiproc(self):
         self.stackColor = np.array(self.stackColor)
@@ -166,9 +159,6 @@ class qThreadRecord(QThread):
         print("[Qthread obj] Number of frames", len(self.stackColor))
         # queues = [Queue() for i in range(Ncpu)]
         t0 = time.time()
-        #args = [(self.path_save, self.stackColor[idx[i]], idx[i][0], self.Locale, self.SubjectID) for i in range(Ncpu)]
-        #jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
-        #c(path_root, data, idx0, Locale, ID
         if self.camera_num == 1 :
             camera_num = 'a_'
         elif self.camera_num == 0:
@@ -179,8 +169,6 @@ class qThreadRecord(QThread):
         i = maxframe_idx
         color = self.stackColor[i]
         cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
-
-        #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
         # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
         return skimage
 
@@ -208,10 +196,7 @@ class qThreadRecord(QThread):
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         
         # FIX   20210107
-        # this_scenario = self.qScenario.class_num.currentText()
-        # this_score = self.qScenario.score_num.currentText()
 
-        # self.action_num.currentText()랑 연결
         this_scenario = self.btn.action_num.currentText()
         this_score = self.btn.score_num.currentText()
         

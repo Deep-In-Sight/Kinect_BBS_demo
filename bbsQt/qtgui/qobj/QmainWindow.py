@@ -1,15 +1,10 @@
-#import sys
-#import ntpath
 import numpy as np
 import os
 import cv2
 import pandas as pd
 
-#from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES, CAM_LIST
+from bbsQt.constants import CAM_LIST
 
-#from PIL import Image
-#import random
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
@@ -21,18 +16,13 @@ from ..config import Config as setConfig
 from .QButtons import qButtons
 from .QImgViewer import PhotoViewer
 from .QScenario import qScenario
-#from qobj.QShortcuts import createActions
 from .QThreadObj import qThreadRecord
-#from qobj.QSkeleton import qSkeleton
 from datetime import datetime
 
-#import qobj.QSkeleton
 import time
-#from bbsQt.qtgui.qobj import QButtons
 
 ENABLE_PYK4A = True
 from ..pykinect_azure import pykinect
-#from . import image as imgutil
 
 pykinect.initialize_libraries(track_body=True)
 
@@ -50,15 +40,12 @@ def get_layout(mylabel):
     VBlayoutMain = QVBoxLayout()
     VBlayoutMain.setAlignment(Qt.AlignTop)
     VBlayoutMain.setAlignment(Qt.AlignLeft)
-    #VBlayoutMain.addWidget(QLabelImgView)
     VBlayoutMain.addWidget(mylabel)
-    #VBlayoutMain.addLayout(HBlayout)
     return VBlayoutMain
 
 
 def load_image(fn_img = "imgs/instruct_1.png"):
     img = cv2.imread(fn_img)
-    #img = imgutil.rgb2gray(img)
     img = cv2.resize(img, (480, 270))
     img = img[:,:,::-1]
     img = np.array(img).astype(np.uint8)
@@ -91,8 +78,6 @@ class QMyMainWindow(QWidget):
         self.recordReady = False
         
         # add 2021/12/23 
-        #self.cameraindex = 0
-
         self.PWD = os.getcwd()
         self.btn = qButtons(self, self.PWD)
 
@@ -107,11 +92,6 @@ class QMyMainWindow(QWidget):
         self.qScenario = qScenario(self, self.PWD, q_answer, self.btn, self.startRecord, self.stopRecord)
 
         self.config = setConfig() # to be added
-        #self.qSkeleton = qSkeleton()
-
-        #self.class_name = QComboBox()
-
-        # self.acc = [0,0,0] # [x,y,x]
 
         self.curScenario = self.config.scenario[self.ScenarioNo]
 
@@ -124,7 +104,6 @@ class QMyMainWindow(QWidget):
         self.setWindowTitle('Kinect BBS demo')
 
         # fix 2021/01/07
-        #self.btn = qButtons(self, self.PWD)
         self.coord = np.arange(10)*0.1 + 0.05
 
         # fix 2021/01/07
@@ -151,8 +130,6 @@ class QMyMainWindow(QWidget):
                                         self.q1, self.e_sk, self.e_ans, self.q_answer)
 
         self.setLayout()
-        self.initplot()
-        self.initset()
 
         self.stackColor = []
         self.stackIR = []
@@ -167,19 +144,11 @@ class QMyMainWindow(QWidget):
 
         self.imgviwerRGB.emitDispImgSize.connect(self.qScenario.setRgbDispSize)
         self.imgviwerSkeleton.emitDispImgSize.connect(self.qScenario.setDepthDispSize)
-        #self.qScenario.end.setDisabled(True)
-        #self.qScenario.save.setDisabled(True)
 
         ############################
         LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
         LayoutFallPred.setAlignment(Qt.AlignTop)
         LayoutFallPred.setAlignment(Qt.AlignLeft)
-
-        # Score board
-        #self.ScoreboardLabel = QLabel()
-        #self.ScoreboardLabel.setText("TESTTEST")
-        #LayoutFallPred.addLayout(get_layout(self.ScoreboardLabel))
-
 
     def st(self):
         self.btn.endtime.setText("F")
@@ -238,23 +207,16 @@ class QMyMainWindow(QWidget):
             msgBox1.setText("Check Score!")
             msgBox1.exec()    
 
-    # fixed
-    #def pnt(self):
-    #    print(self.qthreadrec.pic_Count)
-    #    self.stackPoints.append(self.qthreadrec.pic_Count)
-
     def setLayout(self):
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
         LayoutMain.setAlignment(Qt.AlignTop)        
         LayoutMain.setAlignment(Qt.AlignLeft)    
         
         LayoutViewers = QHBoxLayout()
-        # LayoutViewers.setAlignment(Qt.AlignTop)
         LayoutViewers.setAlignment(Qt.AlignLeft)
         
         LayoutViewers.addLayout(self.imgviwerRGB.getLayout(),1)
         LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
-        #LayoutViewers.addLayout(self.imgviwerIRtest.getLayout(),1)
         
         self.skimageLabel = QLabel()
         self.skimageLabel.setPixmap(load_image())
@@ -274,14 +236,12 @@ class QMyMainWindow(QWidget):
         self.skindexbtn2.setCheckable(False)
         self.skindexbtn2.setText('green')
         self.skindexbtn2.setMinimumHeight(40)
-        #skimageLabel.set_layout()
         
         # add 2021.12.27 skbtnlayout
         skBBoxLayout = QVBoxLayout()
 
         # sk select viewr
         LayoutViewers.addLayout(get_layout(self.skimageLabel))
-
         
         skBBoxLayout.addWidget(self.skindexbtn0)
         skBBoxLayout.addWidget(self.skindexbtn1)
@@ -289,7 +249,6 @@ class QMyMainWindow(QWidget):
         LayoutViewers.addLayout(skBBoxLayout)
 
         LayoutViewers.addLayout(QVBoxLayout(),7)
-
 
         LayoutFunctions = QHBoxLayout()
 
@@ -302,21 +261,6 @@ class QMyMainWindow(QWidget):
         self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
         self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
         self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
-
-        #self.qScenario.end.clicked.connect(self.end)
-        #self.qScenario.save.clicked.connect(self.save)
-
-        ### Fall prediction freom 14 BBS scores
-        # LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
-        # LayoutFallPred.setAlignment(Qt.AlignTop)
-        # LayoutFallPred.setAlignment(Qt.AlignLeft)
-
-        # # Score board
-        #self.ScoreboardLabel = QLabel()
-        #self.ScoreboardLabel.setText("TESTTEST")
-        #LayoutMain.addLayout(get_layout(self.ScoreboardLabel))
-        # LayoutFallPred.addLayout(get_layout(self.ScoreboardLabel))
-
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -333,45 +277,34 @@ class QMyMainWindow(QWidget):
 
         self.Locale = "G1"#self.qScenario.locale_option.currentText()
         self.stackPoints = []
-        if True:
             
-            t0 = time.time()
+        t0 = time.time()
 
-            self.qthreadrec.init(self.PWD, 
-                                 self.Locale,
-                                 self.qScenario.SubjectID,
-                                 self.btn
-                                 )
-            print("!!!!!!!!!! Qthread initialized")
+        self.qthreadrec.init(self.PWD, 
+                                self.Locale,
+                                self.qScenario.SubjectID,
+                                self.btn
+                                )
+        print("!!!!!!!!!! Qthread initialized")
 
-            self.qthreadrec.start()
+        self.qthreadrec.start()
 
-            self.qthreadrec.setRun(True)
+        self.qthreadrec.setRun(True)
 
-            #self.qScenario.end.setEnabled(True)
-            while self.qthreadrec.is_recoding():
-                # print("recording")
-                QApplication.processEvents()
-            
-            t1 = time.time()
+        #self.qScenario.end.setEnabled(True)
+        while self.qthreadrec.is_recoding():
+            # print("recording")
+            QApplication.processEvents()
+        
+        t1 = time.time()
 
-            print("recording done. start to save images")
-            print("time during recording: {} sec.".format(t1 - t0))
-
-        else:
-            msgBox1 = QMessageBox()
-            msgBox1.setText("Check ID!")
-            if self.qScenario.Ready.isChecked():
-                self.qScenario.Ready.click()
-            msgBox1.exec()    
+        print("recording done. start to save images")
+        print("time during recording: {} sec.".format(t1 - t0))
 
     def showTime(self):
         currentTime = QTime.currentTime()
         displayTxt = currentTime.toString('hh:mm:ss')
         self.btn.curtimeLabel.setText(displayTxt)
-
-    def initset(self):
-        pass
 
     def optionChanged(self):
         print(self.btn.option.currentIndex())
@@ -396,8 +329,6 @@ class QMyMainWindow(QWidget):
             self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
             self.imgviwerDepth.maxval = self.config.cfg_50cm["depth_maxval"]
             self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))        
-        else:
-            pass
 
     # add 20210107
     def actionChanged(self):
@@ -447,9 +378,6 @@ class QMyMainWindow(QWidget):
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-        #self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
-                    #           self.PWD, self.btn.cameranum.currentIndex(),
-                    #           self.q1, self.e_sk, self.e_ans, self.q_answer)
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
                                 self.PWD, cameraidx, 
                                 self.q1, self.e_sk, self.e_ans, self.q_answer)
@@ -457,14 +385,6 @@ class QMyMainWindow(QWidget):
         self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
         self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
  
-    @pyqtSlot()
-    def updateScenarioNo(self):
-        # self.ScenarioNo = self.qScenario.cBoxSSelect.currentIndex()
-        # self.curScenario = self.config.scenario[self.ScenarioNo]
-        # self.ScenarioNo = self.ScenarioNo + 1
-        # self.qScenario.updaterecseq(self.curScenario)
-        pass
-
     @pyqtSlot()        
     def updateOnPlay(self):    
         self.onPlay = not(self.onPlay)
@@ -493,8 +413,6 @@ class QMyMainWindow(QWidget):
 
             self.imgviwerRGB.setImg(c_image)
             self.imgviwerSkeleton.setImg(s_image) ## <<<<<<<<<<<
-
-
 
             try:
                 self.imgviwerRGB.start()
@@ -525,48 +443,6 @@ class QMyMainWindow(QWidget):
             #self.qScenario.updateSize()        
             QApplication.processEvents()
 
-    def initplot(self):
-        pass
-
-    @pyqtSlot()        
-    def displayKinect(self):    
-        t0 = time.time()
-        while self.onPlay and ENABLE_PYK4A:
-            print("displaying ak")
-            # Get capture
-            capture = self.device.update()
-
-            rat, c_image = capture.get_color_image()
-            rat, i_image = capture.get_ir_image()
-            rat, d_image = capture.get_depth_image()
-
-            self.imgviwerRGB.setImg(c_image)
-
-            self.imgviwerRGB.start()
-
-            t1 = time.time()
-            self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
-            t0 = t1
-        
-            #self.qScenario.updateSize()
-            QApplication.processEvents()            
-
-        i = 0
-        while self.onPlay and not(ENABLE_PYK4A):
-            # print("displaying img")
-        
-            self.imgviwerRGB.setImgPath(f"{self.PWD}/images/transformed_color0-{i}.jpg")
-
-            self.imgviwerRGB.start()
-            i+=1
-            if i>4: i=0
-            t1 = time.time()
-            self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
-            t0 = t1            
-
-            #self.qScenario.updateSize()        
-            QApplication.processEvents()
-
     def closeEvent(self, event):
         msgbox     = QMessageBox()
         msgbox.setIcon(QMessageBox.Question)
@@ -576,7 +452,6 @@ class QMyMainWindow(QWidget):
         if reply == QMessageBox.Yes:
             self.device.close()
             self.bodyTracker.destroy()
-            #self.qthreadrec.quit()
 
             event.accept()
         else:
