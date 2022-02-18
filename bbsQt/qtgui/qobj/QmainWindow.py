@@ -70,6 +70,7 @@ def load_image(fn_img = "imgs/instruct_1.png"):
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
+    stopRecord = pyqtSignal()
     def __init__(self, q1, q_answer, e_sk, e_ans):
         """
         q1 = mp.queue to put skeleton 
@@ -102,7 +103,8 @@ class QMyMainWindow(QWidget):
         
 
         self.startRecord.connect(self.recordImages)
-        self.qScenario = qScenario(self, self.PWD, q_answer, self.btn, self.startRecord)
+        self.stopRecord.connect(self.end)
+        self.qScenario = qScenario(self, self.PWD, q_answer, self.btn, self.startRecord, self.stopRecord)
 
         self.config = setConfig() # to be added
         #self.qSkeleton = qSkeleton()
@@ -183,6 +185,7 @@ class QMyMainWindow(QWidget):
         self.btn.endtime.setText("F")
 
     def end(self):
+        print("[QMAIN] end function called")
         self.btn.endtime.setText("T")
         checkfile = f"{self.PWD}/bodytracking_data.csv"
         #print(checkfile)
@@ -300,7 +303,7 @@ class QMyMainWindow(QWidget):
         self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
         self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
 
-        self.qScenario.end.clicked.connect(self.end)
+        #self.qScenario.end.clicked.connect(self.end)
         #self.qScenario.save.clicked.connect(self.save)
 
         ### Fall prediction freom 14 BBS scores
