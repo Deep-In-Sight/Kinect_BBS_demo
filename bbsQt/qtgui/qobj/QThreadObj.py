@@ -19,7 +19,7 @@ WAIT = 0.01
 
 class qThreadRecord(QThread):
     
-    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
+    def __init__(self, k4a, bt, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
         super().__init__()
         self.stackColor = []
         self.stackIR = []
@@ -28,7 +28,6 @@ class qThreadRecord(QThread):
         self.k4a = k4a
         self.bt = bt
         self.isRun = False
-        self.LbFPS = LbFPS
         self.qScenario = qScenario
         self.Ncpu = 2
         self.pic_Count = 0

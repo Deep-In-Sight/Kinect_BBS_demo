@@ -69,7 +69,6 @@ class QMyMainWindow(QWidget):
         self.onPlay = False
         self.ScenarioNo = 1
         self.ScenarioPathOn = False
-        self.n_alpha = 20
         self.increasing_alpha = True
         self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
 
@@ -94,9 +93,6 @@ class QMyMainWindow(QWidget):
         self.config = setConfig() # to be added
 
         self.curScenario = self.config.scenario[self.ScenarioNo]
-
-        self.alpha = np.arange(self.n_alpha) / (self.n_alpha-1) * 0.8
-        self.tgtsize = (np.arange(self.n_alpha) / (self.n_alpha-1) * 500).astype(np.int)
 
         self.setGeometry(100, 100, 1200, 850)
         self.setMinimumSize(1000, 600)
@@ -125,7 +121,7 @@ class QMyMainWindow(QWidget):
             self.pyK4A = None
         
         #print("[QMAIN]", self.btn.cameranum.currentIndex())
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
                                         self.PWD, self.btn.cameranum.currentIndex(), 
                                         self.q1, self.e_sk, self.e_ans, self.q_answer)
 
@@ -378,7 +374,7 @@ class QMyMainWindow(QWidget):
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
+        self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
                                 self.PWD, cameraidx, 
                                 self.q1, self.e_sk, self.e_ans, self.q_answer)
         self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
@@ -392,7 +388,6 @@ class QMyMainWindow(QWidget):
     @pyqtSlot()    
     def calibration2(self):
         t0 = time.time()
-        cnt = 0
         while self.onPlay and ENABLE_PYK4A:
             # Get capture
             capture = self.device.update()
