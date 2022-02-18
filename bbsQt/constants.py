@@ -91,7 +91,7 @@ elif location == "ETRI":
     
 SCP_PORT = 22
 
-FPGA=False
+DEVICE=["CPU", "FGPA", "CUDA"][0]
 
 ############# DEBUGGING ##############
 DEBUG_FLAG1 = False

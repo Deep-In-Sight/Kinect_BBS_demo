@@ -5,10 +5,13 @@ import pickle
 import torch
 from time import time
 
-from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA, CAM_NAMES
+from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES, DEVICE
 
 import fase
-fase.USE_FPGA = FPGA
+if DEVICE == "FPGA":
+    fase.USE_FPGA = True
+elif DEVICE == "CUDA":
+    fase.USE_CUDA = True
 from fase.core.heaan import he
 from fase.hnrf.hetree import HNRF
 from fase import hnrf as hnrf
