@@ -123,11 +123,11 @@ class qThreadRecord(QThread):
         self.isRun = False
 
 
-    def getcnt(self):
-        return self.pic_Count
+    # def getcnt(self):
+    #     return self.pic_Count
 
-    def get_color(self):
-        return self.stackColor
+    # def get_color(self):
+    #     return self.stackColor
 
     # todo data tree  
     def save_multiproc(self):

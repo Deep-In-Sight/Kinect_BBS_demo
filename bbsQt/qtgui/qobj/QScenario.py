@@ -312,24 +312,24 @@ class qScenario(QObject):
         # qLabelName.setText("Record End Time [HH:MM:SS]:")
         # LayoutRET.addWidget(qLabelName)
 
-        LayoutSE = QHBoxLayout() 
-        LayoutSE.setAlignment(Qt.AlignTop)
-        LayoutSE.setAlignment(Qt.AlignRight)
+        # LayoutSE = QHBoxLayout() 
+        # LayoutSE.setAlignment(Qt.AlignTop)
+        # LayoutSE.setAlignment(Qt.AlignRight)
 
-        self.cnt = QPushButton()
-        self.cnt.setCheckable(False)
-        self.cnt.setText('Print CNT')
-        self.cnt.setMinimumHeight(40)
-        LayoutSE.addWidget(self.cnt)
+        # self.cnt = QPushButton()
+        # self.cnt.setCheckable(False)
+        # self.cnt.setText('Print CNT')
+        # self.cnt.setMinimumHeight(40)
+        # LayoutSE.addWidget(self.cnt)
 
-        self.end = QPushButton()
-        self.end.setCheckable(False)
-        self.end.setText('END')
-        self.end.setMinimumHeight(40)
-        LayoutSE.addWidget(self.end)
+        # self.end = QPushButton()
+        # self.end.setCheckable(False)
+        # self.end.setText('END')
+        # self.end.setMinimumHeight(40)
+        # LayoutSE.addWidget(self.end)
 
         HVlayoutMain.addWidget(LayoutRecordEnd, 10)
-        HVlayoutMain.addLayout(LayoutSE, 10)
+        # HVlayoutMain.addLayout(LayoutSE, 10)
         ###############################
 
         LayoutScenarioNum = QHBoxLayout()
@@ -379,7 +379,7 @@ class qScenario(QObject):
         # self.timers[3].clicked.connect(lambda: self.set_countdown(30))
         # self.timers[4].clicked.connect(lambda: self.set_countdown(40))
         # self.timers[5].clicked.connect(lambda: self.set_countdown(50))
-        self.cnt.clicked.connect(self.qmain.pnt)
+        #self.cnt.clicked.connect(self.qmain.pnt)
         
         # self.MaxRangeInput.returnPressed.connect(self.maxRangeChanged)
 

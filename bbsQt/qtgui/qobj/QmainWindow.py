@@ -167,7 +167,7 @@ class QMyMainWindow(QWidget):
 
         self.imgviwerRGB.emitDispImgSize.connect(self.qScenario.setRgbDispSize)
         self.imgviwerSkeleton.emitDispImgSize.connect(self.qScenario.setDepthDispSize)
-        self.qScenario.end.setDisabled(True)
+        #self.qScenario.end.setDisabled(True)
         #self.qScenario.save.setDisabled(True)
 
         ############################
@@ -232,16 +232,16 @@ class QMyMainWindow(QWidget):
                 self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], config=self.device_config)
                 self.bodyTracker = pykinect.start_body_tracker()
                 self.qthreadrec.reset(self.device, self.bodyTracker)
-                self.qScenario.end.setDisabled(True)
+                #self.qScenario.end.setDisabled(True)
         else:
             msgBox1 = QMessageBox()
             msgBox1.setText("Check Score!")
             msgBox1.exec()    
 
     # fixed
-    def pnt(self):
-        print(self.qthreadrec.pic_Count)
-        self.stackPoints.append(self.qthreadrec.pic_Count)
+    #def pnt(self):
+    #    print(self.qthreadrec.pic_Count)
+    #    self.stackPoints.append(self.qthreadrec.pic_Count)
 
     def setLayout(self):
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
@@ -348,7 +348,7 @@ class QMyMainWindow(QWidget):
 
             self.qthreadrec.setRun(True)
 
-            self.qScenario.end.setEnabled(True)
+            #self.qScenario.end.setEnabled(True)
             while self.qthreadrec.is_recoding():
                 # print("recording")
                 QApplication.processEvents()
