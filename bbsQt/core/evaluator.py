@@ -7,6 +7,9 @@ from time import time
 
 from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES, DEVICE
 
+DEBUG = False
+
+
 import fase
 if DEVICE == "FPGA":
     fase.USE_FPGA = True
@@ -147,12 +150,12 @@ class HEAAN_Evaluator():
         print("[EVALUATOR] evaluate_loop started")
         while True:
             e_enc.wait()
-            print("[EVALUATOR] e_enc set")
+            if DEBUG: print("[EVALUATOR] e_enc set")
             fn_data = self.server_path + q_text.get()
-            print("[EVALUATOR] got a file", fn_data)
+            if DEBUG: print("[EVALUATOR] got a file", fn_data)
             _, action, cam, _ = fn_data.split("_")
             action = int(action)
-            print("[EVALUATOR] action class:", action)
+            if DEBUG: print("[EVALUATOR] action class:", action)
 
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
@@ -161,7 +164,7 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            debugging = False
+            debugging = True
             if debugging:
                 fn_preds = []
                 for i in range(5):

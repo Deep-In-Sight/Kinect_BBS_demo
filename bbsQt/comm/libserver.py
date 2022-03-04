@@ -8,7 +8,7 @@ import tarfile
 
 BLOCKSIZE = 2**16
 from bbsQt.constants import TEST_CLIENT
-
+DEBUG=False
 
 def untar(fn_tar):
     if fn_tar.endswith("tar.gz"):
@@ -231,7 +231,7 @@ class Message:
             self.request = data        
         elif self.jsonheader["content-type"] == "ctxt":
             self.request = data
-            print(self.jsonheader.keys())
+            if DEBUG: print(self.jsonheader.keys())
             print("received file", self.jsonheader['note'], "from", self.addr)
         else:
             # Binary or unknown content-type
@@ -247,7 +247,7 @@ class Message:
         self._set_selector_events_mask("w")
 
     def create_response(self):
-        print("[libserver] in create_response")
+        if DEBUG: print("[libserver] in create_response")
         if self.jsonheader["content-type"] == "key":
             # Save received file
             fn_list = self.jsonheader['note']
@@ -259,7 +259,7 @@ class Message:
             filename =self.jsonheader['note'] 
             with open(filename, "wb") as f:
                 f.write(self.request)
-            print("[libserver] saving query ctxt done")
+            if DEBUG: print("[libserver] saving query ctxt done")
             self.q_text.put(filename)
             self.e_enc.set()
             if TEST_CLIENT:

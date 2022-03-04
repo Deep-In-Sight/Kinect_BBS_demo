@@ -318,9 +318,13 @@ class QMyMainWindow(QWidget):
         self.bodyTracker = pykinect.start_body_tracker()
         #else:
         #    self.pyK4A = None
+        #try:
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
-                                self.PWD, cameraidx, 
-                                self.q1, self.e_sk, self.e_ans, self.q_answer)
+                                    self.PWD, cameraidx, 
+                                    self.q1, self.e_sk, self.e_ans, self.q_answer)
+        #except:
+        #    print("Error in camera.... trying again")
+        #    self._init_camera(cameraidx)
 
     # add 20210107
     def startcamera(self, cameraidx):
