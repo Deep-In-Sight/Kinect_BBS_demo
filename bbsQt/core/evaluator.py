@@ -1,26 +1,20 @@
 import numpy as np
-#import os
 import tarfile
 import pickle
 import torch
 from time import time
 
-from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES, DEVICE
+from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 
 DEBUG = False
 
-
-import fase
-if DEVICE == "FPGA":
-    fase.USE_FPGA = True
-elif DEVICE == "CUDA":
-    fase.USE_CUDA = True
 from fase.core.heaan import he
 from fase.hnrf.hetree import HNRF
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
 from fase.core.common import HEAANContext
+
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
@@ -59,6 +53,8 @@ def show_file_content(fn):
 
 class HEAAN_Evaluator():
     def __init__(self, server_path, evaluator_ready=None):
+
+        
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
