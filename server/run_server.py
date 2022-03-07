@@ -1,32 +1,34 @@
 import multiprocessing
 import sys
 import multiprocessing as mplti
-#from time import time
 
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_server
 from bbsQt.core.evaluator import HEAAN_Evaluator
-#from PyQt5.QtWidgets import QApplication#, QMainWindow
 from bbsQt.constants import TEST_CLIENT
+from bbsQt.comm.utils import extract_ip
+
 
 def run_evaluator(q_text, evaluator_ready, e_enc, e_ans, server_path="./"):
     #evaluator_ready.wait()
     henc = HEAAN_Evaluator(server_path, evaluator_ready)
     #evaluator_ready.clear()
     if not TEST_CLIENT:
-        print("[MAIN] Running evaluation loop")
+        print("[SERVER] Running evaluation loop")
         henc.start_evaluate_loop(q_text, e_enc, e_ans)
 
-def run_communicator(evaluator_ready, q_text, e_enc, e_ans):
+def run_communicator(evaluator_ready, q_text, e_enc, e_ans, HOST):
     # 1. send keys to server and do quick check
-    app_server.run_server(q_text, evaluator_ready, e_enc, e_ans)
+    app_server.run_server(q_text, evaluator_ready, e_enc, e_ans, HOST)
     #e_enc.wait()
     #app_server.query(q1, lock, e_enc, e_quit)
 
     
 def main():
-    #KEYPATH = "./"  
-    lock = mplti.Lock()### 
+    HOST = extract_ip()
+    #HOST = '127.0.0.1'
+    
+    print("[SERVER] This server's IP:", HOST)
     ctx = mplti.get_context('spawn') ###
 
     #q1 = ctx.Queue(maxsize=8)
@@ -48,7 +50,7 @@ def main():
     e_quit.clear()
 
     p_socket = mplti.Process(target=run_communicator, 
-                            args=(evaluator_ready, q_text, e_enc, e_ans), 
+                            args=(evaluator_ready, q_text, e_enc, e_ans, HOST), 
                             daemon=False)
     p_socket.start()
 
