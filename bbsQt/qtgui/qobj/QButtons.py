@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import * 
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QLabel, QComboBox
+from PyQt5.QtCore import Qt, QObject
+from PyQt5.QtGui import QIcon, QFont
 import os
 
 
@@ -24,35 +24,16 @@ class qButtons(QObject):
 		self.curtimeLabel.setText("")
 		self.curtimeLabel.setFont(QFont("Arial", 12, QFont.Bold))
 
-		# self.BtnFoo = QPushButton()
-		# self.BtnFoo.setCheckable(True)
-		# self.BtnFoo.setIcon(QIcon(os.path.join(self.PWD,'res','magnifying_glass.png')))
-		# self.BtnFoo.setText('[F]oo')
-		# self.BtnFoo.setMinimumWidth(ICON_MIN_WIDTH)
-		# self.BtnFoo.setMinimumHeight(ICON_MIN_HEIGHT)
-		# self.BtnFoo.setToolTip('Foo')
-
-		self.BtnPlay = QPushButton()
-		self.BtnPlay.setCheckable(True)
-		self.BtnPlay.setIcon(QIcon(os.path.join(self.PWD,'res','play.png')))
-		self.BtnPlay.setText('[P]lay')
-		self.BtnPlay.setMinimumWidth(ICON_MIN_WIDTH)
-		self.BtnPlay.setMinimumHeight(ICON_MIN_HEIGHT)
-		self.BtnPlay.setToolTip('Play Azure Kinect')		
-
 		self.BtnCalib = QPushButton()
 		self.BtnCalib.setCheckable(True)
 		self.BtnCalib.setIcon(QIcon(os.path.join(self.PWD,'res','play.png')))
 		self.BtnCalib.setText('[C]alibrate')
 		self.BtnCalib.setMinimumWidth(ICON_MIN_WIDTH)
 		self.BtnCalib.setMinimumHeight(ICON_MIN_HEIGHT)
-		self.BtnCalib.setToolTip('Play Azure Kinect & Run Calibration')
-
-
+		self.BtnCalib.setToolTip('Run Calibration')
 		
-		
-		self.temp = QLabel()
-		self.temp.setText('	')
+		self.empty_space = QLabel()
+		self.empty_space.setText('	')
 
 		self.capturetimeal = QLabel()
 		self.capturetimeal.setText('capture time : ')
@@ -71,28 +52,20 @@ class qButtons(QObject):
 		self.endtime.setFont(QFont("Arial", 12, QFont.Bold))
 
 
-		self.BtnPathOnOff = QPushButton()
-		self.BtnPathOnOff.setCheckable(True)
-		self.BtnPathOnOff.setIcon(QIcon(os.path.join(self.PWD,'res','line.png')))
-		self.BtnPathOnOff.setText('Pat[H] On/Off')
-		self.BtnPathOnOff.setMinimumWidth(ICON_MIN_WIDTH)
-		self.BtnPathOnOff.setMinimumHeight(ICON_MIN_HEIGHT)
-		self.BtnPathOnOff.setToolTip('')
-
-
+		# self.BtnPathOnOff = QPushButton()
+		# self.BtnPathOnOff.setCheckable(True)
+		# self.BtnPathOnOff.setIcon(QIcon(os.path.join(self.PWD,'res','line.png')))
+		# self.BtnPathOnOff.setText('Pat[H] On/Off')
+		# self.BtnPathOnOff.setMinimumWidth(ICON_MIN_WIDTH)
+		# self.BtnPathOnOff.setMinimumHeight(ICON_MIN_HEIGHT)
+		# self.BtnPathOnOff.setToolTip('')
 
 		self.LbFPS = QLabel()
 		self.LbFPS.setMinimumWidth(70)
 
-
-		self.option = QComboBox()
-		self.option.addItem("BBS")
-
-		self.option.currentIndexChanged.connect(self.qmain.optionChanged)
-
-		self.camera_name = QLabel()
-		self.camera_name.setText('Camera option : ')
-		self.camera_name.setFont(QFont("Arial", 12, QFont.Bold))
+		# self.option = QComboBox()
+		# self.option.addItem("BBS")
+		# self.option.currentIndexChanged.connect(self.qmain.optionChanged)
 
 		self.cameranum = QComboBox()
 		self.cameranum.addItem("e")
@@ -114,22 +87,10 @@ class qButtons(QObject):
 		
 		self.score_num = QComboBox()
 		[self.score_num.addItem(f"{i}") for i in range(5)]
-		#self.score_num.currentIndexChanged.connect(self.qmain.scoreChanged)
 		self.score_num.activated[str].connect(self.qmain.scoreChanged)
-
-		#self.score_num.activated[str].connect(self.onchanged)
 
 		self.BtnCalib.clicked.connect(self.qmain.updateOnPlay)
 		self.BtnCalib.clicked.connect(self.qmain.calibration2)
-
-		self.BtnPlay.clicked.connect(self.qmain.updateOnPlay)
-		self.BtnPlay.clicked.connect(self.qmain.displayKinect)
-
-
-	# @pyqtSlot()	
-	# def updateBtnPlay(self):
-	# 	self.BtnPlay.setChecked(not(self.BtnPlay.isChecked()))
-
 
 
 	def getLayout(self):
@@ -144,15 +105,10 @@ class qButtons(QObject):
 		HBlayoutEdits.addWidget(self.action_num)
 		HBlayoutEdits.addWidget(self.score_name)
 		HBlayoutEdits.addWidget(self.score_num)
-		HBlayoutEdits.addWidget(self.temp)
-		#HBlayoutEdits.addWidget(self.camera_name)
-		#HBlayoutEdits.addWidget(self.cameranum)
-		#HBlayoutEdits.addWidget(self.option)
-		HBlayoutEdits.addWidget(self.temp)
+		HBlayoutEdits.addWidget(self.empty_space)
+		HBlayoutEdits.addWidget(self.empty_space)
 		HBlayoutEdits.addWidget(self.capturetimeal)
 		HBlayoutEdits.addWidget(self.capturetime)
-		HBlayoutEdits.addWidget(self.temp)
-		#HBlayoutEdits.addWidget(self.endtimeal)
-		#HBlayoutEdits.addWidget(self.endtime)
+		HBlayoutEdits.addWidget(self.empty_space)
 
 		return HBlayoutEdits

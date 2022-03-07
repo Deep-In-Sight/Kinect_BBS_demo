@@ -1,9 +1,7 @@
-
 FN_KEYS = ["ENCRYPTION.txt",
            "MULTIPLICATION.txt",
            "ROTATION_1.txt"]
 FN_SK = "secret.key"
-
 FN_PREDS = 'preds.tar.gz'
 
 HEAAN_CONTEXT_PARAMS = {'logq':540,
@@ -13,6 +11,46 @@ HEAAN_CONTEXT_PARAMS = {'logq':540,
 
 location = ['DI', 'ETRI', 'local'][2]
 
+if location == "DI":
+    #HOST = '10.100.82.89'
+    PORT = 2345
+    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
+    COPY_SCRIPT='send_key.py'
+    DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo/server/serkey/"
+    BIN_PLAYER = "/usr/bin/totem" 
+    DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
+    S_ACCOUNT = 'etri_ai2'
+    S_PASSWORD = 'etri_ai2'
+elif location == "local":
+    #HOST = '127.0.0.1'
+    PORT = 2345
+    DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
+    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
+    COPY_SCRIPT='send_key_cp.py'
+    BIN_PLAYER = "/usr/bin/totem" 
+    DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
+
+elif location == "ETRI":
+    #HOST = '61.74.232.166'
+    PORT = 2345
+    DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/serkey/"
+    S_ACCOUNT = 'etri_ai1'
+    S_PASSWORD = 'etri_ai1'
+    BIN_PYTHON='/home/etri_he1/anaconda3/envs/bbs/bin/python'
+    COPY_SCRIPT='send_key.py'
+    BIN_PLAYER = "/usr/bin/mpv" 
+    DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
+    
+SCP_PORT = 22
+
+############# DEBUGGING ##############
+DEBUG_FLAG1 = False
+TEST_CLIENT=False
+DEBUG=False
+VERBOSE=True
+
+
+################
 NFRAMES={'1':8,
          '2':8,
          '3':8,
@@ -57,44 +95,3 @@ CAM_NAMES= {1: "e",
            12:"e",
            13:"a",
            14:"e"}
-
-
-if location == "DI":
-    HOST = '10.100.82.89'
-    PORT = 2345
-    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
-    COPY_SCRIPT='send_key.py'
-    DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo/server/serkey/"
-    BIN_PLAYER = "/usr/bin/totem" 
-    DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
-    S_ACCOUNT = 'etri_ai2'
-    S_PASSWORD = 'etri_ai2'
-elif location == "local":
-    HOST = '127.0.0.1'
-    PORT = 2345
-    DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
-    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
-    COPY_SCRIPT='send_key_cp.py'
-    BIN_PLAYER = "/usr/bin/totem" 
-    DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
-
-elif location == "ETRI":
-    HOST = '61.74.232.166'
-    PORT = 2345
-    DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/serkey/"
-    S_ACCOUNT = 'etri_ai1'
-    S_PASSWORD = 'etri_ai1'
-    BIN_PYTHON='/home/etri_he1/anaconda3/envs/bbs/bin/python'
-    COPY_SCRIPT='send_key.py'
-    BIN_PLAYER = "/usr/bin/mpv" 
-    DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
-    
-SCP_PORT = 22
-
-FPGA=False
-
-############# DEBUGGING ##############
-DEBUG_FLAG1 = False
-TEST_CLIENT=False
-DEBUG=False
-VERBOSE=True

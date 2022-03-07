@@ -1,20 +1,20 @@
 import numpy as np
-#import os
 import tarfile
 import pickle
 import torch
 from time import time
 
-from bbsQt.constants import FN_KEYS, FN_PREDS, HEAAN_CONTEXT_PARAMS, FPGA, CAM_NAMES
+from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 
-import fase
-fase.USE_FPGA = FPGA
+DEBUG = False
+
 from fase.core.heaan import he
 from fase.hnrf.hetree import HNRF
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
 from fase.core.common import HEAANContext
+
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
@@ -53,6 +53,8 @@ def show_file_content(fn):
 
 class HEAAN_Evaluator():
     def __init__(self, server_path, evaluator_ready=None):
+
+        
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
@@ -70,10 +72,6 @@ class HEAAN_Evaluator():
                    is_owner=True,
                    load_sk=True
                   )
-        #self.ring = he.Ring()
-        #self.scheme = he.Scheme(self.ring, True, self.server_path)
-        #self.algo = he.SchemeAlgo(self.scheme)
-        #self.scheme.loadLeftRotKey(1)
 
         ## DEBUGGING
         #self.sk = he.SecretKey(self.key_path + 'secret.key')
@@ -148,12 +146,12 @@ class HEAAN_Evaluator():
         print("[EVALUATOR] evaluate_loop started")
         while True:
             e_enc.wait()
-            print("[EVALUATOR] e_enc set")
+            if DEBUG: print("[EVALUATOR] e_enc set")
             fn_data = self.server_path + q_text.get()
-            print("[EVALUATOR] got a file", fn_data)
+            if DEBUG: print("[EVALUATOR] got a file", fn_data)
             _, action, cam, _ = fn_data.split("_")
             action = int(action)
-            print("[EVALUATOR] action class:", action)
+            if DEBUG: print("[EVALUATOR] action class:", action)
 
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
@@ -162,27 +160,26 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            # debugging = False
-            # if debugging:
-            #     fn_preds = []
-            #     for i in range(5):
-            #         fn = self.server_path+f"pred_{i}.dat"
-            #         fn_preds.append(fn)
-            #     fn_tar = FN_PREDS#"preds.tar.gz"
-            #     print("@@@@@@@@@@@@ compressing files")
-            #     compress_files(fn_tar, fn_preds)
-            #     q_text.put({"root_path":self.server_path,  # Not using root path
-            #             "filename":self.server_path+fn_tar})
-            #     e_ans.set()
-            #     continue
-            # else:
-            #     pass
-            # ###############################################
+            debugging = True
+            if debugging:
+                fn_preds = []
+                for i in range(5):
+                    fn = self.server_path+f"pred_{i}.dat"
+                    fn_preds.append(fn)
+                fn_tar = FN_PREDS#"preds.tar.gz"
+                print("@@@@@@@@@@@@ compressing files")
+                compress_files(fn_tar, fn_preds)
+                q_text.put({"root_path":self.server_path,  # Not using root path
+                        "filename":self.server_path+fn_tar})
+                e_ans.set()
+                continue
 
-            # # DEBUGGING
-            # print("CTX OK?")
-            # print(self.hec.decrypt(ctx))
-            # ###############################################
+            ###############################################
+
+            # DEBUGGING
+            #print("CTX OK?")
+            #print(self.hec.decrypt(ctx))
+            ###############################################
 
 
             preds = self.run_model(action, cam, ctx)

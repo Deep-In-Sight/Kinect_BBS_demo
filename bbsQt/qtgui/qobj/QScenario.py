@@ -25,8 +25,10 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
     return btn
 
 class qScenario(QObject):
-    def __init__(self, qmain, pwd, q_answer, btn):
+    def __init__(self, qmain, pwd, q_answer, btn, startRecord, stopRecord):
         super(qScenario, self).__init__(qmain)
+        self.startRecord = startRecord
+        self.stopRecord = stopRecord
         self.obj = ""
         self.PWD = pwd
         self.qmain = qmain    
@@ -37,8 +39,8 @@ class qScenario(QObject):
 
         self.ScenarioNo = 0
         self.SubjectID = 0
-        self.MinRecordTime = recordconfig.minRecordTime
-        self.MinRecordFrame = recordconfig.minRecordFrame
+        self.MinRecordTime = recordconfig.minRecordTime # Minimum 2s
+        self.MinRecordFrame = recordconfig.minRecordFrame # Minimum 20 frames
         self.info = ""
         self.imgMemoryInfoDisp = ""
         self.imgMemoryInfoToSave = ""
@@ -93,7 +95,7 @@ class qScenario(QObject):
             self.RecordTimeInput.setText(str(self.MinRecordTime))
         self.update()    
 
-    def setMinRecordFrame(self)    :
+    def setMinRecordFrame(self):
         try:
             self.MinRecordFrame = int(self.RecordFrameInput.text())
         except:
@@ -104,31 +106,10 @@ class qScenario(QObject):
         self.RECstartTime = self.RECstartTimeInput.text()
         self.update()    
 
-    def set_countdown(self, seconds):
-        currentTime = QTime.currentTime()
-        curtime     = currentTime.toString('hh:mm:ss')
-        hh,mm,ss     = map(int,curtime.split(":"))
-        if ss > seconds:
-            curtime     = currentTime.addSecs(60).toString('hh:mm:ss')
-            hh,mm,ss     = map(int,curtime.split(":"))
-        
-        hh = ("00" + str(hh))[-2:]
-        mm = ("00" + str(mm))[-2:]
-        ss = ("00" + str(seconds))[-2:]
-
-        self.RECstartTime = f"{hh}:{mm}:{ss}"
-        self.qmain.st()
-        self.update()
-        self.RECstartTimeInput.setText(self.RECstartTime)
-        if not self.Ready.isChecked():
-            self.Ready.click()
-
     def endreset(self):
         self.RECEndTimeInput.setText(str(0))
 
     def update(self):
-        #self.viewInfo.setText(self.showinfo())
-        #self.sizeInfo.setText(self.showSizeInfo())
         QApplication.processEvents()
 
     # fix 2021/01/07
@@ -143,12 +124,7 @@ class qScenario(QObject):
         try:
             p = subprocess.Popen([BIN_PLAYER, video_name])
         except:
-            print("cannot find video...")
-
-    #def updateSize(self):
-    #    # self.sizeInfo.setText(self.showSizeInfo())
-    #    pass
-
+            print("ERROR: cannot find video...")
 
     def showinfo(self):
         #{self.text_answer} 
@@ -172,6 +148,18 @@ class qScenario(QObject):
         timer.setMinimumHeight(40)
         return timer
         
+    @pyqtSlot(bool)
+    def start_rec(self, state):
+        if state:
+            self.Ready.setStyleSheet("background-color: red")
+            self.Ready.setText("Stop")
+            self.startRecord.emit()
+            
+        else:
+            self.Ready.setStyleSheet("background-color: green")
+            self.Ready.setText("Start")
+            self.stopRecord.emit()            
+
 
     def getLayout(self):
         HBlayoutMain = QHBoxLayout() 
@@ -209,55 +197,9 @@ class qScenario(QObject):
         
         LayoutID.addWidget(self.SubjectIDInput)
 
-        LayoutRT = QHBoxLayout() 
-        LayoutRT.setAlignment(Qt.AlignTop)
-        LayoutRT.setAlignment(Qt.AlignLeft)
-        qLabelName = QLabel()
-        qLabelName.setText("min Record Time [sec.]:")
-        LayoutRT.addWidget(qLabelName)
-        self.RecordTimeInput = QLineEdit()
-        self.RecordTimeInput.setText(str(self.MinRecordTime))
-        self.RecordTimeInput.setFixedSize(50,20)
-        
-        LayoutRT.addWidget(self.RecordTimeInput)
-
-        LayoutRI = QHBoxLayout() 
-        LayoutRI.setAlignment(Qt.AlignTop)
-        LayoutRI.setAlignment(Qt.AlignLeft)
-        qLabelName = QLabel()
-        qLabelName.setText("min Record Frame [imgs]:")
-        LayoutRI.addWidget(qLabelName)
-        self.RecordFrameInput = QLineEdit()
-        self.RecordFrameInput.setText(str(self.MinRecordFrame))
-        self.RecordFrameInput.setFixedSize(50,20)
-        LayoutRI.addWidget(self.RecordFrameInput)
-
-        LayoutRST = QHBoxLayout() 
-        LayoutRST.setAlignment(Qt.AlignTop)
-        LayoutRST.setAlignment(Qt.AlignLeft)
-        qLabelName = QLabel()
-        qLabelName.setText("Record Starting Time [HH:MM:SS]:")
-        LayoutRST.addWidget(qLabelName)
-
-        self.RECstartTimeInput = QLineEdit()
-        self.RECstartTimeInput.setText(str(self.RECstartTime))
-        self.RECstartTimeInput.setFixedSize(80,20)        
-        LayoutRST.addWidget(self.RECstartTimeInput)
-
-        LayoutSRST = QHBoxLayout() 
-        LayoutSRST.setAlignment(Qt.AlignTop)
-        LayoutSRST.setAlignment(Qt.AlignRight)
-
-
-        self.timers = [self.add_timer_button(tt) for tt in [0,10,20,30,40,50]]
-        for timer in self.timers:
-            LayoutSRST.addWidget(timer)
-
         HVlayoutMain.addWidget(LayoutRecordStart, 10)
         HVlayoutMain.addLayout(LayoutLocale, 10)
         HVlayoutMain.addLayout(LayoutID, 10)
-        HVlayoutMain.addLayout(LayoutRST, 10)
-        HVlayoutMain.addLayout(LayoutSRST, 10)
 
         LayoutRecordStartStep = QHBoxLayout() 
         LayoutRecordStartStep.setAlignment(Qt.AlignTop)
@@ -271,15 +213,15 @@ class qScenario(QObject):
 
         self.Ready = QPushButton()
         self.Ready.setCheckable(True)
-        self.Ready.setText('I\'m Ready')
+        self.Ready.setText('Start')
+        self.Ready.setStyleSheet("background-color: green")
         self.Ready.setMinimumWidth(100)
         self.Ready.setMinimumHeight(50)
-        self.Ready.setIcon(QIcon(os.path.join(self.PWD,'res','icon.png')))
+        self.Ready.clicked.connect(self.start_rec)
 
         LayoutRecordStartStep.addWidget(self.Ready)
 
         HVlayoutMain.addLayout(LayoutRecordStartStep, 40)
-
 
         ###############################
         LayoutRecordEnd = QLabel()
@@ -289,31 +231,7 @@ class qScenario(QObject):
         font.setPointSize(15)
         LayoutRecordEnd.setFont(font)
 
-        LayoutRET = QHBoxLayout() 
-        LayoutRET.setAlignment(Qt.AlignTop)
-        LayoutRET.setAlignment(Qt.AlignLeft)
-        qLabelName = QLabel()
-        qLabelName.setText("Record End Time [HH:MM:SS]:")
-        LayoutRET.addWidget(qLabelName)
-
-        LayoutSE = QHBoxLayout() 
-        LayoutSE.setAlignment(Qt.AlignTop)
-        LayoutSE.setAlignment(Qt.AlignRight)
-
-        self.cnt = QPushButton()
-        self.cnt.setCheckable(False)
-        self.cnt.setText('Print CNT')
-        self.cnt.setMinimumHeight(40)
-        LayoutSE.addWidget(self.cnt)
-
-        self.end = QPushButton()
-        self.end.setCheckable(False)
-        self.end.setText('END')
-        self.end.setMinimumHeight(40)
-        LayoutSE.addWidget(self.end)
-
         HVlayoutMain.addWidget(LayoutRecordEnd, 10)
-        HVlayoutMain.addLayout(LayoutSE, 10)
         ###############################
 
         LayoutScenarioNum = QHBoxLayout()
@@ -346,49 +264,10 @@ class qScenario(QObject):
 
         # result label
         LayoutInfo.addWidget(self.viewInfo,10)
-        # LayoutInfo.addWidget(self.sizeInfo,20)    
         
         # result label
         HBlayoutMain.addLayout(LayoutInfo,20)    
 
-        #self.class_num.currentIndexChanged.connect(self.qmain.updateScenarioNo)
         self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
-        self.RecordTimeInput.returnPressed.connect(self.setMinRecordTime)
-        self.RecordFrameInput.returnPressed.connect(self.setMinRecordFrame)
-        self.RECstartTimeInput.returnPressed.connect(self.setRECstartTime)
-
-        self.timers[0].clicked.connect(lambda: self.set_countdown(0))
-        self.timers[1].clicked.connect(lambda: self.set_countdown(10))
-        self.timers[2].clicked.connect(lambda: self.set_countdown(20))
-        self.timers[3].clicked.connect(lambda: self.set_countdown(30))
-        self.timers[4].clicked.connect(lambda: self.set_countdown(40))
-        self.timers[5].clicked.connect(lambda: self.set_countdown(50))
-        self.cnt.clicked.connect(self.qmain.pnt)
-        
-        # self.MaxRangeInput.returnPressed.connect(self.maxRangeChanged)
 
         return HBlayoutMain    
-
-
-    # def updateImgMemoryInfo(self):
-    #     self.imgMemoryInfoDisp = f"[RGB]:{self.rgbdispsize}MB"
-    #     self.imgMemoryInfoDisp += f"\n[IR]:{self.irdispsize}MB"
-    #     self.imgMemoryInfoDisp += f"\n[Depth]:{self.depthdispsize}MB"
-
-    # def updateImgMemoryInfoRec(self):
-    #     self.imgMemoryInfoRec  = "[RGB]:{:.2f}MB".format(self.imgRecSizes[0])
-    #     self.imgMemoryInfoRec += "\n[IR]:{:.2f}MB".format(self.imgRecSizes[1])
-    #     self.imgMemoryInfoRec += "\n[Depth]:{:.2f}MB".format(self.imgRecSizes[2])
-    #     self.imgMemoryInfoRec += "\n[Rec. Time]:{:.2f}sec".format(self.imgRecSizes[3])
-    #     self.imgMemoryInfoRec += "\n[Frames]:{:4d}".format(self.imgRecSizes[4])
-
-
-    # def showSizeInfo(self):
-    #     self.updateImgMemoryInfo()
-    #     self.updateImgMemoryInfoRec()        
-    #     info      = f"<<< Img Info. >>>\n"
-    #     info    += self.imgMemoryInfoDisp
-    #     info     += f"\n\n<<< REC Info. >>>\n"
-    #     info    += self.imgMemoryInfoRec
-
-    #     return info
