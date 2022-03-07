@@ -1,12 +1,12 @@
-import multiprocessing
 import sys
 import multiprocessing as mplti
+import argparse
 
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.comm import app_server
-from bbsQt.core.evaluator import HEAAN_Evaluator
 from bbsQt.constants import TEST_CLIENT
 from bbsQt.comm.utils import extract_ip
+import fase
 
 
 def run_evaluator(q_text, evaluator_ready, e_enc, e_ans, server_path="./"):
@@ -27,7 +27,7 @@ def run_communicator(evaluator_ready, q_text, e_enc, e_ans, HOST):
 def main():
     HOST = extract_ip()
     #HOST = '127.0.0.1'
-    
+
     print("[SERVER] This server's IP:", HOST)
     ctx = mplti.get_context('spawn') ###
 
@@ -35,18 +35,18 @@ def main():
     q_text = ctx.Queue(maxsize=8)
 
     # Key existence
-    evaluator_ready = multiprocessing.Event()
+    evaluator_ready = mplti.Event()
     evaluator_ready.clear()
 
     # Ciphertext saved
-    e_enc = multiprocessing.Event()
+    e_enc = mplti.Event()
     e_enc.clear()
 
-    e_ans = multiprocessing.Event()
+    e_ans = mplti.Event()
     e_ans.clear()
 
     # Quit the application
-    e_quit = multiprocessing.Event()
+    e_quit = mplti.Event()
     e_quit.clear()
 
     p_socket = mplti.Process(target=run_communicator, 
@@ -60,18 +60,29 @@ def main():
     p_enc.start()
 
     #evaluator_ready.set()
-
     e_quit.wait()
     p_socket.join()
     p_socket.close()
     p_enc.join()
     p_enc.close()
-
     
     sys.exit()
     #e_quit.wait()
     
 
 if __name__ == '__main__':
+    # Set which version of HEAAN to use
+    parser = argparse.ArgumentParser()
 
+    parser.add_argument("--fpga", dest='use_fpga', action='store_true')
+    parser.add_argument("--cuda", dest='use_cuda', action='store_true')
+    args = parser.parse_args()
+
+    if args.use_fpga:
+        fase.USE_FPGA = True
+    elif args.use_cuda:
+        fase.USE_CUDA = True
+
+    # import HEAAN_Evaluator *after* setting which HEAAN variants to use
+    from bbsQt.core.evaluator import HEAAN_Evaluator
     main()
