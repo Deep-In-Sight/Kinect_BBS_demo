@@ -1,7 +1,6 @@
 import numpy as np
 import os
 import cv2
-import pandas as pd
 
 from bbsQt.constants import CAM_LIST, VERBOSE
 
@@ -17,7 +16,7 @@ from .QButtons import qButtons
 from .QImgViewer import PhotoViewer
 from .QScenario import qScenario
 from .QThreadObj import qThreadRecord
-from datetime import datetime
+#from datetime import datetime
 
 import time
 
