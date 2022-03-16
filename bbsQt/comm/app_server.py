@@ -2,7 +2,7 @@ import socket
 import selectors
 import traceback
 from . import libserver
-from bbsQt.constants import HOST, PORT
+from bbsQt.constants import PORT
 
 sel = selectors.DefaultSelector()
 
@@ -14,7 +14,7 @@ def accept_wrapper(sock, q_text, e_enc, e_ans):
     sel.register(conn, selectors.EVENT_READ, data=message)
 
 
-def run_server(q_text, evaluator_ready, e_enc, e_ans):
+def run_server(q_text, evaluator_ready, e_enc, e_ans, HOST):
     """
     The resultant prediction file name is assumed.
     """
@@ -23,7 +23,7 @@ def run_server(q_text, evaluator_ready, e_enc, e_ans):
     lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     lsock.bind((HOST, PORT))
     lsock.listen()
-    print("listening on", (HOST, PORT))
+    print("[SERVER] listening on", (HOST, PORT), '\n')
     lsock.setblocking(False)
     sel.register(lsock, selectors.EVENT_READ, data=None)
 

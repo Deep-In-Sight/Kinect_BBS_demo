@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QPixmap, QImage, QFont
 from PyQt5.QtPrintSupport import *
 import time
 import numpy as np
@@ -19,16 +19,15 @@ WAIT = 0.01
 
 class qThreadRecord(QThread):
     
-    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
+    def __init__(self, k4a, bt, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
         super().__init__()
         self.stackColor = []
-        self.stackIR = []
+        #self.stackIR = []
         self.stackDepth = []
         self.stackJoint = []
         self.k4a = k4a
         self.bt = bt
         self.isRun = False
-        self.LbFPS = LbFPS
         self.qScenario = qScenario
         self.Ncpu = 2
         self.pic_Count = 0
@@ -122,13 +121,6 @@ class qThreadRecord(QThread):
                 t0 = t1
         self.isRun = False
 
-
-    def getcnt(self):
-        return self.pic_Count
-
-    def get_color(self):
-        return self.stackColor
-
     # todo data tree  
     def save_multiproc(self):
         self.stackColor = np.array(self.stackColor)
@@ -155,7 +147,7 @@ class qThreadRecord(QThread):
             i_person_exist *= i_non_empty
         
         maxframe_idx = np.argmin(i_person_exist)
-        print('[Qthread obj] maxframe idx',maxframe_idx)
+        if not VERBOSE: print('[Qthread obj] maxframe idx',maxframe_idx)
 
         self.sk_viewer(self.skarr_list, self.stackColor, maxframe_idx, 1)
         skimage = self.load_image(maxframe_idx)
@@ -163,12 +155,9 @@ class qThreadRecord(QThread):
         ## IMAGE SAVE 
         idx = list(range(self.pic_Count))
 
-        print("[Qthread obj] Number of frames", len(self.stackColor))
+        if not VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
         # queues = [Queue() for i in range(Ncpu)]
         t0 = time.time()
-        #args = [(self.path_save, self.stackColor[idx[i]], idx[i][0], self.Locale, self.SubjectID) for i in range(Ncpu)]
-        #jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
-        #c(path_root, data, idx0, Locale, ID
         if self.camera_num == 1 :
             camera_num = 'a_'
         elif self.camera_num == 0:
@@ -176,11 +165,8 @@ class qThreadRecord(QThread):
 
         #for i, color in enumerate(self.stackColor):
         #Save only one jpg
-        i = maxframe_idx
-        color = self.stackColor[i]
-        cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
-
-        #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
+        color = self.stackColor[maxframe_idx]
+        cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((maxframe_idx+idx[maxframe_idx]) + 1).zfill(4)}.jpg", color)
         # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
         return skimage
 
@@ -208,10 +194,6 @@ class qThreadRecord(QThread):
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         
         # FIX   20210107
-        # this_scenario = self.qScenario.class_num.currentText()
-        # this_score = self.qScenario.score_num.currentText()
-
-        # self.action_num.currentText()랑 연결
         this_scenario = self.btn.action_num.currentText()
         this_score = self.btn.score_num.currentText()
         
@@ -231,10 +213,6 @@ class qThreadRecord(QThread):
         pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
         fn_scores = f"{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
-
-        #if DEBUG_FLAG1:
-        #    pass
-        #else:
 
         self.q1.put({"action":this_scenario,
                      "cam":camera_num, 
@@ -279,9 +257,7 @@ class qThreadRecord(QThread):
         #print(json_to_arr_list.shape)
 
         fig, ax = plt.subplots(figsize=(16,9))
-        #im = plt.imread(jpg_list[idx])
         im = jpg_list[idx]
-        
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
 
         ax.imshow(im, zorder=1)
@@ -301,7 +277,7 @@ class qThreadRecord(QThread):
         if save == 1:
             os.makedirs('image', exist_ok=True)
             plt.savefig(f'image/img_00{idx}.jpg', bbox_inches='tight')
-        #plt.show()
+        plt.close()
 
     def load_image(self, idx):
         fn_img = f'image/img_00{idx}.jpg'
