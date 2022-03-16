@@ -67,8 +67,8 @@ class HEAAN_Evaluator():
                    key_path=self.key_path,
                    FN_SK="secret.key",
                    boot=False, 
-                   is_owner=True,
-                   load_sk=True
+                   is_owner=False,
+                   load_sk=False
                   )
         #self.ring = he.Ring()
         #self.scheme = he.Scheme(self.ring, True, self.server_path)
