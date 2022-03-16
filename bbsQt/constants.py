@@ -42,6 +42,7 @@ elif location == "ETRI":
     DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
     
 SCP_PORT = 22
+HOST=None # placeholder
 
 ############# DEBUGGING ##############
 DEBUG_FLAG1 = False
