@@ -209,8 +209,9 @@ class qThreadRecord(QThread):
 
         tm = time.localtime()
         time_mark = f"{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
-
-        pickle.dump(self.skarr_list[skindex], open(f"{self.Locale}/BT/{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
+        sav_dir = f"{self.Locale}/BT/"
+        if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
+        pickle.dump(self.skarr_list[skindex], open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
         fn_scores = f"{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
 
