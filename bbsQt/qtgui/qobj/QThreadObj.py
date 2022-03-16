@@ -191,6 +191,11 @@ class qThreadRecord(QThread):
         if not VERBOSE: print(f'[Qthread obj] skeleton index : {skindex}')
         if not VERBOSE: print("[Qthread obj] camera_num", self.camera_num)
         
+        # Safety check
+        if not hasattr(self, 'skarr_list'):
+            return 
+        if len(self.skarr_list) < skindex:
+            return 
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         
         # FIX   20210107
