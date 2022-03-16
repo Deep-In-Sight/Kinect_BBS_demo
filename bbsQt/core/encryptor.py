@@ -105,19 +105,6 @@ class HEAAN_Encryptor():
         self.secretKey = he.SecretKey(key_path+FN_SK)
         self.scheme = he.Scheme(self.ring, is_serialized, key_path)
         self.algo = he.SchemeAlgo(self.scheme)
-        #self.scheme.addLeftRotKey(self.secretKey, 1)
-
-        # No need to care about keys!!
-        # if tar:
-        #     fn_tar = "keys.tar.gz"
-        #     compress_files(fn_tar, [key_path+fn for fn in FN_KEYS])
-        #     q_text.put({"root_path":key_path, 
-        #                "keys_to_share":fn_tar})
-        # else:
-        #     # Copy without tar
-        #     q_text.put({"root_path":key_path,
-        #             "keys_to_share":FN_KEYS})
-        # e_key.set()
 
         self.set_featurizers()
         self.load_scalers()
@@ -196,6 +183,7 @@ class HEAAN_Encryptor():
             #     scaled = sc.transform(rav_sub.reshape(1,-1))
             
             if DEBUG:
+                print("[ENCRYPTOR] DEBUGGING MODE !!!!!!!")
                 scaled = sc.transform(skeleton)
             else:
                 rav_sub = skeleton#[0]
@@ -205,20 +193,26 @@ class HEAAN_Encryptor():
                 pickle.dump(skeleton, open("skeleton_org.pickle", "wb"))
                 print("rav_sub", rav_sub.min(), rav_sub.max())
                 scaled = sc.transform(rav_sub.reshape(1,-1))
+                sc0 = scaled[0]
             
-            print("scaled", scaled.shape)
-            print(scaled.min(), scaled.max())
+            
+            #print("scaled", scaled.shape)
+            print("Check for scales", sc0.min(), sc0.max())
 
             # Still some values can surpass 1.0. 
             # I need a more strict rule for standardization.. 
             # The following is an ad-hoc measure.
             
-            sc0 = scaled[0]
-            sc_min = min((sc0.min(), 0)) # shift if min is negative 
-            sc0 -= sc_min
-            sc0 += 1e-3
-            sc0 /= (sc0.max()*1.05) # Just to give some padding area
-            print("MIN", sc0.min(), "MAX", sc0.max())
+            #print(scaled[0].shape)
+            #print(len(scaled))
+            #print(scaled.shape)
+            #print("zzz")
+            # sc0 = scaled[0]
+            # sc_min = min((sc0.min(), 0)) # shift if min is negative 
+            # sc0 -= sc_min
+            # sc0 += 1e-3
+            # sc0 /= (sc0.max()*1.05) # Just to give some padding area
+            # print("MIN", sc0.min(), "MAX", sc0.max())
 
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
