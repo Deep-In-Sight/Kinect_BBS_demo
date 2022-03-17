@@ -2,7 +2,7 @@ import numpy as np
 import tarfile
 import pickle
 import torch
-from time import time
+from time import time, sleep
 
 from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 
@@ -18,7 +18,7 @@ from fase.core.common import HEAANContext
 
 def slow_print(line):
     for xx in line:
-        time.sleep(0.002)
+        sleep(0.002)
         print(hex(xx), end='\\')
 
 def encrypt(scheme, val, parms):
