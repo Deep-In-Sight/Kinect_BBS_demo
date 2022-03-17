@@ -6,7 +6,7 @@ import shutil
 from bbsQt.core.evaluator import HEAAN_Evaluator
 
 # HOST = "172.30.98.224"
-HOST = ["192.168.35.75","10.100.82.89"][1]
+HOST = ["192.168.35.75","10.100.82.89", "61.74.232.166"][2]
 PORT = 2345
 
 # BYTES_PER_NUM   = 2 
@@ -56,7 +56,7 @@ while True:
         _, action, _ = fn_data.split("_")
         action = int(action.replace("Cat",""))
         
-        henc.eval_once("/home/etri_ai2/work/"+fn_data, action)
+        henc.eval_once("/home/etri_ai1/work/Kinect_BBS_demo/server/"+fn_data, action)
 
         ## Testing delay ###
         #shutil.copy(data, "predict0.dat")
