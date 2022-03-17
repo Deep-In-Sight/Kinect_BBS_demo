@@ -114,7 +114,7 @@ class HEAAN_Evaluator():
                                                     self.hec.parms,
                                                     self.my_tm_tanh.coeffs,
                                                     do_reduction = False,
-                                                    sk = sk#self.hec.sk ### DEBUGGING
+                                                    sk = sk,#self.hec.sk ### DEBUGGING
                                                     silent=True)
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
@@ -160,26 +160,26 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            debugging = True
-            if debugging:
-                fn_preds = []
-                for i in range(5):
-                    fn = self.server_path+f"pred_{i}.dat"
-                    fn_preds.append(fn)
-                fn_tar = FN_PREDS#"preds.tar.gz"
-                print("@@@@@@@@@@@@ compressing files")
-                compress_files(fn_tar, fn_preds)
-                q_text.put({"root_path":self.server_path,  # Not using root path
-                        "filename":self.server_path+fn_tar})
-                e_ans.set()
-                continue
+            # debugging = True
+            # if debugging:
+            #     fn_preds = []
+            #     for i in range(5):
+            #         fn = self.server_path+f"pred_{i}.dat"
+            #         fn_preds.append(fn)
+            #     fn_tar = FN_PREDS#"preds.tar.gz"
+            #     print("@@@@@@@@@@@@ compressing files")
+            #     compress_files(fn_tar, fn_preds)
+            #     q_text.put({"root_path":self.server_path,  # Not using root path
+            #             "filename":self.server_path+fn_tar})
+            #     e_ans.set()
+            #     continue
 
-            ###############################################
+            # ###############################################
 
-            # DEBUGGING
-            #print("CTX OK?")
-            #print(self.hec.decrypt(ctx))
-            ###############################################
+            # # DEBUGGING
+            # #print("CTX OK?")
+            # #print(self.hec.decrypt(ctx))
+            # ###############################################
 
 
             preds = self.run_model(action, cam, ctx)
