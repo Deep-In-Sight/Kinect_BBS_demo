@@ -17,6 +17,9 @@ from bbsQt.model.Fall_predict import Score_updator
 
 WAIT = 0.01
 
+def is_valid_skeleton(skeleton):
+    return np.all(skeleton['frame'] != 0)
+
 class qThreadRecord(QThread):
     
     def __init__(self, k4a, bt, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
@@ -194,8 +197,11 @@ class qThreadRecord(QThread):
         # Safety check
         if not hasattr(self, 'skarr_list'):
             return 
-        if len(self.skarr_list) < skindex:
+        if not is_valid_skeleton(self.skarr_list[skindex]):
             return 
+        
+        print("~~~~~~!!!!!!!!~~~~~~~")
+        print(self.skarr_list)
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         
         # FIX   20210107
@@ -296,3 +302,4 @@ class qThreadRecord(QThread):
         bytesPerLine = 3 * width
         pixmap   = QPixmap(QImage(img, width, height, bytesPerLine, QImage.Format_RGB888))
         return pixmap
+

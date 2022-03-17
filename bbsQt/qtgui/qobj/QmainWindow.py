@@ -129,12 +129,6 @@ class QMyMainWindow(QWidget):
             self.device.close()
             self.bodyTracker.destroy()
 
-            # self.stackPoints = pd.DataFrame(self.stackPoints)
-            # print("EEEEEEEEEEEENNNNNNNNNNNNNNNNNNNDDDDDDDDDDDDDDD")
-            # print("STACK POINTS")
-            # print(self.stackPoints)
-            # print("__________________________")
-
             self.qthreadrec.setRun(False)
 
             self.qthreadrec.mkd(self.Locale, self.qScenario.SubjectID, self.ScenarioNo)
