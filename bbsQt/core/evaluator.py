@@ -18,7 +18,7 @@ from fase.core.common import HEAANContext
 
 def slow_print(line):
     for xx in line:
-        sleep(0.002)
+        sleep(0.005)
         print(hex(xx), end='\\')
 
 def encrypt(scheme, val, parms):
