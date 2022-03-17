@@ -1,14 +1,21 @@
-import multiprocessing
 import sys
 import os
 import multiprocessing as mplti
+import argparse
+from PyQt5.QtWidgets import QApplication
 
 from bbsQt.qtgui.qobj.QmainWindow import *
-from bbsQt.comm import app_client
 from bbsQt.core.encryptor import HEAAN_Encryptor
 
-from PyQt5.QtWidgets import QApplication
-from bbsQt.constants import DEBUG
+from bbsQt import constants
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--host", dest='HOST')
+args = parser.parse_args()
+
+constants.HOST = args.HOST
+from bbsQt.comm import app_client
 
 
 def run_qt_app(q1, q_answer, e_sk , e_ans):
@@ -62,6 +69,7 @@ def run_communicator(q1, q_text, e_enc, e_enc_ans):
     
 def main():
     KEYPATH = "./"  
+
     lock = mplti.Lock()### 
     ctx = mplti.get_context('spawn') ###
 
@@ -74,27 +82,27 @@ def main():
     q_answer = ctx.Queue(maxsize=8)
 
     # Key exists
-    #e_key = multiprocessing.Event()
+    #e_key = mplti.Event()
     #e_key.clear()
     
     # Skeleton exists
-    e_sk = multiprocessing.Event()
+    e_sk = mplti.Event()
     e_sk.clear()
 
     # Query ciphertext saved
-    e_enc = multiprocessing.Event()
+    e_enc = mplti.Event()
     e_enc.clear()
 
     # Encrypted prediction saved
-    e_enc_ans = multiprocessing.Event()
+    e_enc_ans = mplti.Event()
     e_enc_ans.clear()
 
     # Decrypted prediction saved
-    e_ans = multiprocessing.Event()
+    e_ans = mplti.Event()
     e_ans.clear()
 
     # Quit the application
-    e_quit = multiprocessing.Event()
+    e_quit = mplti.Event()
     e_quit.clear()
 
     p_enc = mplti.Process(target=run_encryptor, 

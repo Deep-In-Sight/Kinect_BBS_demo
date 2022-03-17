@@ -117,7 +117,7 @@ class Message:
         else:
             self.e_key.set()
             self.e_ans.wait()
-        print("[_create_response_key] e_ans is set")
+        #print("[_create_response_key] e_ans is set")
         content = {"result": "Evaluator is ready"}
         #else:
         #    content = {"result": f'Error: invalid action "{action}".'}
@@ -134,7 +134,7 @@ class Message:
         if TEST_CLIENT:
             fn = './pred_0.dat'
         
-        print("_create_response_ctext,  e_ans is set")
+        #print("_create_response_ctext,  e_ans is set")
         content = fn
         f = open(content, 'rb')
         response = {
