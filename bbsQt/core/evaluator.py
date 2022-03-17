@@ -16,6 +16,11 @@ from fase.hnrf import heaan_nrf
 from fase.core.common import HEAANContext
 
 
+def slow_print(line):
+    for xx in line:
+        time.sleep(0.002)
+        print(hex(xx), end='\\')
+
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
     vv = np.zeros(parms.n) # Need to initialize to zero or will cause "unbound"
@@ -47,8 +52,8 @@ def print_binary(s):
 def show_file_content(fn):
     with open(fn, 'rb') as fbin:
         line = fbin.read(2000)
-        print("\n <<<<file in binary format>>>>", line)
-        print("\n <<<<file in HEX>>>>", print_binary(line))
+        print("\n <<<<file in HEX>>>>")
+        slow_print(line)
 
 
 class HEAAN_Evaluator():
