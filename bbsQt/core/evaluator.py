@@ -115,11 +115,11 @@ class HEAAN_Evaluator():
                                                     self.my_tm_tanh.coeffs,
                                                     do_reduction = False,
                                                     sk = sk#self.hec.sk ### DEBUGGING
-                                                    )
+                                                    silent=True)
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
         self.models.update({f"{action}_{cam}":nrf_evaluator})            
-        print("Model dict updated")    
+        #print("Model dict updated")    
 
     def _quick_check(self):
         scheme = self.scheme
