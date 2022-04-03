@@ -2,7 +2,7 @@ import numpy as np
 import tarfile
 import pickle
 import torch
-from time import time
+from time import time, sleep
 
 from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 
@@ -15,6 +15,11 @@ from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
 from fase.core.common import HEAANContext
 
+
+def slow_print(line):
+    for xx in line:
+        sleep(0.005)
+        print(hex(xx), end='\\')
 
 def encrypt(scheme, val, parms):
     ctxt = he.Ciphertext()#logp, logq, n)
@@ -47,8 +52,8 @@ def print_binary(s):
 def show_file_content(fn):
     with open(fn, 'rb') as fbin:
         line = fbin.read(2000)
-        print("\n <<<<file in binary format>>>>", line)
-        print("\n <<<<file in HEX>>>>", print_binary(line))
+        print("\n <<<<file in HEX>>>>")
+        slow_print(line)
 
 
 class HEAAN_Evaluator():
@@ -69,8 +74,8 @@ class HEAAN_Evaluator():
                    key_path=self.key_path,
                    FN_SK="secret.key",
                    boot=False, 
-                   is_owner=True,
-                   load_sk=True
+                   is_owner=False,
+                   load_sk=False
                   )
 
         ## DEBUGGING
@@ -114,12 +119,12 @@ class HEAAN_Evaluator():
                                                     self.hec.parms,
                                                     self.my_tm_tanh.coeffs,
                                                     do_reduction = False,
-                                                    sk = sk#self.hec.sk ### DEBUGGING
-                                                    )
+                                                    sk = sk,#self.hec.sk ### DEBUGGING
+                                                    silent=True)
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
         self.models.update({f"{action}_{cam}":nrf_evaluator})            
-        print("Model dict updated")    
+        #print("Model dict updated")    
 
     def _quick_check(self):
         scheme = self.scheme
@@ -160,26 +165,26 @@ class HEAAN_Evaluator():
             
             t0 = time()
             
-            debugging = True
-            if debugging:
-                fn_preds = []
-                for i in range(5):
-                    fn = self.server_path+f"pred_{i}.dat"
-                    fn_preds.append(fn)
-                fn_tar = FN_PREDS#"preds.tar.gz"
-                print("@@@@@@@@@@@@ compressing files")
-                compress_files(fn_tar, fn_preds)
-                q_text.put({"root_path":self.server_path,  # Not using root path
-                        "filename":self.server_path+fn_tar})
-                e_ans.set()
-                continue
+            # debugging = True
+            # if debugging:
+            #     fn_preds = []
+            #     for i in range(5):
+            #         fn = self.server_path+f"pred_{i}.dat"
+            #         fn_preds.append(fn)
+            #     fn_tar = FN_PREDS#"preds.tar.gz"
+            #     print("@@@@@@@@@@@@ compressing files")
+            #     compress_files(fn_tar, fn_preds)
+            #     q_text.put({"root_path":self.server_path,  # Not using root path
+            #             "filename":self.server_path+fn_tar})
+            #     e_ans.set()
+            #     continue
 
-            ###############################################
+            # ###############################################
 
-            # DEBUGGING
-            #print("CTX OK?")
-            #print(self.hec.decrypt(ctx))
-            ###############################################
+            # # DEBUGGING
+            # #print("CTX OK?")
+            # #print(self.hec.decrypt(ctx))
+            # ###############################################
 
 
             preds = self.run_model(action, cam, ctx)

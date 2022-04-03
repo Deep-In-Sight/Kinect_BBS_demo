@@ -21,27 +21,28 @@ if location == "DI":
     DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
     S_ACCOUNT = 'etri_ai2'
     S_PASSWORD = 'etri_ai2'
-elif location == "local":
-    #HOST = '127.0.0.1'
-    PORT = 2345
-    DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
-    BIN_PYTHON='/home/hoseung/anaconda3/envs/deepinsight/bin/python'
-    COPY_SCRIPT='send_key_cp.py'
-    BIN_PLAYER = "/usr/bin/totem" 
-    DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
-
 elif location == "ETRI":
     #HOST = '61.74.232.166'
     PORT = 2345
     DIR_KEY_SERVER = "/home/etri_ai1/work/Kinect_BBS_demo/server/serkey/"
     S_ACCOUNT = 'etri_ai1'
     S_PASSWORD = 'etri_ai1'
-    BIN_PYTHON='/home/etri_he1/anaconda3/envs/bbs/bin/python'
+    BIN_PYTHON='/home/dinsight/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key.py'
-    BIN_PLAYER = "/usr/bin/mpv" 
-    DIR_VIDEO = "/home/etri_he1/work/Kinect_BBS_demo/videos/"
+    BIN_PLAYER = "/usr/bin/totem" 
+    DIR_VIDEO = "/home/dinsight/Work/Kinect_BBS_demo/videos/"
+elif location == "local":
+    #HOST = '127.0.0.1'
+    PORT = 2345
+    DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
+    BIN_PYTHON='/home/dinsight/anaconda3/envs/deepinsight/bin/python'
+    COPY_SCRIPT='send_key_cp.py'
+    BIN_PLAYER = "/usr/bin/mpv" # Make sure H.264 encoder installed
+    DIR_VIDEO = "/home/dinsight/Work/Kinect_BBS_demo/videos/"
+
     
 SCP_PORT = 22
+HOST=None # placeholder
 
 ############# DEBUGGING ##############
 DEBUG_FLAG1 = False

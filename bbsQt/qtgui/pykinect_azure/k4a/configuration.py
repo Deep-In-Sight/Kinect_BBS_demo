@@ -52,7 +52,7 @@ class Configuration:
 											_k4a.K4A_COLOR_RESOLUTION_720P,\
 											_k4a.K4A_DEPTH_MODE_WFOV_2X2BINNED,\
 											_k4a.K4A_FRAMES_PER_SECOND_15,\
-											False,\
+											True,   ## synchronized_images_only
 											0,\
 											_k4a.K4A_WIRED_SYNC_MODE_STANDALONE,\
 											0,\
