@@ -106,11 +106,11 @@ class Score_updator():
         if tot < 0:
             return "낙상 예측을 위해 모든 항목을 측정해주세요"
         elif tot < 39:
-            return f"6개월 내 낙상 위험이 {self._fall_pred(tot) :.0f}%로 매우 높습니다!!"
+            return f"총점 {tot}\n" + f"6개월 내 낙상 위험이 {self._fall_pred(tot) :.0f}%로 매우 높습니다!!"
         elif tot < 52:
-            return f"6개월 내 낙상의 위험이 {self._fall_pred(tot) :.0f}% 입니다. 조심하세요."
+            return f"총점 {tot}\n" + f"6개월 내 낙상의 위험이 {self._fall_pred(tot) :.0f}% 입니다. 조심하세요."
         elif tot < 57:
-            return "낙상의 위험이 낮습니다."
+            return f"총점 {tot}\n" + "낙상의 위험이 낮습니다."
         else: 
             return -1
 
