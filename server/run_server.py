@@ -1,4 +1,5 @@
 import sys
+import os
 import multiprocessing as mplti
 import argparse
 
@@ -9,10 +10,9 @@ from bbsQt.comm.utils import extract_ip
 import fase
 
 
-def run_evaluator(q_text, evaluator_ready, e_enc, e_ans, server_path="./"):
-    #evaluator_ready.wait()
+def run_evaluator(q_text, evaluator_ready, e_enc, e_ans):
+    server_path = os.getcwd()+'/'
     henc = HEAAN_Evaluator(server_path, evaluator_ready)
-    #evaluator_ready.clear()
     if not TEST_CLIENT:
         print("[SERVER] Running evaluation loop")
         henc.start_evaluate_loop(q_text, e_enc, e_ans)
