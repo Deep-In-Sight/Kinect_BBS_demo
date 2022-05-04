@@ -43,11 +43,13 @@ elif location == "local":
 try:
     BIN_PLAYER = "/usr/bin/mpv" 
     p = subprocess.Popen([BIN_PLAYER])
+    p.terminate()
     print("Going for MPV")
 except:
     print("Failed to find MPV")
     BIN_PLAYER = "/usr/bin/totem" 
     p = subprocess.Popen([BIN_PLAYER])
+    p.terminate()
     print("Goding for totem")
 
 
