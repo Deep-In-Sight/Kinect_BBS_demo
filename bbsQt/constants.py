@@ -1,3 +1,4 @@
+import subprocess
 FN_KEYS = ["ENCRYPTION.txt",
            "MULTIPLICATION.txt",
            "ROTATION_1.txt"]
@@ -18,7 +19,7 @@ if location == "DI":
     COPY_SCRIPT='send_key.py'
     DIR_KEY_SERVER = "/home/etri_ai2/work/Kinect_BBS_demo/server/serkey/"
     BIN_PLAYER = "/usr/bin/totem" 
-    DIR_VIDEO = "/home/hoseung/Work/Kinect_BBS_demo/videos/"
+    DIR_VIDEO = "videos/"
     S_ACCOUNT = 'etri_ai2'
     S_PASSWORD = 'etri_ai2'
 elif location == "ETRI":
@@ -29,7 +30,6 @@ elif location == "ETRI":
     S_PASSWORD = 'etri_ai1'
     BIN_PYTHON='/home/dinsight/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key.py'
-    BIN_PLAYER = "/usr/bin/totem" 
     DIR_VIDEO = "/home/dinsight/Work/Kinect_BBS_demo/videos/"
 elif location == "local":
     #HOST = '127.0.0.1'
@@ -37,10 +37,20 @@ elif location == "local":
     DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
     BIN_PYTHON='/home/dinsight/anaconda3/envs/deepinsight/bin/python'
     COPY_SCRIPT='send_key_cp.py'
-    BIN_PLAYER = "/usr/bin/mpv" # Make sure H.264 encoder installed
-    DIR_VIDEO = "/home/dinsight/Work/Kinect_BBS_demo/videos/"
+    DIR_VIDEO = "videos/"
 
-    
+# set which video player to use
+try:
+    BIN_PLAYER = "/usr/bin/mpv" 
+    p = subprocess.Popen([BIN_PLAYER])
+    print("Going for MPV")
+except:
+    print("Failed to find MPV")
+    BIN_PLAYER = "/usr/bin/totem" 
+    p = subprocess.Popen([BIN_PLAYER])
+    print("Goding for totem")
+
+
 SCP_PORT = 22
 HOST=None # placeholder
 

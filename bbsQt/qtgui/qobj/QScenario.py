@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QApplication, QPushButton, QHBoxLayout, QVBoxLayout,
 from PyQt5.QtCore import QTime, QObject, Qt, pyqtSlot
 from PyQt5.QtGui import QFont, QIcon
 import os
+import os.path
 from ..config import Config as setConfig
 import subprocess
 from bbsQt.constants import DIR_VIDEO, BIN_PLAYER
@@ -120,11 +121,12 @@ class qScenario(QObject):
     def videoplay(self):
         # fix 2021/01/07
         video_name = glob(DIR_VIDEO+f"?{self.btn.action_num.currentIndex()+1}_{self.btn.score_num.currentText()}_*.mp4")[0]
+        video_abs_path = os.path.join( os.getcwd(), video_name )
 
         try:
-            p = subprocess.Popen([BIN_PLAYER, video_name])
+            p = subprocess.Popen([BIN_PLAYER, video_abs_path])
         except:
-            print("ERROR: cannot find video...")
+            print("ERROR: cannot find video...", video_abs_path)
 
     def showinfo(self):
         #{self.text_answer} 
