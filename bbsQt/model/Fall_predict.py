@@ -85,7 +85,6 @@ class Score_updator():
         with open(fn, "w") as f:
             f.write(self.text_output())
 
-
     def get_sum(self):
         dsum = []
         for dd, vv in self._score_dict.items():
@@ -96,7 +95,6 @@ class Score_updator():
 
         return sum(dsum)
 
-    
     def _fall_pred(self, tot):
         return np.interp(tot, FALL_X[::-1], FALL_Y[::-1])
 

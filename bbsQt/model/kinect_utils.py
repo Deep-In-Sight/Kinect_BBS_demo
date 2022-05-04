@@ -76,7 +76,7 @@ def kinect2mobile_direct(klist, remove_zeros=True):
     
     return marr
 
-def kinect2mobile_direct_lists(klist, remove_zeros=True):
+def kinect2mobile_direct_lists(klist, remove_zeros=True, nperson_max = 4):
     """fills mobile_skeleton array with KINECT_BBS skeleton 
        directly from kinect application
        
@@ -103,9 +103,9 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True):
             else:
                 break
 
-    nperson = 4 # Assuming no more than 4 people will be recorded.
+    # Assuming no more than 4 people will be recorded.
     mdtype = bbpp.get_dtypes(skeleton="COMMON")
-    marrs = [np.zeros(len(klist), dtype=mdtype) for i in range(nperson)]
+    marrs = [np.zeros(len(klist), dtype=mdtype) for i in range(nperson_max)]
     
     # Initialize temporary dict
     tdict = dict([(prx+name, 0) for name in ORG_KNT_TYPEs for prx in ["x", "y"]])

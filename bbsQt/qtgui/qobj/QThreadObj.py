@@ -129,7 +129,7 @@ class qThreadRecord(QThread):
         self.stackColor = np.array(self.stackColor)
         # 모든 스켈레톤이 다있는 프레임 
         
-        # In case on skeleton was captured
+        # In case no skeleton was captured
         try:
             self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
         except:
