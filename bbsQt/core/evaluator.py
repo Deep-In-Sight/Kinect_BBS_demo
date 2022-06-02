@@ -6,7 +6,7 @@ from time import time, sleep
 
 from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 
-DEBUG = False
+DEBUG = True
 
 from fase.core.heaan import he
 from fase.hnrf.hetree import HNRF
@@ -152,9 +152,10 @@ class HEAAN_Evaluator():
         while True:
             e_enc.wait()
             if DEBUG: print("[EVALUATOR] e_enc set")
-            fn_data = self.server_path + q_text.get()
+            #fn_data = self.server_path + q_text.get()
+            fn_data = q_text.get()
             if DEBUG: print("[EVALUATOR] got a file", fn_data)
-            _, action, cam, _ = fn_data.split("_")
+            _, action, cam, _ = fn_data.split("/")[-1].split("_")
             action = int(action)
             if DEBUG: print("[EVALUATOR] action class:", action)
 
@@ -195,12 +196,13 @@ class HEAAN_Evaluator():
                 #print("PRED", i, pred)
                 fn = self.server_path+f"pred_{i}.dat"
                 he.SerializationUtils.writeCiphertext(pred, fn)
-                fn_preds.append(fn)
+                fn_preds.append(f"pred_{i}.dat")
             if tar:
                 fn_tar = FN_PREDS#"preds.tar.gz"
                 compress_files(fn_tar, fn_preds)
                 q_text.put({"root_path":self.server_path,  # Not using root path
-                        "filename":self.server_path+fn_tar})
+                        "filename":fn_tar})
+                        #"filename":self.server_path+fn_tar})
             e_ans.set()
 
     def eval_once(self, fn_data, action):
