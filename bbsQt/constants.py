@@ -5,7 +5,7 @@ FN_KEYS = ["ENCRYPTION.txt",
 FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
 
-HEAAN_CONTEXT_PARAMS = {'logq':540,
+HEAAN_CONTEXT_PARAMS = {'logq':450,
                         'logp':30,
                         'logn':14,
                         'n':1*2**14}
