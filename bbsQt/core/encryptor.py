@@ -216,7 +216,9 @@ class HEAAN_Encryptor():
 
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
+            t0 = time()
             ctx1 = featurizer.encrypt(sc0)
+            print("Encryption done in ", time() - t0, "seconds")
             pickle.dump(sc0, open("scaled.pickle", "wb"))
             if debug: print(f"Featurizing done in {time.time() - t0:.2f}s")
             if debug: print(ctx1.n, ctx1.logp, ctx1.logq)
@@ -242,6 +244,7 @@ class HEAAN_Encryptor():
             print("fn_preds", fn_preds)
             logq = 180
             preds=[]
+            t0 = time()
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
                 ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
@@ -253,6 +256,7 @@ class HEAAN_Encryptor():
                 preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
                 print("[encryptor] decrypted prediction array", dec[:10])
                 del ctx_pred
+            print("Decryption done in ", time() - t0, "seconds")
             del ctx1 
 
             ###########################
