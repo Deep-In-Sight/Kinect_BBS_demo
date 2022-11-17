@@ -10,6 +10,10 @@ from fase.hnrf.hetree import HNRF
 from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
 import torch
+from time import sleep
+import requests
+
+sleep_time = 60 # allow server at least 60s to run inference
 
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
 class HETreeFeaturizer:
@@ -82,9 +86,10 @@ def compress_files(fn_tar, fn_list):
             tar.add(name)
 
 class HEAAN_Encryptor():
-    def __init__(self, key_path="./serkey/", 
+    def __init__(self, server_url, key_path="./serkey/", 
                 debug=True):
         
+        self.server_url = server_url
         self.model_dir = "./models/"
 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -203,16 +208,6 @@ class HEAAN_Encryptor():
             # I need a more strict rule for standardization.. 
             # The following is an ad-hoc measure.
             
-            #print(scaled[0].shape)
-            #print(len(scaled))
-            #print(scaled.shape)
-            #print("zzz")
-            # sc0 = scaled[0]
-            # sc_min = min((sc0.min(), 0)) # shift if min is negative 
-            # sc0 -= sc_min
-            # sc0 += 1e-3
-            # sc0 /= (sc0.max()*1.05) # Just to give some padding area
-            # print("MIN", sc0.min(), "MAX", sc0.max())
 
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
@@ -228,16 +223,36 @@ class HEAAN_Encryptor():
             he.SerializationUtils.writeCiphertext(ctx1, fn)
             if debug: print("[Encryptor] Ctxt wrote")
 
-            q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
-            if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
-            e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
+            # q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
+            # if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
+            # e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
+            #set_ctxt_to_server
+            ret = requests.post(self.server_url + "/ctxt", 
+                        files={"ctxt": open(fn, "rb")},
+                        header={"dtype":"ctxt", "action":str(action)})
             
+            if ret != 200:
+                # HTTP error handling
+                pass
+
             if debug: print("[Encryptor] Waiting for prediction...")
+            sleep(sleep_time)
+
+            while True:
+                #
+                # server file
+                #
+                ret = requests.get(self.server_url + "/pred",
+                        files={"ctxt": open(fn, "rb")},
+                        header={"dtype":"ctxt", "action":str(action)})
+                if ret.status == 200: #??
+                    print(ret.text) # 
+                    break
 
             # Decrypt answer
-            e_enc_ans.wait()  ## FLOW CONTROL
-            preds = []
-            fn_preds = q_text.get()  ## FLOW CONTROL
+            #e_enc_ans.wait()  ## FLOW CONTROL
+            fn_preds = ret.files["pred"] # ?? 
+            #fn_preds = q_text.get()  ## FLOW CONTROL
 
             #fn_preds = [f"pred_{i}.dat" for i in range(5)]
             # Load predictions
@@ -247,6 +262,7 @@ class HEAAN_Encryptor():
             t0 = time()
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
+                # readCiphertext할 때 logp, logq, logn을 미리 알아야함? 
                 ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
                 print("[encryptor] load ctxt", fn_ctx)
                 he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)

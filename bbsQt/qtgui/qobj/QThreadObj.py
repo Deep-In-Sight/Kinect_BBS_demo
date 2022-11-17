@@ -260,6 +260,7 @@ class qThreadRecord(QThread):
         
             
     def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
+        """Skeleton viewer"""
         left_arms = ['l_shoulder', 'l_elbow', 'l_hand']
         right_arms = ['head', 'r_shoulder',  'r_elbow', 'r_hand']
         body = ['head','l_shoulder', 'r_shoulder', 'r_hip', 'l_hip', 'l_shoulder']

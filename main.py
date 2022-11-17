@@ -45,26 +45,27 @@ def run_encryptor(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, key_path=
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 
 
-def run_communicator(q1, q_text, e_enc, e_enc_ans):
-    # 1. send keys to server and do quick check
-    #e_key.wait()
-    #app_client.run_share_key(q_text, e_key, lock)
+# separate communicator process no more needed.
+# def run_communicator(q1, q_text, e_enc, e_enc_ans):
+#     # 1. send keys to server and do quick check
+#     #e_key.wait()
+#     #app_client.run_share_key(q_text, e_key, lock)
 
-    while True:
-        print("[run comm] waiting for ctxt.....")
-        e_enc.wait()
-        print("[run_comm] e_enc passed. Ctxt is ready")
-        fn_dict = q1.get()
-        print("[run_comm] file name:", fn_dict)
-        answer = app_client.query(fn_dict)
-        e_enc.clear()
+#     while True:
+#         print("[run comm] waiting for ctxt.....")
+#         e_enc.wait()
+#         print("[run_comm] e_enc passed. Ctxt is ready")
+#         fn_dict = q1.get()
+#         print("[run_comm] file name:", fn_dict)
+#         answer = app_client.query(fn_dict)
+#         e_enc.clear()
         
-        print("[run_comm] got an answer", answer)
-        # ENCRYPTED answer
-        q_text.put(answer['filename']) # put encrypted answer filename
-        print("[run_comm] Prediction file names are ready")
-        e_enc_ans.set()
-        print("[run_comm] e_enc_ans set")
+#         print("[run_comm] got an answer", answer)
+#         # ENCRYPTED answer
+#         q_text.put(answer['filename']) # put encrypted answer filename
+#         print("[run_comm] Prediction file names are ready")
+#         e_enc_ans.set()
+#         print("[run_comm] e_enc_ans set")
 
     
 def main():
@@ -109,9 +110,9 @@ def main():
                     args=(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans), daemon=False)
     p_enc.start()
 
-    p_socket = mplti.Process(target=run_communicator, 
-            args=(q1, q_text, e_enc, e_enc_ans), daemon=False)
-    p_socket.start()
+    # p_socket = mplti.Process(target=run_communicator, 
+    #         args=(q1, q_text, e_enc, e_enc_ans), daemon=False)
+    # p_socket.start()
     
     p_qt = mplti.Process(target=run_qt_app, 
                         args=(q1, q_answer, e_sk, e_ans), daemon=False) # 진짜
@@ -120,8 +121,8 @@ def main():
 
         
     e_quit.wait()
-    p_socket.join()
-    p_socket.close()
+    # p_socket.join()
+    # p_socket.close()
     p_enc.join()
     p_enc.close()
     p_qt.join()
