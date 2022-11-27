@@ -37,6 +37,9 @@ def upload_file2():
 
 @app.route('/result',methods=['GET'])
 def get_result():
+    """GET method. 
+    계산이 끝나고 파일이 준비되면 클라이언트가 GET을 성공하게 될 것.
+    """
     if request.method=='GET':
         return send_from_directory("result/", "pred_0.dat")
 
@@ -45,6 +48,28 @@ def on_raw_message(body):
 
 @celery.task(bind=True) # bind if access to the instance is needed
 def call_heaan(self, fn, action):
+    """Run Deep Learning model on the server.
+        parameter
+        ---------
+        fn: filename of the ciphertext
+        action: class of action [1,14]
+
+        
+        원래는 대략 아래와 같은 기능을 하는 함수
+
+        1. load ciphertext
+        ctxt = heaan.load_ctxt(fn)
+        
+        2. load FHE DL model
+        model = FHE_DL_model(action)
+        
+        3. run model
+        pred = model(ctxt)
+
+        4. save result to file
+        heaan.save_ctxt(pred)
+
+    """
     print("HEAAN called")
     
     # do calculation
@@ -63,4 +88,4 @@ def call_heaan(self, fn, action):
 
 
 if __name__=="__main__":
-    app.run()
+    app.run(host="192.168.0.18")
