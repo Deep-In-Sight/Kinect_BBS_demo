@@ -41,7 +41,7 @@ def get_post():
             print("Received ciphertext")
             action = request.headers['action']
             print("Evaluator will run")
-            tid = app.send_task('evaluator.eval_once', args=(f.filename, action))
+            tid = app.send_task('HEAAN_Evaluator.eval_once', args=(f.filename, action))
             msg = "task assigned"
 
         return msg

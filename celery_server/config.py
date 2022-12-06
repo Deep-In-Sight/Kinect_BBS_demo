@@ -7,3 +7,7 @@ empty_state = {'evaluator_context_ready': 0,
 
 REDIS_BROKER_URL = 'redis://localhost:6379/0'
 REDIS_RESULT_URL = 'redis://localhost:6379/0'
+
+SEVER_PATH = './'
+MODEL_PATH = SEVER_PATH + 'models/'
+KEY_PATH = SEVER_PATH + 'serkey/'

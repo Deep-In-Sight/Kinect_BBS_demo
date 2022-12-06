@@ -7,7 +7,8 @@ from time import time
 import json
 
 from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
-from .config import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL
+from .config import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
+    SEVER_PATH, MODEL_PATH, KEY_PATH
 
 import fase
 from fase.core.heaan import he
@@ -30,10 +31,16 @@ app.config['result_backend'] = REDIS_RESULT_URL
 DEBUG = True
 
 
-def evaluation_done(fn):
+def evaluation_done(fn, action):
+    state = json.load(open(FN_STATE, 'r'))
+    state['evaluation_complete'] = 1
+    state['pred_fn'] = fn
+    state['current_action'] = action
+    json.dump(state, open(FN_STATE, 'w'))
+
+def evaluator_ready(fn):
     state = json.load(open(FN_STATE, 'r'))
     state['evaluator_context_ready'] = 1
-    state['pred_fn'] = fn
     json.dump(state, open(FN_STATE, 'w'))
 
 
@@ -49,20 +56,21 @@ class Param():
 
 class HEAAN_Evaluator(Task):
     """Celery class based Task."""
-    def __init__(self, server_path):
+    def __init__(self):
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
         n = 1*2**logn
 
         self.parms = Param(n=n, logp=logp, logq=logq)
-        self.server_path = server_path
-        self.key_path = server_path + 'serkey/'
+        self.server_path = SEVER_PATH
+        self.key_path = KEY_PATH
+        self.model_path = MODEL_PATH
         print("[ENCRYPTOR] key path", self.key_path)
 
         hec = HEAANContext(logn, logp, logq, rot_l=[1], 
                    key_path=self.key_path,
-                   FN_SK="secret.key",
+                   #FN_SK="secret.key",
                    boot=False, 
                    is_owner=False,
                    load_sk=False
@@ -71,24 +79,22 @@ class HEAAN_Evaluator(Task):
         ## DEBUGGING
         #self.sk = he.SecretKey(self.key_path + 'secret.key')
         self.hec = hec
-        self.prepare_model_load()
+        self.models = {} # Models will be stored as dict
+        self.activation = self.get_activation()
 
         print("[Encryptor] HEAAN is ready")
         #if evaluator_ready is not None: evaluator_ready.set()
-        app.send_task('webserver.ready_for_ctxt', args=[True])
+        #app.send_task('webserver.ready_for_ctxt', args=[True])
 
-    def prepare_model_load(self,
+
+    def get_activation(self,
                            dilatation_factor = 10,
                            polynomial_degree = 10):
         """
         Prepare a polynomial form of tanh function
         to load requested models.
-
-        Models will be stored as dict
         """
-        self.models = {}
-        
-        self.my_tm_tanh = NeuralTreeMaker(torch.tanh, 
+        return NeuralTreeMaker(torch.tanh, 
                             use_polynomial=True,
                             dilatation_factor=dilatation_factor, 
                             polynomial_degree=polynomial_degree)
@@ -97,7 +103,7 @@ class HEAAN_Evaluator(Task):
         print("[Evaluator] Loading trained NRF models")
 
         t0 = time()
-        fn = self.server_path+f"models/Nmodel_{action}_{cam}.pickle"
+        fn = self.model_path+f"Nmodel_{action}_{cam}.pickle"
         Nmodel = pickle.load(open(fn, "rb"))
         
         h_rf = HNRF(Nmodel)
@@ -108,7 +114,7 @@ class HEAAN_Evaluator(Task):
         nrf_evaluator = heaan_nrf.HETreeEvaluator(h_rf,
                                                     self.hec._scheme,
                                                     self.hec.parms,
-                                                    self.my_tm_tanh.coeffs,
+                                                    self.activation.coeffs,
                                                     do_reduction = False,
                                                     sk = sk,#self.hec.sk ### DEBUGGING
                                                     silent=True)
@@ -195,7 +201,7 @@ class HEAAN_Evaluator(Task):
             he.SerializationUtils.writeCiphertext(pred, fn)
             fn_preds.append(fn)
 
-        evaluation_done(fn)
+        evaluation_done(fn, action)
         #app.send_task('webserver.ready_for_get', kwargs={"action":action})
 
 
@@ -217,5 +223,4 @@ if __name__ == '__main__':
     # import HEAAN_Evaluator *after* setting which HEAAN variants to use
     from bbsQt.core.evaluator import HEAAN_Evaluator
     app.init()
-    
     
