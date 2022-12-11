@@ -7,7 +7,7 @@ from time import time
 import json
 
 from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
-from .config import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
+from config import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
     SEVER_PATH, MODEL_PATH, KEY_PATH
 
 import fase
