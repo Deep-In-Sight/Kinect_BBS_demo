@@ -40,17 +40,17 @@ elif location == "local":
     DIR_VIDEO = "videos/"
 
 # set which video player to use
-try:
-    BIN_PLAYER = "/usr/bin/mpv" 
-    p = subprocess.Popen([BIN_PLAYER])
-    p.terminate()
-    print("Going for MPV")
-except:
-    print("Failed to find MPV")
-    BIN_PLAYER = "/usr/bin/totem" 
-    p = subprocess.Popen([BIN_PLAYER])
-    p.terminate()
-    print("Going for totem")
+# try:
+#     BIN_PLAYER = "/usr/bin/mpv" 
+#     p = subprocess.Popen([BIN_PLAYER])
+#     p.terminate()
+#     print("Going for MPV")
+# except:
+#     print("Failed to find MPV")
+#     BIN_PLAYER = "/usr/bin/totem" 
+#     p = subprocess.Popen([BIN_PLAYER])
+#     p.terminate()
+#     print("Goding for totem")
 
 
 SCP_PORT = 22

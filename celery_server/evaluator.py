@@ -1,4 +1,3 @@
-import argparse
 from celery import Task
 import numpy as np
 import pickle
@@ -6,43 +5,20 @@ import torch
 from time import time
 import json
 
-from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
-from config import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
+from constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
+from bbsconfig import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
     SEVER_PATH, MODEL_PATH, KEY_PATH
 
-import fase
-from fase.core.heaan import he
-from fase.hnrf.hetree import HNRF
-from fase import hnrf as hnrf
-from fase.hnrf.tree import NeuralTreeMaker
-from fase.hnrf import heaan_nrf 
-from fase.core.common import HEAANContext
-
-from .utils import show_file_content
-
-from celery import current_app
-
-app = HEAAN_Evaluator(server_path='./')
-
-# Configure the redis server
-app.config['CELERY_BROKER_URL'] = REDIS_BROKER_URL
-app.config['result_backend'] = REDIS_RESULT_URL
-
-DEBUG = True
+from hemul import loader
+he = loader.he
+    
+from hemul import heaan
+from hnrf.hnrf import HNRF, HETreeEvaluator
+from hnrf.nrf import NeuralTreeMaker
 
 
-def evaluation_done(fn, action):
-    state = json.load(open(FN_STATE, 'r'))
-    state['evaluation_complete'] = 1
-    state['pred_fn'] = fn
-    state['current_action'] = action
-    json.dump(state, open(FN_STATE, 'w'))
-
-def evaluator_ready(fn):
-    state = json.load(open(FN_STATE, 'r'))
-    state['evaluator_context_ready'] = 1
-    json.dump(state, open(FN_STATE, 'w'))
-
+from utils import show_file_content
+#from celery import current_app
 
 class Param():
     def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
@@ -56,6 +32,7 @@ class Param():
 
 class HEAAN_Evaluator(Task):
     """Celery class based Task."""
+    name = "my_app.tasks.HEAAN_Evaluator"
     def __init__(self):
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
@@ -68,12 +45,12 @@ class HEAAN_Evaluator(Task):
         self.model_path = MODEL_PATH
         print("[ENCRYPTOR] key path", self.key_path)
 
-        hec = HEAANContext(logn, logp, logq, rot_l=[1], 
+        hec = heaan.HEAANContext(logn, logp, logq, rot_l=[1], 
                    key_path=self.key_path,
                    #FN_SK="secret.key",
                    boot=False, 
                    is_owner=False,
-                   load_sk=False
+                   load_keys=False
                   )
 
         ## DEBUGGING
@@ -83,7 +60,8 @@ class HEAAN_Evaluator(Task):
         self.activation = self.get_activation()
 
         print("[Encryptor] HEAAN is ready")
-        #if evaluator_ready is not None: evaluator_ready.set()
+        #if evaluator_ready is not None: 
+        evaluator_ready()
         #app.send_task('webserver.ready_for_ctxt', args=[True])
 
 
@@ -111,13 +89,13 @@ class HEAAN_Evaluator(Task):
             sk = self.hec.sk
         except:
             sk = None
-        nrf_evaluator = heaan_nrf.HETreeEvaluator(h_rf,
-                                                    self.hec._scheme,
-                                                    self.hec.parms,
-                                                    self.activation.coeffs,
-                                                    do_reduction = False,
-                                                    sk = sk,#self.hec.sk ### DEBUGGING
-                                                    silent=True)
+        nrf_evaluator = HETreeEvaluator(h_rf,
+                                        self.hec._scheme,
+                                        self.hec.parms,
+                                        self.activation.coeffs,
+                                        do_reduction = False,
+                                        sk = sk,#self.hec.sk ### DEBUGGING
+                                        silent=True)
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
         self.models.update({f"{action}_{cam}":nrf_evaluator})            
@@ -141,53 +119,23 @@ class HEAAN_Evaluator(Task):
         print("[EVALUATOR] running model...")
         return model(ctx)
 
-    # def start_evaluate_loop(self, q_text, e_enc, e_ans, tar=True):
-    #     """
-    #     filename : ctxt_a05_{i}.dat, where a05 means action #5.
-    #     """
-    #     print("[EVALUATOR] evaluate_loop started")
-    #     while True:
-    #         e_enc.wait()
-    #         if DEBUG: print("[EVALUATOR] e_enc set")
-    #         #fn_data = self.server_path + q_text.get()
-    #         fn_data = q_text.get()
-    #         if DEBUG: print("[EVALUATOR] got a file", fn_data)
-    #         _, action, cam, _ = fn_data.split("/")[-1].split("_")
-    #         action = int(action)
-    #         if DEBUG: print("[EVALUATOR] action class:", action)
+    def run(self, fn_data, action):
+        action = int(action)
+        print("[EVALUATOR] loading ciphertext", fn_data)
+        print("[EVALUATOR] action", action)        
+        cam = CAM_NAMES[action]
+        print("cam", cam)
 
-    #         ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
-    #         he.SerializationUtils.readCiphertext(ctx, fn_data)
-    #         show_file_content(fn_data)
-    #         e_enc.clear()
-            
-    #         t0 = time()
-
-    #         preds = self.run_model(action, cam, ctx)
-    #         print(f"[EVALUATOR] Prediction took {time()-t0:.2f} seconds")
-
-    #         fn_preds = []
-    #         for i, pred in enumerate(preds):
-    #             #print("PRED", i, pred)
-    #             fn = self.server_path+f"pred_{i}.dat"
-    #             he.SerializationUtils.writeCiphertext(pred, fn)
-    #             fn_preds.append(f"pred_{i}.dat")
-    #         if tar:
-    #             fn_tar = FN_PREDS#"preds.tar.gz"
-    #             compress_files(fn_tar, fn_preds)
-    #             q_text.put({"root_path":self.server_path,  # Not using root path
-    #                     "filename":fn_tar})
-    #                     #"filename":self.server_path+fn_tar})
-    #         e_ans.set()
-
-    def eval_once(self, fn_data, action):
+        with open("test_out.txt", "w") as f:
+            f.write("test\n")
+            f.write(f"{self.parms.logn}\n")
+        evaluation_done("test_out.txt", action)
+        return 
         ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
         he.SerializationUtils.readCiphertext(ctx, fn_data)
         show_file_content(fn_data)
 
-        print("action", action)
-        cam = CAM_NAMES[action]
-        print("cam", cam)
+        
 
         t0 = time()
         preds = self.run_model(action, cam, ctx)
@@ -205,22 +153,43 @@ class HEAAN_Evaluator(Task):
         #app.send_task('webserver.ready_for_get', kwargs={"action":action})
 
 
-current_app.tasks.register(HEAAN_Evaluator)
+#current_app.tasks.register(HEAAN_Evaluator())
 
-if __name__ == '__main__':
+#app = HEAAN_Evaluator()
+
+# Configure the redis server
+#app.config['CELERY_BROKER_URL'] = REDIS_BROKER_URL
+#app.config['result_backend'] = REDIS_RESULT_URL
+
+DEBUG = True
+
+
+def evaluation_done(fn, action):
+    state = json.load(open(FN_STATE, 'r'))
+    state['evaluation_complete'] = 1
+    state['pred_fn'] = fn
+    state['current_action'] = action
+    json.dump(state, open(FN_STATE, 'w'))
+
+def evaluator_ready():
+    state = json.load(open(FN_STATE, 'r'))
+    state['evaluator_context_ready'] = 1
+    json.dump(state, open(FN_STATE, 'w'))
+
+
+#if __name__ == '__main__':
     # Set which version of HEAAN to use
-    parser = argparse.ArgumentParser()
+    #parser = argparse.ArgumentParser()
 
-    parser.add_argument("--fpga", dest='use_fpga', action='store_true')
-    parser.add_argument("--cuda", dest='use_cuda', action='store_true')
-    args = parser.parse_args()
+    #parser.add_argument("--fpga", dest='use_fpga', action='store_true')
+    #parser.add_argument("--cuda", dest='use_cuda', action='store_true')
+    #args = parser.parse_args()
 
-    if args.use_fpga:
-        fase.USE_FPGA = True
-    elif args.use_cuda:
-        fase.USE_CUDA = True
-
+    #if args.use_fpga:
+    #    hemul.USE_FPGA = True
+    #elif args.use_cuda:
+    #    hemul.USE_CUDA = True
     # import HEAAN_Evaluator *after* setting which HEAAN variants to use
-    from bbsQt.core.evaluator import HEAAN_Evaluator
-    app.init()
+    #from bbsQt.core.evaluator import HEAAN_Evaluator
+    #app.init()
     

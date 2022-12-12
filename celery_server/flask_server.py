@@ -4,10 +4,15 @@ from werkzeug.utils import secure_filename
 from flask import send_from_directory
 from celery import Celery
 import json
-from config import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL
+from bbsconfig import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL
 from utils import gen_empty_state
+from evaluator import HEAAN_Evaluator
 
 from logging.config import dictConfig
+
+server_ip = ["192.168.0.18", "127.0.0.1"][1]
+server_port = ["5000"][0]
+
 
 dictConfig({
     'version': 1,
@@ -33,9 +38,12 @@ app.config['CELERY_BROKER_URL'] = REDIS_BROKER_URL
 app.config['result_backend'] = REDIS_RESULT_URL
 
 # celery from CMD will invoke this instance of celery
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
+celery_app = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery_app.conf.update(app.config)
+celery_app.tasks.register(HEAAN_Evaluator())
 
+tasks = celery_app.tasks.keys()
+print(tasks)
 
 def is_evaluator_ready():
     state = json.load(open(FN_STATE, 'r'))
@@ -46,7 +54,7 @@ def is_evaluation_complete():
     return state['evaluation_complete'] == 1
 
 @app.route('/upload',methods=['POST'])
-@celery.task(name='webserver.get_post')
+@celery_app.task(name='webserver.get_post')
 def get_post():
     if request.method=='POST':
         
@@ -65,14 +73,16 @@ def get_post():
         
             app.logger.info("Received ciphertext")
             action = request.headers['action']
-            tid = celery.send_task('HEAAN_Evaluator.eval_once', args=(f.filename, action))
+            # The following task MUST be sent to a specific queue/worker
+            # to avoid re-initializing the evaluator.
+            tid = celery_app.send_task('my_app.tasks.HEAAN_Evaluator', args=(f.filename, action))
             app.logger.info("Sent task to evaluator")
             msg = "task assigned"
 
         return msg
 
 @app.route('/result',methods=['GET'])
-@celery.task(name='webserver.give_result')
+@celery_app.task(name='webserver.give_result')
 def give_result():
     """GET method. 
     계산이 끝나고 파일이 준비되면 클라이언트가 GET을 성공하게 될 것.
@@ -81,11 +91,12 @@ def give_result():
         if not is_evaluation_complete:
             return "evaluation not complete. Please try again later"
         # May also check if action is correct
-        return send_from_directory("result/", "pred_0.dat")
+        print("Evaluation complete. Sending result")
+        return send_from_directory("result/", "test_out.txt")#"pred_0.dat")
 
 def on_raw_message(body):
     print("Received: {0!r}".format(body))
 
 if __name__=="__main__":
     gen_empty_state()
-    app.run(host="192.168.0.18", debug=True, port=5000)
+    app.run(host=server_ip, debug=True, port=server_port)
