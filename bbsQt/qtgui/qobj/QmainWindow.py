@@ -20,10 +20,14 @@ from .QThreadObj import qThreadRecord
 
 import time
 
-ENABLE_PYK4A = True
-from ..pykinect_azure import pykinect
+ENABLE_PYK4A = False
+import mediapipe as mp
+mp_pose = mp.solutions.pose
+mp_drawing = mp.solutions.drawing_utils 
+mp_drawing_styles = mp.solutions.drawing_styles
+# from ..pykinect_azure import pykinect
 
-pykinect.initialize_libraries(track_body=True)
+# pykinect.initialize_libraries(track_body=True)
 
 def getIcon(path):
     app_icon = QIcon()
@@ -99,7 +103,7 @@ class QMyMainWindow(QWidget):
         # fix 2021/01/07
         self.camera_choice = CAM_LIST    
 
-        self._init_camera(1)
+        self._init_camera(0)
         self.setLayout()
 
         self.stackColor = []
@@ -157,10 +161,12 @@ class QMyMainWindow(QWidget):
 
                 if not VERBOSE: print("Saving done. device index", self.btn.cameranum.currentIndex())
 
+                # Reset device
                 ###
-                self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], 
-                                                    config=self.device_config)
-                self.bodyTracker = pykinect.start_body_tracker()
+                #self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], 
+                #                                    config=self.device_config)
+                #self.bodyTracker = pykinect.start_body_tracker()
+
                 self.qthreadrec.reset(self.device, self.bodyTracker)
         
         # Every reached?? 
@@ -262,20 +268,6 @@ class QMyMainWindow(QWidget):
         displayTxt = currentTime.toString('hh:mm:ss')
         self.btn.curtimeLabel.setText(displayTxt)
 
-    # def optionChanged(self):
-    #     print(self.btn.option.currentIndex())
-    #     if self.btn.option.currentIndex() == 0:
-    #         self.imgviwerDepth.minval = self.config.cfg_30cm["depth_minval"]
-    #         self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
-    #         self.imgviwerDepth.maxval = self.config.cfg_30cm["depth_maxval"]
-    #         self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))
-            
-    #     elif self.btn.option.currentIndex() == 1:
-    #         self.imgviwerDepth.minval = self.config.cfg_50cm["depth_minval"]
-    #         self.imgviwerDepth.MinRangeInput.setText(str(self.imgviwerDepth.minval))
-    #         self.imgviwerDepth.maxval = self.config.cfg_50cm["depth_maxval"]
-    #         self.imgviwerDepth.MaxRangeInput.setText(str(self.imgviwerDepth.maxval))        
-
     # add 20210107
     def actionChanged(self):
         if not VERBOSE: print("action changed", self.btn.action_num.currentIndex())
@@ -299,16 +291,20 @@ class QMyMainWindow(QWidget):
     def _init_camera(self, cameraidx):
         #if ENABLE_PYK4A:
         # Modify camera configuration
-        self.device_config = pykinect.default_configuration
-        self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
-        self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
+        # self.device_config = pykinect.default_configuration
+        # self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
+        # self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
 
         # Start cameras using modified configuration
         if not VERBOSE: print("ACTION CHANGED, device index", cameraidx)
-        self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
+        self.device = cv2.VideoCapture(cameraidx)
+        # self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
 
         # Initialize the body tracker
-        self.bodyTracker = pykinect.start_body_tracker()
+        #self.bodyTracker = pykinect.start_body_tracker()
+        self.bodyTracker = mp_pose.Pose(
+                                min_detection_confidence=0.5,
+                                min_tracking_confidence=0.5)
         #else:
         #    self.pyK4A = None
         #try:
@@ -345,27 +341,26 @@ class QMyMainWindow(QWidget):
 
     @pyqtSlot()    
     def calibration2(self):
+        """connected to calibration button"""
         t0 = time.time()
-        while self.onPlay and ENABLE_PYK4A:
+        while self.onPlay:
             # Get capture
-            capture = self.device.update()
+            success, image = self.device.read()
             
             # Get body tracker frame
-            body_frame = self.bodyTracker.update()
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            joint = self.bodyTracker.process(image)
 
-            rat, c_image = capture.get_color_image()
+            # Draw landmarks
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            mp_drawing.draw_landmarks(
+                    image,
+                    joint.pose_landmarks,
+                    mp_pose.POSE_CONNECTIONS,
+                    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
 
-            ret, dc_image = capture.get_colored_depth_image()
-            ret, b_image = body_frame.get_segmentation_image()  ## <<<<<<<<<<<
-            s_image = cv2.addWeighted(dc_image, 0.6, b_image, 0.4, 0)
-            s_image = cv2.cvtColor(s_image, cv2.COLOR_BGR2RGB)
-            s_image = body_frame.draw_bodies(s_image)
-
-            capture.reset()
-            body_frame.reset()
-
-            self.imgviwerRGB.setImg(c_image)
-            self.imgviwerSkeleton.setImg(s_image) ## <<<<<<<<<<<
+            self.imgviwerRGB.setImg(cv2.flip(image, 1))
+            self.imgviwerSkeleton.setImg(cv2.flip(image, 1)) ## <<<<<<<<<<<
 
             try:
                 self.imgviwerRGB.start()
@@ -379,20 +374,6 @@ class QMyMainWindow(QWidget):
 
             #self.qScenario.updateSize()            
             QApplication.processEvents()
-
-        # i = 0
-        # while self.onPlay and not(ENABLE_PYK4A):        
-        #     self.imgviwerRGB.setImgPath(f"{self.PWD}/images/transformed_color0-{i}.jpg")
-
-        #     self.imgviwerRGB.start()
-        #     i+=1
-        #     if i>4: i=0
-        #     t1 = time.time()
-        #     self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))
-        #     t0 = t1            
-
-        #     #self.qScenario.updateSize()        
-        #     QApplication.processEvents()
 
     def closeEvent(self, event):
         msgbox     = QMessageBox()

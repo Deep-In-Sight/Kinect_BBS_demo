@@ -22,14 +22,16 @@ def is_valid_skeleton(skeleton):
 
 class qThreadRecord(QThread):
     
-    def __init__(self, k4a, bt, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
+    def __init__(self, cap, mp_pose, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
         super().__init__()
         self.stackColor = []
         #self.stackIR = []
         self.stackDepth = []
         self.stackJoint = []
-        self.k4a = k4a
-        self.bt = bt
+        #self.k4a = k4a
+        self.cap = cap
+        self.mp_pose = mp_pose
+        #self.bt = bt
         self.isRun = False
         self.qScenario = qScenario
         self.Ncpu = 2
@@ -51,16 +53,17 @@ class qThreadRecord(QThread):
         self.SubjectID = SubjectID
         self.btn = btn
 
-        if self.k4a is not None:
-            self.path_save = f"{self.PWD}/{str(self.SubjectID).zfill(3)}"
-        else:
-            self.path_save = f"{self.PWD}/images"
+        #if self.k4a is not None:
+        #    self.path_save = f"{self.PWD}/{str(self.SubjectID).zfill(3)}"
+        #else:
+        self.path_save = f"{self.PWD}/images"
 
     def reset(self, k4a, bt):
             self.k4a = k4a
             self.bt = bt
 
     def mkd(self, Locale, SubjectID, ScenarioNo):
+        """Make directory for saving data"""
         self.Locale = Locale
         self.SubjectID = SubjectID
         self.ScenarioNo = ScenarioNo
@@ -94,26 +97,28 @@ class qThreadRecord(QThread):
         self.resetstate()
         while (self.btn.endtime.text() == "F"):
             try:
-                capture = self.k4a.update()
-                body_frame = self.bt.update()
-
-                rat, color = capture.get_color_image()
+                #capture = self.k4a.update()
+                success, image = self.cap.read()
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                #body_frame = self.bt.update()
+                #rat, color = capture.get_color_image()
                     
-                ret, dc_image = capture.get_colored_depth_image()
-                ret, b_image = body_frame.get_segmentation_image()
-                s_image = cv2.addWeighted(dc_image, 0.6, b_image, 0.4, 0)
-                s_image = cv2.cvtColor(s_image, cv2.COLOR_BGR2RGB)
-                joint = body_frame.ex_joints(s_image) # extract joint
+                #ret, dc_image = capture.get_colored_depth_image()
+                #ret, b_image = body_frame.get_segmentation_image()
 
-                capture.reset()
-                body_frame.reset()
+                #s_image = cv2.addWeighted(dc_image, 0.6, b_image, 0.4, 0)
+                #s_image = cv2.cvtColor(s_image, cv2.COLOR_BGR2RGB)
+                #joint = body_frame.ex_joints(s_image) # extract joint
+                joint = self.mp_pose.process(image)
+
+                #capture.reset()
+                #body_frame.reset()
             except:
                 pass
             else:
-                self.stackColor.append(color)
+                self.stackColor.append(image)
                 self.stackJoint.append(joint) # joints are stored here
                 self.pic_Count += 1
-
                 
                 nframes += 1
                 t1 = time.time()
@@ -175,18 +180,6 @@ class qThreadRecord(QThread):
 
     def select_sk(self, skindex=0):
         """! Skeleton selector
-        
-        @param skindex index of the main skeleton in the skeleton list
-        
-        @return None
-
-        @see 
-
-        @remark
-        
-
-        문장
-
         """
         
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
