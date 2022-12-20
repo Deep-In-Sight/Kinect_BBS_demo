@@ -130,8 +130,8 @@ class QMyMainWindow(QWidget):
         if not(os.path.isfile(checkfile)) :
             t1 = time.time()
 
-            self.device.close()
-            self.bodyTracker.destroy()
+            self.device.release()
+            #self.bodyTracker.destroy()
 
             self.qthreadrec.setRun(False)
 
@@ -326,8 +326,8 @@ class QMyMainWindow(QWidget):
         
         #self.qScenario.onchanged(cameraidx)
 
-        self.device.close()
-        self.bodyTracker.destroy()
+        #self.device.release()#close()
+        #self.bodyTracker.destroy()
         
         self._init_camera(cameraidx)
 
