@@ -111,8 +111,8 @@ class HEAAN_Encryptor():
         self.scheme = he.Scheme(self.ring, is_serialized, key_path)
         self.algo = he.SchemeAlgo(self.scheme)
 
-        self.set_featurizers()
-        self.load_scalers()
+        #self.set_featurizers()
+        #self.load_scalers()
 
         if debug: print("[Encryptor] HEAAN is ready")
 
