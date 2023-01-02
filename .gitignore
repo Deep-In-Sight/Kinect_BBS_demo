@@ -7,7 +7,7 @@
 *.tar.gz
 *.txt
 *.dat
-
+*/state.json
 # C++ objects and libs
 *.slo
 *.lo
