@@ -25,17 +25,10 @@ from bbsQt.constants import NFRAMES
 
 WAIT = 0.01
 
-# def do_save_multiproc(path_root, data, idx0, Locale, ID):
-#     i = 0
-#     print(path_root)
-#     for color in data:
-#         cv2.imwrite(f"./{Locale}/{str(ID).zfill(3)}/RGB/{str((i+idx0) + 1).zfill(4)}.jpg", color)
-#         i = i + 1
-
 
 class qThreadRecord(QThread):
     
-    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
+    def __init__(self, k4a, bt, LbFPS, qScenario, PWD, camera_num):
         super().__init__()
         self.stackColor = []
         self.stackIR = []
@@ -50,17 +43,8 @@ class qThreadRecord(QThread):
         self.pic_Count = 0
         self.PWD = PWD
         self.camera_num = camera_num
-        self.q1 = q1
-        self.e_sk = e_sk
 
-        self.e_ans = e_ans
-        self.q_answer = q_answer
-
-        #self.p_save0 = partial(self.select_sk, skindex=0)
-        #self.p_save1 = partial(self.select_sk, skindex=1)
-        #self.p_save2 = partial(self.select_sk, skindex=2)
         print("QTrhead record", self.k4a)
-
 
     def setRun(self, Run):
         self.isRun = Run
@@ -152,8 +136,6 @@ class qThreadRecord(QThread):
     def get_color(self):
         return self.stackColor
 
-
-
     # todo data tree  
     def save_multiproc(self):
         self.stackColor = np.array(self.stackColor)
@@ -165,168 +147,35 @@ class qThreadRecord(QThread):
                 maxValue = len(self.stackJoint[i])
                 maxframe_idx = idx
         
-        
         print('[Qthread obj] maxperson', maxValue)
         print('[Qthread obj] maxframe idx',maxframe_idx)
-        #skarr  = ku.kinect2mobile_direct(self.stackJoint[maxframe_idx])
         self.skarr  = ku.kinect2mobile_direct_lists(self.stackJoint)
-
         self.sk_viewer(self.skarr, self.stackColor, maxframe_idx, 1)
 
         skimage = self.load_image(maxframe_idx)
         
-        #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        
-        # todo 
-        #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
-        # print(f'skeleton index : {skindex}')
-        # scene = ku.kinect2mobile_direct(self.stackJoint)
-
-        # nframe = 10 
-        # sub = ru.smoothed_frame_N(scene, nframe=nframe, shift=1)
-        # skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-        # q1.put({"action":self.ScenarioNo,
-        #         "skeleton": skeleton})
-        # #print("is q1 empty?", q1.empty())
-        # e_sk.set()
-        #print("is e_sk set?1", e_sk.is_set())
-        
-        #uid = pwd.getpwnam("etri_ai2").pw_uid
-        #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
-
-
         ## IMAGE SAVE 
         idx = list(range(self.pic_Count))
-        #idx = np.array_split(idx, Ncpu);
-
-        #for i in range(int(Ncpu)):
-        #idx[i] = idx[i].tolist()
 
         print("[Qthread obj] Number of frames", len(self.stackColor))
         # queues = [Queue() for i in range(Ncpu)]
         t0 = time.time()
-        #print(self.path_save)
-        #args = [(self.path_save, self.stackColor[idx[i]], idx[i][0], self.Locale, self.SubjectID) for i in range(Ncpu)]
-        #jobs = [mp.Process(target = do_save_multiproc, args=(a)) for a in args]
-        #c(path_root, data, idx0, Locale, ID
         if self.camera_num == 1 :
             camera_num = 'e_'
         elif self.camera_num == 0:
             camera_num = 'a_'
+        
+        bt_path = f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/BT/{camera_num}.pickle"
+        pickle.dump(self.skarr, open(bt_path, "wb"))
 
         for i, color in enumerate(self.stackColor):
-            cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((i+idx[i]) + 1).zfill(4)}.jpg", color)
+            cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((idx[i]) + 1).zfill(4)}.jpg", color)
 
         #print(f"Dumping {self.pic_Count} images using {Ncpu} done {time.time() - t0:.2f}")
 
         # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
         return skimage
 
-
-    # # add 2021.12.27  
-    # def select_sk0(self):
-    #     skindex =0
-    #     #self.stackColor = np.array(self.stackColor)
-    #     #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        
-    #     # todo 
-    #     #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
-    #     print(f'[Qthread obj] skeleton index : {skindex}')
-    #     print("[Qthread obj] camera_num", self.camera_num)
-    #     #scene = ku.kinect2mobile_direct(self.stackJoint)
-    #     sub = ru.smoothed_frame_N(self.skarr[skindex], 
-    #                              nframe=NFRAMES[f'{self.ScenarioNo}'], 
-    #                              shift=1)
-    #     skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-    #     self.q1.put({"action":self.ScenarioNo,
-    #             "skeleton": skeleton})
-    #     print("[Qthread obj] is q1 empty?", self.q1.empty())
-    #     self.e_sk.set()
-    #     print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-    #     self.e_ans.wait()
-    #     		#self.viewInfo.setText(self.showinfo())
-    #     self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
-    #     font = QFont()
-    #     font.setBold(True)
-    #     font.setPointSize(15)
-    #     self.qScenario.viewInfo.setFont(font)
-
-    #     self.e_ans.clear()
-    #     #uid = pwd.getpwnam("etri_ai2").pw_uid
-    #     #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
-    
-    # def select_sk1(self):
-    #     skindex=1
-    #     #self.stackColor = np.array(self.stackColor)
-    #     #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        
-    #     # todo 
-    #     #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
-    #     print(f'[Qthread obj] skeleton index : {skindex}')
-    #     print("[Qthread obj] camera_num", self.camera_num)
-    #     #scene = ku.kinect2mobile_direct(self.stackJoint)
-    #     sub = ru.smoothed_frame_N(self.skarr[skindex], 
-    #                              nframe=NFRAMES[f'{self.ScenarioNo}'], 
-    #                              shift=1)
-    #     skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-    #     self.q1.put({"action":self.ScenarioNo,
-    #             "skeleton": skeleton})
-    #     print("[Qthread obj] is q1 empty?", self.q1.empty())
-    #     self.e_sk.set()
-    #     print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-    #     self.e_ans.wait()
-    #     		#self.viewInfo.setText(self.showinfo())
-    #     self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
-    #     font = QFont()
-    #     font.setBold(True)
-    #     font.setPointSize(15)
-    #     self.qScenario.viewInfo.setFont(font)
-
-    #     self.e_ans.clear()
-    #     #uid = pwd.getpwnam("etri_ai2").pw_uid
-    #     #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)
-    
-    # def select_sk2(self):
-    #     skindex=2
-    #     #self.stackColor = np.array(self.stackColor)
-    #     #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
-        
-    #     # todo 
-    #     #scene = ku.kinect2mobile_direct(self.stackJoint[skindex])
-
-    #     print(f'[Qthread obj] skeleton index : {skindex}')
-    #     print("[Qthread obj] camera_num", self.camera_num)
-    #     #scene = ku.kinect2mobile_direct(self.stackJoint)
-    #     sub = ru.smoothed_frame_N(self.skarr[skindex], 
-    #                              nframe=NFRAMES[f'{self.ScenarioNo}'], 
-    #                              shift=1)
-    #     skeleton = ru.ravel_rec(sub)[np.newaxis, :]
-
-    #     self.q1.put({"action":self.ScenarioNo,
-    #             "skeleton": skeleton})
-    #     print("[Qthread obj] is q1 empty?", self.q1.empty())
-    #     self.e_sk.set()
-    #     print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-    #     self.e_ans.wait()
-    #     		#self.viewInfo.setText(self.showinfo())
-    #     self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
-    #     font = QFont()
-    #     font.setBold(True)
-    #     font.setPointSize(15)
-    #     self.qScenario.viewInfo.setFont(font)
-
-    #     self.e_ans.clear()
-    #     #uid = pwd.getpwnam("etri_ai2").pw_uid
-    #     #os.chown(f"{self.path_bt}/bodytracking_data.pickle", uid, -1)         
 
     def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
         left_arms = ['l_shoulder', 'l_elbow', 'l_hand']

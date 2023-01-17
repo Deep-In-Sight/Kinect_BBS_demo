@@ -75,14 +75,12 @@ def load_image():
 
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
-    def __init__(self, q1, e_sk, q_answer, e_ans):
+    def __init__(self):
         """
         q1 = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
         """
         super(QMyMainWindow, self).__init__()
-        self.q1 = q1
-        self.e_sk = e_sk
         self.onPlay = False
         self.ScenarioNo = 1
         self.ScenarioPathOn = False
@@ -90,26 +88,15 @@ class QMyMainWindow(QWidget):
         self.increasing_alpha = True
         self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
 
-        self.q_answer = q_answer
-        self.e_ans = e_ans
         self.recordReady = False
         
-        # add 2021/12/23 
-        #self.cameraindex = 0
-
         self.PWD = os.getcwd()
         self.imgviwerRGB = PhotoViewer(self,"RGB", ENABLE_PYK4A)
         
-        #self.imgviwerIRtest = PhotoViewer(self,"IR", ENABLE_PYK4A)
         self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
-        self.qScenario = qScenario(self, self.PWD, q_answer)
+        self.qScenario = qScenario(self, self.PWD)
 
         self.config = setConfig() # to be added
-        #self.qSkeleton = qSkeleton()
-
-        #self.class_name = QComboBox()
-
-        # self.acc = [0,0,0] # [x,y,x]
 
         self.curScenario = self.config.scenario[self.ScenarioNo]
 
@@ -142,8 +129,7 @@ class QMyMainWindow(QWidget):
         
         #print("[QMAIN]", self.btn.cameranum.currentIndex())
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
-                                        self.PWD, self.btn.cameranum.currentIndex(), 
-                                        self.q1, self.e_sk, self.e_ans, self.q_answer)
+                                        self.PWD, self.btn.cameranum.currentIndex())
 
         self.setLayout()
         self.initplot()
@@ -235,9 +221,6 @@ class QMyMainWindow(QWidget):
 
             self.qthreadrec.mkd(self.Locale, self.qScenario.SubjectID, self.ScenarioNo)
 
-            print("Main Windows: is q1 empty?", self.q1.empty())
-            print("Main Windows: is e_sk set?", self.e_sk.is_set())
-            
             # skimage 를 뽑고 이걸 skimage label 넣는다. 
             skimage = self.qthreadrec.save_multiproc()
             self.skimageLabel.setPixmap(skimage)
@@ -342,15 +325,7 @@ class QMyMainWindow(QWidget):
                                  shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
-        self.q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        self.qScenario.viewInfo.setText("FIXED_TEXT")
         font = QFont()
         font.setBold(True)
         font.setPointSize(15)
@@ -366,21 +341,11 @@ class QMyMainWindow(QWidget):
                                  shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
-        self.q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        self.qScenario.viewInfo.setText("FIXED_TEXT")
         font = QFont()
         font.setBold(True)
         font.setPointSize(15)
         self.qScenario.viewInfo.setFont(font)
-
-        self.e_ans.clear()
 
     def select_sk2(self):
         skindex =2
@@ -390,22 +355,11 @@ class QMyMainWindow(QWidget):
                                  shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
-        self.q1.put({"action":self.ScenarioNo,
-                "skeleton": skeleton})
-        print("[Qthread obj] is q1 empty?", self.q1.empty())
-        self.e_sk.set()
-        print("[Qthread obj] is e_sk set?1", self.e_sk.is_set())
-        
-        self.e_ans.wait()
-        		#self.viewInfo.setText(self.showinfo())
-        self.qScenario.viewInfo.setText(f'{self.q_answer.get()}')
+        self.qScenario.viewInfo.setText("FIXED_TEXT")
         font = QFont()
         font.setBold(True)
         font.setPointSize(15)
         self.qScenario.viewInfo.setFont(font)
-
-        self.e_ans.clear()
-
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -522,12 +476,8 @@ class QMyMainWindow(QWidget):
             self.bodyTracker = pykinect.start_body_tracker()
         else:
             self.pyK4A = None
-        #self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
-                    #           self.PWD, self.btn.cameranum.currentIndex(),
-                    #           self.q1, self.e_sk, self.e_ans, self.q_answer)
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.btn.LbFPS, self.qScenario, 
-                                self.PWD, self.btn.cameranum.currentIndex(), 
-                                self.q1, self.e_sk, self.e_ans, self.q_answer)
+                                self.PWD, self.btn.cameranum.currentIndex())
     # todo class and score
     @pyqtSlot()
     def updateScenarioNo(self):

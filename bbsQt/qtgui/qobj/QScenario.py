@@ -28,14 +28,13 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
 
 
 class qScenario(QObject):
-	def __init__(self, qmain, pwd, q_answer, ):
+	def __init__(self, qmain, pwd):
 		super(qScenario, self).__init__(qmain)
 		self.obj = ""
 		self.PWD = pwd
 		self.qmain = qmain	
 
 		self.text_answer = ""
-		self.q_answer = q_answer
 
 		self.ScenarioNo = 0
 		self.SubjectID = 0
@@ -367,18 +366,7 @@ class qScenario(QObject):
 		# self.sizeInfo.setText(self.showSizeInfo())
 		pass
 
-
-	# def updateImgMemoryInfo(self):
-	# 	self.imgMemoryInfoDisp = f"[RGB]:{self.rgbdispsize}MB"
-	# 	self.imgMemoryInfoDisp += f"\n[IR]:{self.irdispsize}MB"
-	# 	self.imgMemoryInfoDisp += f"\n[Depth]:{self.depthdispsize}MB"
-		
-
-
 	def showinfo(self):
-		if not self.q_answer.empty():
-			answer = f'Action #{self.ScenarioNo} \n'+ self.q_answer.get()
-			self.text_answer = answer
 		info 	 = f" {self.text_answer} <<< Waiting for prediction... >>>\n"
 		# info 	+= f"[ID] {self.SubjectID}\n"
 		# #info 	+= f"[ID Correction] {self.Correction}\n"
@@ -387,23 +375,6 @@ class qScenario(QObject):
 		# info 	+= f"[Record Start Time] {self.RECstartTime}\n"
 		return info
 
-	# def updateImgMemoryInfoRec(self):
-	# 	self.imgMemoryInfoRec  = "[RGB]:{:.2f}MB".format(self.imgRecSizes[0])
-	# 	self.imgMemoryInfoRec += "\n[IR]:{:.2f}MB".format(self.imgRecSizes[1])
-	# 	self.imgMemoryInfoRec += "\n[Depth]:{:.2f}MB".format(self.imgRecSizes[2])
-	# 	self.imgMemoryInfoRec += "\n[Rec. Time]:{:.2f}sec".format(self.imgRecSizes[3])
-	# 	self.imgMemoryInfoRec += "\n[Frames]:{:4d}".format(self.imgRecSizes[4])
-
-
-	# def showSizeInfo(self):
-	# 	self.updateImgMemoryInfo()
-	# 	self.updateImgMemoryInfoRec()		
-	# 	info 	 = f"<<< Img Info. >>>\n"
-	# 	info    += self.imgMemoryInfoDisp
-	# 	info 	+= f"\n\n<<< REC Info. >>>\n"
-	# 	info    += self.imgMemoryInfoRec
-
-	# 	return info
 
 
 	def setRecordTime(self, t):
