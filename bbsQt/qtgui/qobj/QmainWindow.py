@@ -85,7 +85,7 @@ class QMyMainWindow(QWidget):
         self.btn = qButtons(self, self.PWD)
 
         self.imgviwerRGB = PhotoViewer(self,"RGB", ENABLE_PYK4A)
-        self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
+        #self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
 
         self.startRecord.connect(self.recordImages)
         self.stopRecord.connect(self.end)
@@ -117,7 +117,7 @@ class QMyMainWindow(QWidget):
 
 
         self.imgviwerRGB.emitDispImgSize.connect(self.qScenario.setRgbDispSize)
-        self.imgviwerSkeleton.emitDispImgSize.connect(self.qScenario.setDepthDispSize)
+        #self.imgviwerSkeleton.emitDispImgSize.connect(self.qScenario.setDepthDispSize)
 
         ############################
         LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
@@ -125,9 +125,12 @@ class QMyMainWindow(QWidget):
         LayoutFallPred.setAlignment(Qt.AlignLeft)
 
     def end(self):
+        """Stop recording and save the video and skeleton"""
         self.btn.endtime.setText("T")
         checkfile = f"{self.PWD}/bodytracking_data.csv"
-        if not(os.path.isfile(checkfile)) :
+
+        if not(os.path.isfile(checkfile)):
+            print("checkfile", checkfile)
             t1 = time.time()
 
             self.device.release()
@@ -139,6 +142,7 @@ class QMyMainWindow(QWidget):
 
             # skimage 를 뽑고 이걸 skimage label 넣는다. 
             skimage = self.qthreadrec.save_multiproc()
+            print("skimage", skimage)
             if skimage == -1:
                 cameraidx = self.btn.cameranum.currentIndex()
                 self.startcamera(cameraidx)
@@ -184,7 +188,7 @@ class QMyMainWindow(QWidget):
         LayoutViewers.setAlignment(Qt.AlignLeft)
         
         LayoutViewers.addLayout(self.imgviwerRGB.getLayout(),1)
-        LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
+        #LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
         
         self.skimageLabel = QLabel()
         self.skimageLabel.setPixmap(load_image())
@@ -251,7 +255,7 @@ class QMyMainWindow(QWidget):
         self.qthreadrec.init(self.PWD, 
                                 self.Locale,
                                 self.qScenario.SubjectID,
-                                self.btn
+                                self.btn,
                                 )
         self.qthreadrec.start()
         self.qthreadrec.setRun(True)
@@ -309,7 +313,7 @@ class QMyMainWindow(QWidget):
         #    self.pyK4A = None
         #try:
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
-                                    self.PWD, cameraidx, 
+                                    self.PWD, cameraidx, self.imgviwerRGB,
                                     self.q1, self.e_sk, self.e_ans, self.q_answer)
         #except:
         #    print("Error in camera.... trying again")
@@ -346,6 +350,7 @@ class QMyMainWindow(QWidget):
         while self.onPlay:
             # Get capture
             success, image = self.device.read()
+            #print("image", image[:3,:3,...])
             
             # Get body tracker frame
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -360,12 +365,12 @@ class QMyMainWindow(QWidget):
                     landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
 
             self.imgviwerRGB.setImg(cv2.flip(image, 1))
-            self.imgviwerSkeleton.setImg(cv2.flip(image, 1)) ## <<<<<<<<<<<
+            #self.imgviwerSkeleton.setImg(cv2.flip(image, 1)) ## <<<<<<<<<<<
 
-            try:
+            if True:
                 self.imgviwerRGB.start()
-                self.imgviwerSkeleton.start()
-            except:
+                #self.imgviwerSkeleton.start()
+            else:
                 pass
 
             t1 = time.time()
@@ -382,8 +387,8 @@ class QMyMainWindow(QWidget):
                                     "Are you sure to close window ?", 
                                     QMessageBox.No | QMessageBox.Yes , QMessageBox.Yes)
         if reply == QMessageBox.Yes:
-            self.device.close()
-            self.bodyTracker.destroy()
+            self.device.release()
+            #self.bodyTracker.destroy()
 
             event.accept()
         else:

@@ -7,31 +7,31 @@ import numpy as np
 import os
 import cv2
 import pickle
-
+import mediapipe as mp
+mp_pose = mp.solutions.pose
+mp_drawing = mp.solutions.drawing_utils 
+mp_drawing_styles = mp.solutions.drawing_styles
 import matplotlib.pyplot as plt 
 
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES, VERBOSE
+from bbsQt.constants import NFRAMES, VERBOSE, mp_pose_lm_name
 from bbsQt.model.Fall_predict import Score_updator
-
 WAIT = 0.01
 
 def is_valid_skeleton(skeleton):
     return np.all(skeleton['frame'] != 0)
 
+
 class qThreadRecord(QThread):
     
-    def __init__(self, cap, mp_pose, qScenario, PWD, camera_num, q1, e_sk, e_ans, q_answer):
+    def __init__(self, cap, mp_pose, qScenario, PWD, camera_num, imgviwerRGB, q1, e_sk, e_ans, q_answer):
         super().__init__()
         self.stackColor = []
-        #self.stackIR = []
         self.stackDepth = []
         self.stackJoint = []
-        #self.k4a = k4a
         self.cap = cap
         self.mp_pose = mp_pose
-        #self.bt = bt
         self.isRun = False
         self.qScenario = qScenario
         self.Ncpu = 2
@@ -40,9 +40,9 @@ class qThreadRecord(QThread):
         self.camera_num = camera_num
         self.q1 = q1
         self.e_sk = e_sk
-
         self.e_ans = e_ans
         self.q_answer = q_answer
+        self.imgviwerRGB = imgviwerRGB
 
     def setRun(self, Run):
         self.isRun = Run
@@ -52,11 +52,8 @@ class qThreadRecord(QThread):
         self.Locale = Locale
         self.SubjectID = SubjectID
         self.btn = btn
-
-        #if self.k4a is not None:
-        #    self.path_save = f"{self.PWD}/{str(self.SubjectID).zfill(3)}"
-        #else:
         self.path_save = f"{self.PWD}/images"
+        
 
     def reset(self, k4a, bt):
             self.k4a = k4a
@@ -95,11 +92,16 @@ class qThreadRecord(QThread):
 
         t0 = time.time()
         self.resetstate()
+        
+        joint = np.zeros((33,3))
+        #joint[:,0] = mp_pose_lm_name
         while (self.btn.endtime.text() == "F"):
-            try:
+            #try:
+            if True:
                 #capture = self.k4a.update()
                 success, image = self.cap.read()
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                results = self.mp_pose.process(image)
                 #body_frame = self.bt.update()
                 #rat, color = capture.get_color_image()
                     
@@ -109,14 +111,26 @@ class qThreadRecord(QThread):
                 #s_image = cv2.addWeighted(dc_image, 0.6, b_image, 0.4, 0)
                 #s_image = cv2.cvtColor(s_image, cv2.COLOR_BGR2RGB)
                 #joint = body_frame.ex_joints(s_image) # extract joint
-                joint = self.mp_pose.process(image)
+                mp_drawing.draw_landmarks(
+                    image,
+                    results.pose_landmarks,
+                    mp_pose.POSE_CONNECTIONS,
+                    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+
+                self.imgviwerRGB.setImg(cv2.flip(image, 1))
+                
+                for i, lm in enumerate(results.pose_landmarks.landmark):
+                    joint[i][0] = lm.x 
+                    joint[i][1] = lm.y
 
                 #capture.reset()
                 #body_frame.reset()
-            except:
-                pass
-            else:
+                print("joint", joint)
+            #except:
+            #    pass
+            #else:
                 self.stackColor.append(image)
+                print(joint)
                 self.stackJoint.append(joint) # joints are stored here
                 self.pic_Count += 1
                 
@@ -135,48 +149,56 @@ class qThreadRecord(QThread):
         # 모든 스켈레톤이 다있는 프레임 
         
         # In case no skeleton was captured
-        try:
-            self.skarr_list  = ku.kinect2mobile_direct_lists(self.stackJoint)
-        except:
+        #print("STACK JOINT")
+        #print(self.stackJoint)
+        if True:
+            self.skarr = ku.kinect2mobile_direct_lists(self.stackJoint)
+            print("SKARR LIST", self.skarr)
+        else:
+        #except:
             self.qScenario.viewInfo.setText(f"Failed to detect any skeleton, Try again")
             font = QFont()
             #font.setBold(True)
             font.setPointSize(14)
             self.qScenario.viewInfo.setFont(font)
             return -1
-
-        nframes = len(self.skarr_list[0])
+        return 1
+        #nframes = len(self.skarr)
         
-        i_person_exist = np.ones(nframes, dtype=bool)
-        for karr in self.skarr_list:
-            i_non_empty = np.ones(nframes, dtype=bool)
-            for name in karr.dtype.names:
-                i_non_empty *= np.array(karr[name] > 0)
-            i_person_exist *= i_non_empty
+        # i_person_exist = np.ones(nframes, dtype=bool)
+        # for karr in self.skarr_list:
+        #     i_non_empty = np.ones(nframes, dtype=bool)
+        #     for name in karr.dtype.names:
+        #         i_non_empty *= np.array(karr[name] > 0)
+        #     i_person_exist *= i_non_empty
         
-        maxframe_idx = np.argmin(i_person_exist)
-        if not VERBOSE: print('[Qthread obj] maxframe idx',maxframe_idx)
+        # maxframe_idx = np.argmin(i_person_exist)
+        # if not VERBOSE: print('[Qthread obj] maxframe idx',maxframe_idx)
 
-        self.sk_viewer(self.skarr_list, self.stackColor, maxframe_idx, 1)
-        skimage = self.load_image(maxframe_idx)
+        #self.sk_viewer(self.skarr_list, self.stackColor, maxframe_idx, 1)
+        #self.sk_viewer_single(self.skarr, self.stackColor, 1)
+        #skimage = self.load_image(maxframe_idx)
         
-        ## IMAGE SAVE 
-        idx = list(range(self.pic_Count))
+        # 왜 저장하지? 
+        # -> 녹화할 때는 skeleton 화면을 따로 보여주지 않음. 
+        # 녹화할때도 skeleton 보여주기로... 
+        # IMAGE SAVE 
+        # idx = list(range(self.pic_Count))
 
-        if not VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
-        # queues = [Queue() for i in range(Ncpu)]
-        t0 = time.time()
-        if self.camera_num == 1 :
-            camera_num = 'a_'
-        elif self.camera_num == 0:
-            camera_num = 'e_'
+        # if not VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
+        # # queues = [Queue() for i in range(Ncpu)]
+        # t0 = time.time()
+        # if self.camera_num == 1 :
+        #     camera_num = 'a_'
+        # elif self.camera_num == 0:
+        #     camera_num = 'e_'
 
-        #for i, color in enumerate(self.stackColor):
-        #Save only one jpg
-        color = self.stackColor[maxframe_idx]
-        cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((maxframe_idx+idx[maxframe_idx]) + 1).zfill(4)}.jpg", color)
-        # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
-        return skimage
+        # #for i, color in enumerate(self.stackColor):
+        # #Save only one jpg
+        # color = self.stackColor#[maxframe_idx]
+        # cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((idx) + 1).zfill(4)}.jpg", color)
+        # # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
+        # return skimage
 
     def select_sk(self, skindex=0):
         """! Skeleton selector
@@ -250,7 +272,7 @@ class qThreadRecord(QThread):
         self.qScenario.viewInfo.setFont(font)
 
         self.e_ans.clear()
-        
+
             
     def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
         """Skeleton viewer"""

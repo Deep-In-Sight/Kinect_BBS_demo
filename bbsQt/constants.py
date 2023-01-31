@@ -5,6 +5,14 @@ FN_KEYS = ["ENCRYPTION.txt",
 FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
 
+
+mp_pose_lm_name = ["nose", "l_eye_inner", "l_eye", "l_eye_outer", 'r_eye_inner', "r_eye", "r_eye_outer",
+                   "l_ear", "r_ear", "mouth_left", "mouth_right", "l_shoulder", "r_shoulder", 
+                   "l_elbow", "r_elbow", "l_wrist", "r_wrist", "l_pinky", "r_pinky", 
+                   "l_index", "r_index", "l_thumb", "r_thumb", "l_hip", "r_hip", 
+                   "l_knee", "r_knee", "l_ankle", "r_ankle", "l_heel", "r_heel", 
+                   "l_foot_index", "r_foot_index"]
+
 HEAAN_CONTEXT_PARAMS = {'logq':450,
                         'logp':30,
                         'logn':14,

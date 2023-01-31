@@ -114,29 +114,30 @@ class PhotoViewer(QGraphicsView, QThread):
 
 	def start(self):
 		# if not(self.onPlay): return
-		if self.ENABLE_PYK4A:
+		#if self.ENABLE_PYK4A:
+		if True:
 			
 			img = cv2.resize(self.img, (self.WIDTH,self.HEIGHT))
 			if img.ndim == 2: img = np.expand_dims(img, axis=-1)
 			if "RGB" in self.name:
 				img = img.astype(np.uint8)[...,2::-1]
-			else: 
-				if "Depth" in self.name: 
-					h, w, _ = img.shape
-					self._scene.removeItem(self.depthtext)
-					self.depth_at_center = img[h//2, w//2, 0]
-					self.depthtext = getNewTextItem(self.WIDTH//2, self.HEIGHT//2, f"{self.depth_at_center}mm")
-					self._scene.addItem(self.depthtext)
+			# else: 
+			# 	if "Depth" in self.name: 
+			# 		h, w, _ = img.shape
+			# 		self._scene.removeItem(self.depthtext)
+			# 		self.depth_at_center = img[h//2, w//2, 0]
+			# 		self.depthtext = getNewTextItem(self.WIDTH//2, self.HEIGHT//2, f"{self.depth_at_center}mm")
+			# 		self._scene.addItem(self.depthtext)
 
-				img = imgutil.gray_rescale(img,self.minval, self.maxval)
-				if img.shape[2] == 1:
-					img = np.stack([img[...,0],img[...,0],img[...,0]], axis = -1)
+			# 	img = imgutil.gray_rescale(img,self.minval, self.maxval)
+			# 	if img.shape[2] == 1:
+			# 		img = np.stack([img[...,0],img[...,0],img[...,0]], axis = -1)
 			
 			self.update(img)
 
 		else:
-			
-			if "RGB" in self.name:
+			print("SELF.name", self.name)
+			if "RGB" == self.name:
 				img = cv2.resize(cv2.imread(self.imgPath), (self.WIDTH,self.HEIGHT))
 				img = img[:,:,::-1]
 			else:
