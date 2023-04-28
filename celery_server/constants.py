@@ -35,7 +35,7 @@ elif location == "local":
     #HOST = '127.0.0.1'
     PORT = 2345
     DIR_KEY_SERVER = "/home/hoseung/Work/Kinect_BBS_demo/server/serkey/"
-    BIN_PYTHON='/home/dinsight/anaconda3/envs/deepinsight/bin/python'
+    BIN_PYTHON='/home/dinsight/anaconda3/envs/bbs/bin/python'
     COPY_SCRIPT='send_key_cp.py'
     DIR_VIDEO = "videos/"
 

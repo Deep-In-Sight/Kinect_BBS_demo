@@ -97,9 +97,8 @@ class qThreadRecord(QThread):
         #joint[:,0] = mp_pose_lm_name
         while (self.btn.endtime.text() == "F"):
             #try:
-            if True:
-                #capture = self.k4a.update()
-                success, image = self.cap.read()
+            success, image = self.cap.read()
+            if success:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = self.mp_pose.process(image)
                 #body_frame = self.bt.update()
@@ -118,19 +117,19 @@ class qThreadRecord(QThread):
                     landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
 
                 self.imgviwerRGB.setImg(cv2.flip(image, 1))
-                
-                for i, lm in enumerate(results.pose_landmarks.landmark):
-                    joint[i][0] = lm.x 
-                    joint[i][1] = lm.y
+
+                if results.pose_landmarks:
+                    for i, lm in enumerate(results.pose_landmarks.landmark):
+                        joint[i][0] = lm.x 
+                        joint[i][1] = lm.y
 
                 #capture.reset()
                 #body_frame.reset()
-                print("joint", joint)
+                #print("joint", joint)
             #except:
             #    pass
             #else:
                 self.stackColor.append(image)
-                print(joint)
                 self.stackJoint.append(joint) # joints are stored here
                 self.pic_Count += 1
                 
@@ -151,18 +150,24 @@ class qThreadRecord(QThread):
         # In case no skeleton was captured
         #print("STACK JOINT")
         #print(self.stackJoint)
-        if True:
+        try:
             self.skarr = ku.kinect2mobile_direct_lists(self.stackJoint)
-            print("SKARR LIST", self.skarr)
-        else:
-        #except:
+            #print("SKARR LIST", self.skarr)
+
+            # prepare image 
+            img = np.array(self.stackColor[-1]).astype(np.uint8)
+            height, width, channel = img.shape
+            bytesPerLine = 3 * width
+            pixmap   = QPixmap(QImage(img, width, height, bytesPerLine, QImage.Format_RGB888))
+            return pixmap
+        except:
             self.qScenario.viewInfo.setText(f"Failed to detect any skeleton, Try again")
             font = QFont()
             #font.setBold(True)
             font.setPointSize(14)
             self.qScenario.viewInfo.setFont(font)
             return -1
-        return 1
+        #return 1
         #nframes = len(self.skarr)
         
         # i_person_exist = np.ones(nframes, dtype=bool)

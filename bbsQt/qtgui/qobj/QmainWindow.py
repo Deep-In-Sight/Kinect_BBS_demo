@@ -143,11 +143,12 @@ class QMyMainWindow(QWidget):
             # skimage 를 뽑고 이걸 skimage label 넣는다. 
             skimage = self.qthreadrec.save_multiproc()
             print("skimage", skimage)
-            if skimage == -1:
+            if isinstance(skimage, int) and skimage == -1:
                 cameraidx = self.btn.cameranum.currentIndex()
                 self.startcamera(cameraidx)
             else:    
-                self.skimageLabel.setPixmap(skimage)
+                # 
+                #self.skimageLabel.setPixmap(skimage)
 
                 # recording 하는 동안 sleep으로 기다리기? 음.. 
                 while self.qthreadrec.is_recoding():
@@ -350,6 +351,8 @@ class QMyMainWindow(QWidget):
         while self.onPlay:
             # Get capture
             success, image = self.device.read()
+            if not success:
+                break
             #print("image", image[:3,:3,...])
             
             # Get body tracker frame

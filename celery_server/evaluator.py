@@ -9,12 +9,11 @@ from constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 from bbsconfig import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
     SEVER_PATH, MODEL_PATH, KEY_PATH
 
-from hemul import loader
-he = loader.he
+from hemul.heaan import he
     
 from hemul import heaan
-from hnrf.hnrf import HNRF, HETreeEvaluator
-from hnrf.nrf import NeuralTreeMaker
+from hemul.hnrf.hnrf import HNRF, HETreeEvaluator
+from hemul.hnrf.nrf import NeuralTreeMaker
 
 
 from utils import show_file_content

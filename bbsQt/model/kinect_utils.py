@@ -20,10 +20,46 @@ K2M = {"SHOULDER_LEFT":"l_shoulder",
        "ANKLE_RIGHT":"r_foot",
        "NOSE":"head"}
 
+
 def get_a_skel(tdict, this_person):
     for i, this_joint in enumerate(this_person):
         tdict["x"+mp_pose_lm_name[i]] = this_joint[0]
         tdict["y"+mp_pose_lm_name[i]] = this_joint[1]
+
+def get_a_skel_mp(tdict, this_person):
+    tdict["xl_hand"] = this_person[20][0]
+    tdict["yl_hand"] = this_person[20][1]
+    tdict["xr_hand"] = this_person[19][0]
+    tdict["yr_hand"] = this_person[19][1]
+    tdict["xl_elbow"] = this_person[18][0]
+    tdict["yl_elbow"] = this_person[18][1]
+    tdict["xr_elbow"] = this_person[17][0]
+    tdict["yr_elbow"] = this_person[17][1]
+    tdict["xl_shoulder"] = this_person[16][0]
+    tdict["yl_shoulder"] = this_person[16][1]
+    tdict["xr_shoulder"] = this_person[15][0]
+    tdict["yr_shoulder"] = this_person[15][1]
+    tdict["xhead"] = this_person[0][0]
+    tdict["yhead"] = this_person[0][1]
+    neck = (this_person[11] + this_person[12])/2
+    tdict["xneck"] = neck[0]
+    tdict["yneck"] = neck[1]
+    tdict["xl_foot"] = this_person[31][0]
+    tdict["yl_foot"] = this_person[31][1]
+    tdict["xr_foot"] = this_person[28][0]
+    tdict["yr_foot"] = this_person[28][1]
+    tdict["xl_knee"] = this_person[25][0]  
+    tdict["yl_knee"] = this_person[25][1]
+    tdict["xr_knee"] = this_person[26][0]
+    tdict["yr_knee"] = this_person[26][1]
+    tdict["xl_hip"] = this_person[23][0]
+    tdict["yl_hip"] = this_person[23][1]
+    tdict["xr_hip"] = this_person[24][0]
+    tdict["yr_hip"] = this_person[24][1]
+    pelvis = ((this_person[23] + this_person[24])*2/3 + (this_person[11] + this_person[12])/3)
+    tdict["xpelvis"] = pelvis[0]
+    tdict["ypelvis"] = pelvis[1]
+
         
 from . import BBS_pp_utils as bbpp
 def kinect2mobile_direct(klist, remove_zeros=True):
@@ -106,7 +142,7 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True, nperson_max = 4):
     mdtype = bbpp.get_dtypes(skeleton="COMMON")
     #marrs = [np.zeros(len(klist), dtype=mdtype) for i in range(nperson_max)]
     marr = np.zeros(len(klist), dtype=mdtype)
-    
+    #print("MARR dtype", marr.dtype)
     # Initialize temporary dict
     tdict = dict([(prx+name, 0) for name in ORG_KNT_TYPEs for prx in ["x", "y"]])
 
@@ -114,22 +150,31 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True, nperson_max = 4):
         #print()
         #for iperson, this_person in enumerate(this_frame):
         #marr = marrs[iperson]
-        print("this pserson", this_person.shape)
-        get_a_skel(tdict, this_person)
+        get_a_skel_mp(tdict, this_person)
         
         # Assume neck is the mid point of shoulders
-        marr[iframe]['xneck'] = (tdict['xSHOULDER_LEFT'] + tdict['xSHOULDER_RIGHT'])/2
-        marr[iframe]['yneck'] = (tdict['ySHOULDER_LEFT'] + tdict['ySHOULDER_RIGHT'])/2
+        # marr[iframe]['xneck'] = (tdict['xSHOULDER_LEFT'] + tdict['xSHOULDER_RIGHT'])/2
+        # marr[iframe]['yneck'] = (tdict['ySHOULDER_LEFT'] + tdict['ySHOULDER_RIGHT'])/2
 
-        marr[iframe]['xpelvis'] = (tdict['xHIP_LEFT'] + tdict['xHIP_RIGHT'])/2
-        marr[iframe]['ypelvis'] = (tdict['yHIP_LEFT'] + tdict['yHIP_RIGHT'])/2
+        # marr[iframe]['xpelvis'] = (tdict['xHIP_LEFT'] + tdict['xHIP_RIGHT'])/2
+        # marr[iframe]['ypelvis'] = (tdict['yHIP_LEFT'] + tdict['yHIP_RIGHT'])/2
 
-        for common_field in K2M:
-            for prefix in ['x','y']:
-                marr[prefix+K2M[common_field]] = tdict[prefix+common_field]
+        #for common_field in K2M:
+            #print("COMMON", common_field)
+        for dt in marr.dtype.names:
+            if dt == "frame":
+                marr[iframe][dt] = iframe +1
+            else:
+                marr[dt] = tdict[dt]
+            #for prefix in ['x','y']:
+                #print(prefix+K2M[common_field])
+            
 
-        marr[iframe]['frame'] = iframe +1
+        
     
+    #print("Tdict", tdict)
+    #print("this pserson", this_person)
+    #print("marr", marr)
     return marr
     # new_marr = []
     # for i, mm in enumerate(marrs):
