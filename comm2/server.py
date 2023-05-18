@@ -7,7 +7,7 @@ from celery import Celery
 app = Flask(__name__,static_folder='./static',template_folder = './templates')
 
 # Configure the redis server
-server_ip = ["127.0.0.1", "192.168.0.18"]
+server_ip = ["127.0.0.1", "192.168.0.18"][0]
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['result_backend'] = 'redis://localhost:6379/0'
 
@@ -89,4 +89,5 @@ def call_heaan(self, fn, action):
 
 
 if __name__=="__main__":
+    print("Starting a server", server_ip)
     app.run(host=server_ip)

@@ -19,8 +19,6 @@ from .QThreadObj import qThreadRecord
 #from datetime import datetime
 
 import time
-
-ENABLE_PYK4A = False
 import mediapipe as mp
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils 
@@ -84,7 +82,7 @@ class QMyMainWindow(QWidget):
         self.PWD = os.getcwd()
         self.btn = qButtons(self, self.PWD)
 
-        self.imgviwerRGB = PhotoViewer(self,"RGB", ENABLE_PYK4A)
+        self.imgviwerRGB = PhotoViewer(self,"RGB")
         #self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
 
         self.startRecord.connect(self.recordImages)
@@ -148,7 +146,7 @@ class QMyMainWindow(QWidget):
                 self.startcamera(cameraidx)
             else:    
                 # 
-                #self.skimageLabel.setPixmap(skimage)
+                self.skimageLabel.setPixmap(skimage)
 
                 # recording 하는 동안 sleep으로 기다리기? 음.. 
                 while self.qthreadrec.is_recoding():
@@ -158,13 +156,15 @@ class QMyMainWindow(QWidget):
 
                 self.qthreadrec.resetstate()
 
-                if not VERBOSE: print("time during saving images: {} sec.".format(t2 - t1))
+                if VERBOSE: 
+                    print("[QMainWindow.end]time during saving images: {} sec.".format(t2 - t1))
 
                 self.resetRecordInterface()
 
                 self.btn.endtime.setText("F")
 
-                if not VERBOSE: print("Saving done. device index", self.btn.cameranum.currentIndex())
+                if VERBOSE: 
+                    print("[QMainWindow.end]Saving done. device index", self.btn.cameranum.currentIndex())
 
                 # Reset device
                 ###
@@ -275,7 +275,7 @@ class QMyMainWindow(QWidget):
 
     # add 20210107
     def actionChanged(self):
-        if not VERBOSE: print("action changed", self.btn.action_num.currentIndex())
+        if VERBOSE: print("action changed", self.btn.action_num.currentIndex())
         actionidx = self.btn.action_num.currentIndex() + 1
         #a = 1
         #e = 0
@@ -289,7 +289,7 @@ class QMyMainWindow(QWidget):
 
     # fix 20210107
     def cameraChanged(self):
-        if not VERBOSE: print("camera changed", self.btn.cameranum.currentIndex())
+        if VERBOSE: print("camera changed", self.btn.cameranum.currentIndex())
         cameraidx = self.btn.cameranum.currentIndex()
         self.startcamera(cameraidx)
 
@@ -301,7 +301,7 @@ class QMyMainWindow(QWidget):
         # self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
 
         # Start cameras using modified configuration
-        if not VERBOSE: print("ACTION CHANGED, device index", cameraidx)
+        if VERBOSE: print("ACTION CHANGED, device index", cameraidx)
         self.device = cv2.VideoCapture(cameraidx)
         # self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
 

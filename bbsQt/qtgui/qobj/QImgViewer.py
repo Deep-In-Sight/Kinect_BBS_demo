@@ -32,11 +32,11 @@ class PhotoViewer(QGraphicsView, QThread):
 	# emitClassLabelPos  	= pyqtSignal(list)
 	emitDispImgSize	= pyqtSignal(int)
 
-	def __init__(self, parent, name, ENABLE_PYK4A):
+	def __init__(self, parent, name):
 		super(PhotoViewer, self).__init__(parent)
 		self.parent = parent
 		self.name = name
-		self.ENABLE_PYK4A = ENABLE_PYK4A
+		self.ENABLE_PYK4A = False
 		if "RGB" in self.name:
 			self.WIDTH = 320
 			self.HEIGHT = 240

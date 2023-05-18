@@ -178,7 +178,7 @@ class qThreadRecord(QThread):
         #     i_person_exist *= i_non_empty
         
         # maxframe_idx = np.argmin(i_person_exist)
-        # if not VERBOSE: print('[Qthread obj] maxframe idx',maxframe_idx)
+        # if VERBOSE: print('[Qthread obj] maxframe idx',maxframe_idx)
 
         #self.sk_viewer(self.skarr_list, self.stackColor, maxframe_idx, 1)
         #self.sk_viewer_single(self.skarr, self.stackColor, 1)
@@ -190,7 +190,7 @@ class qThreadRecord(QThread):
         # IMAGE SAVE 
         # idx = list(range(self.pic_Count))
 
-        # if not VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
+        # if VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
         # # queues = [Queue() for i in range(Ncpu)]
         # t0 = time.time()
         # if self.camera_num == 1 :
@@ -206,29 +206,30 @@ class qThreadRecord(QThread):
         # return skimage
 
     def select_sk(self, skindex=0):
-        """! Skeleton selector
-        """
+        """No selection needed anymore. MP finds only one skeleton"""
         
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
-        if not VERBOSE: print(f'[Qthread obj] skeleton index : {skindex}')
-        if not VERBOSE: print("[Qthread obj] camera_num", self.camera_num)
+        if VERBOSE: print(f'[Qthread obj] skeleton index : {skindex}')
+        if VERBOSE: print("[Qthread obj] camera_num", self.camera_num)
         
         # Safety check
-        if not hasattr(self, 'skarr_list'):
+        if not hasattr(self, 'skarr'):
+            print("[QThreadObj.select_sk] No skeleton list")
             return 
-        if not is_valid_skeleton(self.skarr_list[skindex]):
+        if not is_valid_skeleton(self.skarr):
+            print("[QThreadObj.select_sk] Invalid skeleton")
             return 
         
-        print("~~~~~~!!!!!!!!~~~~~~~")
-        print(self.skarr_list)
+       # print("~~~~~~!!!!!!!!~~~~~~~")
+       # print(self.skarr)
         #scene = ku.kinect2mobile_direct(self.stackJoint)
         
         # FIX   20210107
         this_scenario = self.btn.action_num.currentText()
         this_score = self.btn.score_num.currentText()
         
-        sub = ru.smoothed_frame_N(self.skarr_list[skindex], 
+        sub = ru.smoothed_frame_N(self.skarr, 
                                 nframe=NFRAMES[f'{this_scenario}'],
                                 shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
@@ -242,7 +243,7 @@ class qThreadRecord(QThread):
         time_mark = f"{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
         sav_dir = f"{self.Locale}/BT/"
         if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
-        pickle.dump(self.skarr_list[skindex], open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
+        pickle.dump(self.skarr, open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
         fn_scores = f"{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
 
