@@ -89,7 +89,7 @@ class HEAAN_Encryptor():
     def __init__(self, server_url, key_path="./serkey/", 
                 debug=True):
         
-        self.server_url = server_url
+        self.server_url = f"http://{server_url}"
         self.model_dir = "./models/"
 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -111,8 +111,8 @@ class HEAAN_Encryptor():
         self.scheme = he.Scheme(self.ring, is_serialized, key_path)
         self.algo = he.SchemeAlgo(self.scheme)
 
-        #self.set_featurizers()
-        #self.load_scalers()
+        self.set_featurizers()
+        self.load_scalers()
 
         if debug: print("[Encryptor] HEAAN is ready")
 
@@ -211,9 +211,9 @@ class HEAAN_Encryptor():
 
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
-            t0 = time()
+            t0 = time.time()
             ctx1 = featurizer.encrypt(sc0)
-            print("Encryption done in ", time() - t0, "seconds")
+            print("Encryption done in ", time.time() - t0, "seconds")
             pickle.dump(sc0, open("scaled.pickle", "wb"))
             if debug: print(f"Featurizing done in {time.time() - t0:.2f}s")
             if debug: print(ctx1.n, ctx1.logp, ctx1.logq)
@@ -227,9 +227,9 @@ class HEAAN_Encryptor():
             # if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
             # e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
             #set_ctxt_to_server
-            ret = requests.post(self.server_url + "/ctxt", 
+            ret = requests.post(self.server_url + "/upload", 
                         files={"ctxt": open(fn, "rb")},
-                        header={"dtype":"ctxt", "action":str(action)})
+                        headers={"dtype":"ctxt", "action":str(action)})
             
             if ret != 200:
                 # HTTP error handling
@@ -242,9 +242,9 @@ class HEAAN_Encryptor():
                 #
                 # server file
                 #
-                ret = requests.get(self.server_url + "/pred",
+                ret = requests.get(self.server_url + "/result", 
                         files={"ctxt": open(fn, "rb")},
-                        header={"dtype":"ctxt", "action":str(action)})
+                        headers={"dtype":"ctxt", "action":str(action)})
                 if ret.status == 200: #??
                     print(ret.text) # 
                     break

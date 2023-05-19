@@ -140,46 +140,15 @@ def kinect2mobile_direct_lists(klist, remove_zeros=True, nperson_max = 4):
 
     # Assuming no more than 4 people will be recorded.
     mdtype = bbpp.get_dtypes(skeleton="COMMON")
-    #marrs = [np.zeros(len(klist), dtype=mdtype) for i in range(nperson_max)]
     marr = np.zeros(len(klist), dtype=mdtype)
-    #print("MARR dtype", marr.dtype)
     # Initialize temporary dict
     tdict = dict([(prx+name, 0) for name in ORG_KNT_TYPEs for prx in ["x", "y"]])
 
     for iframe, this_person in enumerate(klist):
-        #print()
-        #for iperson, this_person in enumerate(this_frame):
-        #marr = marrs[iperson]
         get_a_skel_mp(tdict, this_person)
-        
-        # Assume neck is the mid point of shoulders
-        # marr[iframe]['xneck'] = (tdict['xSHOULDER_LEFT'] + tdict['xSHOULDER_RIGHT'])/2
-        # marr[iframe]['yneck'] = (tdict['ySHOULDER_LEFT'] + tdict['ySHOULDER_RIGHT'])/2
-
-        # marr[iframe]['xpelvis'] = (tdict['xHIP_LEFT'] + tdict['xHIP_RIGHT'])/2
-        # marr[iframe]['ypelvis'] = (tdict['yHIP_LEFT'] + tdict['yHIP_RIGHT'])/2
-
-        #for common_field in K2M:
-            #print("COMMON", common_field)
         for dt in marr.dtype.names:
             if dt == "frame":
                 marr[iframe][dt] = iframe +1
             else:
                 marr[dt] = tdict[dt]
-            #for prefix in ['x','y']:
-                #print(prefix+K2M[common_field])
-            
-
-        
-    
-    #print("Tdict", tdict)
-    #print("this pserson", this_person)
-    #print("marr", marr)
     return marr
-    # new_marr = []
-    # for i, mm in enumerate(marrs):
-    #     if np.sum(mm['frame']) >= 0:
-    #         #print("check", i, np.sum(mm['frame']))
-    #         new_marr.append(mm)
-
-    # return new_marr

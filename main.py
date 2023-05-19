@@ -40,7 +40,7 @@ def run_qt_app(q1, q_answer, e_sk , e_ans):
 
 
 def run_encryptor(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, key_path="./serkey/"):
-    henc = HEAAN_Encryptor(key_path)
+    henc = HEAAN_Encryptor(args.HOST, key_path)
      #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 

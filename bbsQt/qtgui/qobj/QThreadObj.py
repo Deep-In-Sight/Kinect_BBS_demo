@@ -101,15 +101,7 @@ class qThreadRecord(QThread):
             if success:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = self.mp_pose.process(image)
-                #body_frame = self.bt.update()
-                #rat, color = capture.get_color_image()
-                    
-                #ret, dc_image = capture.get_colored_depth_image()
-                #ret, b_image = body_frame.get_segmentation_image()
 
-                #s_image = cv2.addWeighted(dc_image, 0.6, b_image, 0.4, 0)
-                #s_image = cv2.cvtColor(s_image, cv2.COLOR_BGR2RGB)
-                #joint = body_frame.ex_joints(s_image) # extract joint
                 mp_drawing.draw_landmarks(
                     image,
                     results.pose_landmarks,
@@ -122,10 +114,6 @@ class qThreadRecord(QThread):
                     for i, lm in enumerate(results.pose_landmarks.landmark):
                         joint[i][0] = lm.x 
                         joint[i][1] = lm.y
-
-                #capture.reset()
-                #body_frame.reset()
-                #print("joint", joint)
             #except:
             #    pass
             #else:
@@ -148,8 +136,6 @@ class qThreadRecord(QThread):
         # 모든 스켈레톤이 다있는 프레임 
         
         # In case no skeleton was captured
-        #print("STACK JOINT")
-        #print(self.stackJoint)
         try:
             self.skarr = ku.kinect2mobile_direct_lists(self.stackJoint)
             #print("SKARR LIST", self.skarr)
