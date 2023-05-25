@@ -6,8 +6,9 @@ from celery import Celery
 import json
 from bbsconfig import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL
 from utils import gen_empty_state
-from evaluator import HEAAN_Evaluator
 
+import fase
+import argparse
 from logging.config import dictConfig
 
 server_ip = ["192.168.0.18", "127.0.0.1"][1]
@@ -40,10 +41,14 @@ app.config['result_backend'] = REDIS_RESULT_URL
 # celery from CMD will invoke this instance of celery
 celery_app = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery_app.conf.update(app.config)
-celery_app.tasks.register(HEAAN_Evaluator())
+
 
 tasks = celery_app.tasks.keys()
 print(tasks)
+
+def ready_for_connection_test(fn_in):
+    with open(fn_in, "a") as fout:
+        fout.write(">>>> Connection GOOD\n")
 
 def is_evaluator_ready():
     state = json.load(open(FN_STATE, 'r'))
@@ -78,6 +83,10 @@ def get_post():
             tid = celery_app.send_task('my_app.tasks.HEAAN_Evaluator', args=(f.filename, action))
             app.logger.info("Sent task to evaluator")
             msg = "task assigned"
+        elif request.headers['dtype']=="test":
+            print("Received test")
+            ready_for_connection_test(f.filename)
+            msg = "Connection Check"
 
         return msg
 
@@ -98,5 +107,22 @@ def on_raw_message(body):
     print("Received: {0!r}".format(body))
 
 if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fpga", dest='use_fpga', action='store_true')
+    parser.add_argument("--cuda", dest='use_cuda', action='store_true')
+    args = parser.parse_args()
+
+    if args.use_fpga:
+        fase.USE_FPGA = True
+    elif args.use_cuda:
+        fase.USE_CUDA = True
+
+    # import HEAAN_Evaluator *after* setting which HEAAN variants to use
+    from bbsQt.core.evaluator import HEAAN_Evaluator
+    #from evaluator import HEAAN_Evaluator
+    celery_app.tasks.register(HEAAN_Evaluator())
+    
     gen_empty_state()
+
     app.run(host=server_ip, debug=True, port=server_port)
+

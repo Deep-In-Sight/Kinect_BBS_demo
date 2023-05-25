@@ -1,4 +1,3 @@
-import sys
 import argparse
 from flask import Flask 
 from flask import request
@@ -19,7 +18,9 @@ celery.conf.update(app.config)
 @app.route('/upload',methods=['POST'])
 def upload_file2():
     if request.method=='POST':
+        print("Received POST request")
         f=request.files['file']
+        #print(f, ) can I print only a few lines? 
         f.save(secure_filename(f.filename)) # 
         if request.headers['dtype']=="enc_key":
             msg = "stored ENCKEY"
@@ -27,7 +28,8 @@ def upload_file2():
             print("Received ciphertext")
             action = request.headers['action']
             print("Calling HEAAN")
-            result = call_heaan.delay(f.filename, action)
+            result = call_heaan.apply_async(args=[f.filename, action])
+            print("Calculation DONE?")
             # celery.task.apply_async offers more control over the task
             # than .delay()
             # The above decorated function returns "AsyncResult" object
@@ -53,10 +55,12 @@ def get_result():
             return send_from_directory("result/", "test.txt")
 
 def on_raw_message(body):
-    print("Received: {0!r}".format(body))
+    pass
+    #print("Received: {0!r}".format(body))
 
-@celery.task(bind=True) # bind if access to the instance is needed
-def call_heaan(self, fn, action):
+# bind하면 self가 필요한 것 같은데, 뭐랑 bind하는 걸까? 
+@celery.task#(bind=True) # bind if access to the instance is needed
+def call_heaan(fn, action):
     """Run Deep Learning model on the server.
         parameter
         ---------
@@ -79,7 +83,7 @@ def call_heaan(self, fn, action):
         heaan.save_ctxt(pred)
 
     """
-    print("HEAAN called")
+    print("HEAAN called", fn, action)
     
     # do calculation
     with open(fn, "r") as f:
@@ -105,5 +109,5 @@ if __name__=="__main__":
     args = parser.parse_args()
     server_ip = args.HOST
     print("Starting a server", server_ip)
-    
+    evaluator = HE
     app.run(host=server_ip)

@@ -9,12 +9,18 @@ from constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
 from bbsconfig import FN_STATE, REDIS_BROKER_URL, REDIS_RESULT_URL, \
     SEVER_PATH, MODEL_PATH, KEY_PATH
 
-from hemul.heaan import he
-    
-from hemul import heaan
-from hemul.hnrf.hnrf import HNRF, HETreeEvaluator
-from hemul.hnrf.nrf import NeuralTreeMaker
-
+#from hemul.heaan import he   
+#from hemul import heaan
+#import fase.HEAAN as he
+#from fase.heaan_loader import load
+#he = load()
+#import fase.core.heaan as he
+from fase.hnrf.hetree import HNRF
+from fase.hnrf import heaan_nrf
+from fase.hnrf.tree import NeuralTreeMaker
+from fase.core.common import HEAANContext
+#from hemul.hnrf.hnrf import HNRF, HETreeEvaluator
+#from hemul.hnrf.nrf import NeuralTreeMaker
 
 from utils import show_file_content
 #from celery import current_app
@@ -44,7 +50,7 @@ class HEAAN_Evaluator(Task):
         self.model_path = MODEL_PATH
         print("[ENCRYPTOR] key path", self.key_path)
 
-        hec = heaan.HEAANContext(logn, logp, logq, rot_l=[1], 
+        hec = HEAANContext(logn, logp, logq, rot_l=[1], 
                    key_path=self.key_path,
                    #FN_SK="secret.key",
                    boot=False, 
@@ -88,7 +94,7 @@ class HEAAN_Evaluator(Task):
             sk = self.hec.sk
         except:
             sk = None
-        nrf_evaluator = HETreeEvaluator(h_rf,
+        nrf_evaluator = heaan_nrf.HETreeEvaluator(h_rf,
                                         self.hec._scheme,
                                         self.hec.parms,
                                         self.activation.coeffs,
