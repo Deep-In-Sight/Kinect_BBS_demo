@@ -34,16 +34,23 @@ def upload_file2():
             # MUST call get() or forget() to release the resource
             # propagate: re-raise exception if it fails
             msg = result.get(on_message=on_raw_message, propagate=False)
+        elif request.headers['dtype']=="test":
+            print("Received test")
+            ready_for_connection_test(f.filename)
+            msg = "Connection Check"
 
         return "good"
 
-@app.route('/result',methods=['GET'])
+@app.route('/result', methods=['GET'])
 def get_result():
     """GET method. 
     계산이 끝나고 파일이 준비되면 클라이언트가 GET을 성공하게 될 것.
     """
     if request.method=='GET':
-        return send_from_directory("result/", "pred_0.dat")
+        if request.headers['dtype']=="ctxt":
+            return send_from_directory("result/", "pred_0.dat")
+        elif request.headers['dtype']=="test":
+            return send_from_directory("result/", "test.txt")
 
 def on_raw_message(body):
     print("Received: {0!r}".format(body))
@@ -88,12 +95,14 @@ def call_heaan(self, fn, action):
 
     return "HEAAN Inference done!"
 
+def ready_for_connection_test(fn_in):
+    with open(fn_in, "a") as fout:
+        fout.write(">>>> Connection GOOD\n")
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", dest="HOST", default="localhost")
     args = parser.parse_args()
-    
     server_ip = args.HOST
     print("Starting a server", server_ip)
     

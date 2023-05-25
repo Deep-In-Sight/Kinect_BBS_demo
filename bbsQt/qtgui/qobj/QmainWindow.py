@@ -11,7 +11,6 @@ from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PyQt5.QtPrintSupport import *
 
 from ..config import Config as setConfig
-
 from .QButtons import qButtons
 from .QImgViewer import PhotoViewer
 from .QScenario import qScenario
@@ -23,8 +22,6 @@ import mediapipe as mp
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils 
 mp_drawing_styles = mp.solutions.drawing_styles
-# from ..pykinect_azure import pykinect
-
 # pykinect.initialize_libraries(track_body=True)
 
 def getIcon(path):

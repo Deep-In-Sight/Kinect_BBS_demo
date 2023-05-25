@@ -6,17 +6,15 @@ from PyQt5.QtWidgets import QApplication
 
 from bbsQt.qtgui.qobj.QmainWindow import *
 from bbsQt.core.encryptor import HEAAN_Encryptor
-
 from bbsQt import constants
-
+import requests
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", dest='HOST')
 args = parser.parse_args()
 
 constants.HOST = args.HOST
-from bbsQt.comm import app_client
-
+#from bbsQt.comm import app_client
 
 def run_qt_app(q1, q_answer, e_sk , e_ans):
     app = QApplication(sys.argv)
@@ -38,39 +36,39 @@ def run_qt_app(q1, q_answer, e_sk , e_ans):
 #     print("[MAIN] Running evaluation loop")
 #     henc.start_evaluate_loop(q_text, e_enc, e_ans)
 
+def check_connection(upload_url):
+    fn = "test.txt"
+    # 연결 테스트용
+    with open(fn, "w") as f:
+        f.write("Connecting from: " + constants.HOST + "\n")
+
+    try:
+        r = requests.post('http://'+upload_url+'/upload', 
+                    files={'file':open(fn, 'rb')}, 
+                    headers={'dtype':"test"})
+    except (requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.Timeout):
+        print("Connection Error")
+        sys.exit()
+    except requests.exceptions.HTTPError:
+        print("Connection Established")    
+
+    ret = requests.get('http://'+upload_url+'/result',
+                        files={"file": open(fn, "rb")},
+                        headers={"dtype":"test"})
+    print(ret.text)
+    
 
 def run_encryptor(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, key_path="./serkey/"):
     henc = HEAAN_Encryptor(args.HOST, key_path)
      #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
 
-
-# separate communicator process no more needed.
-# def run_communicator(q1, q_text, e_enc, e_enc_ans):
-#     # 1. send keys to server and do quick check
-#     #e_key.wait()
-#     #app_client.run_share_key(q_text, e_key, lock)
-
-#     while True:
-#         print("[run comm] waiting for ctxt.....")
-#         e_enc.wait()
-#         print("[run_comm] e_enc passed. Ctxt is ready")
-#         fn_dict = q1.get()
-#         print("[run_comm] file name:", fn_dict)
-#         answer = app_client.query(fn_dict)
-#         e_enc.clear()
-        
-#         print("[run_comm] got an answer", answer)
-#         # ENCRYPTED answer
-#         q_text.put(answer['filename']) # put encrypted answer filename
-#         print("[run_comm] Prediction file names are ready")
-#         e_enc_ans.set()
-#         print("[run_comm] e_enc_ans set")
-
     
 def main():
     KEYPATH = "./"  
 
+    check_connection(constants.HOST)
+    
     lock = mplti.Lock()### 
     ctx = mplti.get_context('spawn') ###
 
