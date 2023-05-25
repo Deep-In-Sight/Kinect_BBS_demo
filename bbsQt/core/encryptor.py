@@ -90,6 +90,7 @@ class HEAAN_Encryptor():
                 debug=True):
         
         self.server_url = f"http://{server_url}"
+        print("Paired with server at", self.server_url)
         self.model_dir = "./models/"
 
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -227,12 +228,18 @@ class HEAAN_Encryptor():
             # if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
             # e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
             #set_ctxt_to_server
+
+            print(f"Uploading {fn} to the server")
+            print("action", action)
+
             ret = requests.post(self.server_url + "/upload", 
-                        files={"ctxt": open(fn, "rb")},
+                        files={"file": open(fn, "rb")},
                         headers={"dtype":"ctxt", "action":str(action)})
             
             if ret != 200:
                 # HTTP error handling
+                print(ret.status_code)
+                print("Error in uploading the file to the server.")
                 pass
 
             if debug: print("[Encryptor] Waiting for prediction...")
