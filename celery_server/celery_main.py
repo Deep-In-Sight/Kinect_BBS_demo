@@ -1,4 +1,5 @@
-
+# This is incomplete example. 
+# keep on writing the code in the comm2 module. 
 from flask_server import flask_server
 from evaluator import HEAAN_Evaluator
 

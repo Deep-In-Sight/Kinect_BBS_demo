@@ -24,6 +24,8 @@ def upload_file2():
         f.save(secure_filename(f.filename)) # 
         if request.headers['dtype']=="enc_key":
             msg = "stored ENCKEY"
+        elif request.headers['dtype']=="mul_key":
+            msg = "stored MULKEY"
         elif request.headers['dtype']=="ctxt":
             print("Received ciphertext")
             action = request.headers['action']
@@ -41,7 +43,7 @@ def upload_file2():
             ready_for_connection_test(f.filename)
             msg = "Connection Check"
 
-        return "good"
+        return msg#"good"
 
 @app.route('/result', methods=['GET'])
 def get_result():
@@ -109,5 +111,5 @@ if __name__=="__main__":
     args = parser.parse_args()
     server_ip = args.HOST
     print("Starting a server", server_ip)
-    evaluator = HE
+    #evaluator = HE
     app.run(host=server_ip)
