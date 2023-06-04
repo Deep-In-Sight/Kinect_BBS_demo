@@ -112,4 +112,4 @@ if __name__=="__main__":
     server_ip = args.HOST
     print("Starting a server", server_ip)
     #evaluator = HE
-    app.run(host=server_ip)
+    app.run(ssl_context=('cert.pem', 'key.pem'), host=server_ip)
