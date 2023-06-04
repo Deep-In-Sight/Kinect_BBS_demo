@@ -11,6 +11,8 @@ app = Flask(__name__,static_folder='./static',template_folder = './templates')
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['result_backend'] = 'redis://localhost:6379/0'
 
+app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024 
+
 # celery from CMD will invoke this instance of celery
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
@@ -18,11 +20,21 @@ celery.conf.update(app.config)
 @app.route('/upload',methods=['POST'])
 def upload_file2():
     if request.method=='POST':
-        print("Received POST request")
+        print("\nMethod: ", request.method)
+        print("Headers: ", request.headers)
+        print("Args: ", request.args)
+        print("Form data: ", request.form)
+        print("FILE: ", request.files)
+        # print("JSON data: ", request.get_json())
+        
+        #print("Received POST request")
+        print("request", request)
+
         f=request.files['file']
         #print(f, ) can I print only a few lines? 
         f.save(secure_filename(f.filename)) # 
         if request.headers['dtype']=="enc_key":
+            print("Processing ENCKEY")
             msg = "stored ENCKEY"
         elif request.headers['dtype']=="mul_key":
             msg = "stored MULKEY"
