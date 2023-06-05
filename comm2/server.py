@@ -42,6 +42,7 @@ def upload_file2():
             print("Received ciphertext")
             action = request.headers['action']
             print("Calling HEAAN")
+            # 뭔가 이상함. 
             result = call_heaan.apply_async(args=[f.filename, action])
             print("Calculation DONE?")
             # celery.task.apply_async offers more control over the task
@@ -50,6 +51,7 @@ def upload_file2():
             # MUST call get() or forget() to release the resource
             # propagate: re-raise exception if it fails
             msg = result.get(on_message=on_raw_message, propagate=False)
+            msg = "DEBUGGING - SKIP"
         elif request.headers['dtype']=="test":
             print("Received test")
             ready_for_connection_test(f.filename)
@@ -61,12 +63,17 @@ def upload_file2():
 def get_result():
     """GET method. 
     계산이 끝나고 파일이 준비되면 클라이언트가 GET을 성공하게 될 것.
+
+    pred_0 ~ pred_4.dat 필요.
+
     """
-    if request.method=='GET':
-        if request.headers['dtype']=="ctxt":
-            return send_from_directory("result/", "pred_0.dat")
-        elif request.headers['dtype']=="test":
-            return send_from_directory("result/", "test.txt")
+    print("REQUEST.HEADER", request.headers)
+    # if request.headers['dtype']=="test":
+    #     return send_from_directory("result/", "test.txt")
+    # else:
+    
+    return send_from_directory("result/", f"pred_{request.headers['cnt']}.dat")
+        
 
 def on_raw_message(body):
     pass
