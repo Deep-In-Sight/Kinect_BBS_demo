@@ -67,12 +67,13 @@ def get_result():
     pred_0 ~ pred_4.dat 필요.
 
     """
-    print("REQUEST.HEADER", request.headers)
-    # if request.headers['dtype']=="test":
-    #     return send_from_directory("result/", "test.txt")
-    # else:
-    
-    return send_from_directory("result/", f"pred_{request.headers['cnt']}.dat")
+    print("REQUEST.HEADER", request.headers)    
+    if "dtype" in request.headers:
+        if request.headers['dtype']=="test":
+            return send_from_directory("result/", "test.txt")
+    else:
+        return send_from_directory("result/", f"pred_{request.headers['cnt']}.dat")
+
         
 
 def on_raw_message(body):
@@ -131,4 +132,4 @@ if __name__=="__main__":
     server_ip = args.HOST
     print("Starting a server", server_ip)
     #evaluator = HE
-    app.run(ssl_context=('cert.pem', 'key.pem'), host=server_ip)
+    app.run(ssl_context=('cert.pem', 'key.pem'), host=server_ip, port=4443)
