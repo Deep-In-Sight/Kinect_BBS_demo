@@ -5,6 +5,7 @@ FN_KEYS = ["ENCRYPTION.txt",
 FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
 
+cert = False # Certification file or ignore
 
 mp_pose_lm_name = ["nose", "l_eye_inner", "l_eye", "l_eye_outer", 'r_eye_inner', "r_eye", "r_eye_outer",
                    "l_ear", "r_ear", "mouth_left", "mouth_right", "l_shoulder", "r_shoulder", 

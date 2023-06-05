@@ -5,15 +5,17 @@ import os
 import pickle
 import time
 import tarfile
-from bbsQt.constants import CAM_LIST, CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK
-from fase.hnrf.hetree import HNRF
-from fase.hnrf import heaan_nrf
-from fase.hnrf.tree import NeuralTreeMaker
+from bbsQt.constants import CAM_LIST, CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK, cert
 import torch
 from time import sleep
 import requests
+from urllib.parse import unquote
+from fase.hnrf.hetree import HNRF
+from fase.hnrf import heaan_nrf
+from fase.hnrf.tree import NeuralTreeMaker
 
-sleep_time = 60 # allow server at least 60s to run inference
+
+sleep_time = 3 # allow server at least 60s to run inference
 
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
 class HETreeFeaturizer:
@@ -85,21 +87,64 @@ def compress_files(fn_tar, fn_list):
         for name in fn_list:
             tar.add(name)
 
+def save_binary(r, fn_save):
+    if r.status_code == 200:
+        with open(fn_save, 'wb') as f:
+            for chunk in r:
+                f.write(chunk)
+    else:
+        raise FileNotFoundError
+
+def get_5results(result_url):
+    recieved_files = []
+    n_try = 0
+    for cnt in range(5):
+        while n_try < 5:
+            r = requests.get(result_url, 
+                            stream=True, 
+                            headers={"cnt":f"{cnt}"},
+                            verify=cert)
+            if r.status_code == 200:
+                save_binary(r,f'./client_results/pred{cnt}.dat')
+                print(f"Result recieved: {cnt}/5")
+                recieved_files.append(get_filename(r))
+                break
+            else:
+                sleep(2)
+                n_try+=1
+        else:
+            print("Retry limit reached. Try again later")
+            return False
+
+    return recieved_files
+
+def get_filename(response):
+    if 'Content-Disposition' in response.headers:
+        content_disposition = response.headers['Content-Disposition']
+        parts = content_disposition.split(';')
+
+        for part in parts:
+            if 'filename' in part:
+                filename = part.split('=')[1]
+                filename = unquote(filename.strip(' "'))  # remove quotes and spaces
+                
+    return filename
+
 class HEAAN_Encryptor():
     def __init__(self, server_url, key_path="./serkey/", 
                 debug=True):
         
-        self.server_url = f"http://{server_url}"
+        self.server_url = f"https://{server_url}"
         print("Paired with server at", self.server_url)
         self.model_dir = "./models/"
 
-        logq = HEAAN_CONTEXT_PARAMS['logq']#540
-        logp = HEAAN_CONTEXT_PARAMS['logp']#30
-        logn = HEAAN_CONTEXT_PARAMS['logn']#14
-        n = 1*2**logn
+        self.logq = HEAAN_CONTEXT_PARAMS['logq']#540
+        self.logp = HEAAN_CONTEXT_PARAMS['logp']#30
+        self.logn = HEAAN_CONTEXT_PARAMS['logn']#14
+        n = 1*2**self.logn
         is_serialized = True
 
-        self.parms = Param(n=n, logp=logp, logq=logq)
+        self.parms = Param(n=n, logp=self.logp, logq=self.logq)
         self.key_path = key_path
         if debug: print("[ENCRYPTOR] key path", key_path)
 
@@ -150,7 +195,7 @@ class HEAAN_Encryptor():
         #sk = q1.get()
         pass
 
-    def start_encrypt_loop(self, q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, debug=True):
+    def start_encrypt_loop(self, q1, q_answer, e_sk, e_ans, e_enc_ans, debug=True):
         """
         When skeleton is ready (e_sk), get the skeleton from q1, 
         encrypt, and store it as ctx_{i}.dat file. 
@@ -234,7 +279,8 @@ class HEAAN_Encryptor():
 
             ret = requests.post(self.server_url + "/upload", 
                         files={"file": open(fn, "rb")},
-                        headers={"dtype":"ctxt", "action":str(action)})
+                        headers={"dtype":"ctxt", "action":str(action)},
+                        verify=cert)
             
             if ret != 200:
                 # HTTP error handling
@@ -245,32 +291,20 @@ class HEAAN_Encryptor():
             if debug: print("[Encryptor] Waiting for prediction...")
             sleep(sleep_time)
 
-            while True:
-                #
-                # server file
-                #
-                ret = requests.get(self.server_url + "/result", 
-                        files={"ctxt": open(fn, "rb")},
-                        headers={"dtype":"ctxt", "action":str(action)})
-                if ret.status == 200: #??
-                    print(ret.text) # 
-                    break
-
+            fn_preds = get_5results(self.server_url + "/result")
+            
             # Decrypt answer
             #e_enc_ans.wait()  ## FLOW CONTROL
-            fn_preds = ret.files["pred"] # ?? 
-            #fn_preds = q_text.get()  ## FLOW CONTROL
 
-            #fn_preds = [f"pred_{i}.dat" for i in range(5)]
             # Load predictions
             print("fn_preds", fn_preds)
-            logq = 180
+            
             preds=[]
-            t0 = time()
+            t0 = time.time()
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
                 # readCiphertext할 때 logp, logq, logn을 미리 알아야함? 
-                ctx_pred = he.Ciphertext(ctx1.logp, logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
+                ctx_pred = he.Ciphertext(ctx1.logp, self.logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
                 print("[encryptor] load ctxt", fn_ctx)
                 he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
                 print("[encryptor] decrypt ctxt", ctx_pred)
@@ -279,7 +313,7 @@ class HEAAN_Encryptor():
                 preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
                 print("[encryptor] decrypted prediction array", dec[:10])
                 del ctx_pred
-            print("Decryption done in ", time() - t0, "seconds")
+            print("Decryption done in ", time.time() - t0, "seconds")
             del ctx1 
 
             ###########################

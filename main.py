@@ -14,6 +14,7 @@ parser.add_argument("--host", dest='HOST')
 args = parser.parse_args()
 
 constants.HOST = args.HOST
+cert = False
 #from bbsQt.comm import app_client
 
 def run_qt_app(q1, q_answer, e_sk , e_ans):
@@ -43,25 +44,28 @@ def check_connection(upload_url):
         f.write("Connecting from: " + constants.HOST + "\n")
 
     try:
-        r = requests.post('http://'+upload_url+'/upload', 
+        r = requests.post('https://'+upload_url+'/upload', 
                     files={'file':open(fn, 'rb')}, 
-                    headers={'dtype':"test"})
-    except (requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.Timeout):
+                    headers={'dtype':"test"},
+                    verify=cert)
+    except (requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.Timeout) as e:
+        print(e)
         print("Connection Error")
         sys.exit()
     except requests.exceptions.HTTPError:
         print("Connection Established")    
 
-    ret = requests.get('http://'+upload_url+'/result',
+    ret = requests.get('https://'+upload_url+'/result',
                         files={"file": open(fn, "rb")},
-                        headers={"dtype":"test"})
+                        headers={"dtype":"test"},
+                        verify=cert)
     print(ret.text)
     
 
-def run_encryptor(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans, key_path="./serkey/"):
+def run_encryptor(q1, q_answer, e_sk, e_ans, e_enc_ans, key_path="./serkey/"):
     henc = HEAAN_Encryptor(args.HOST, key_path)
      #print(henc.prams.n)
-    henc.start_encrypt_loop(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans)
+    henc.start_encrypt_loop(q1, q_answer, e_sk, e_ans, e_enc_ans)
 
     
 def main():
@@ -69,11 +73,11 @@ def main():
 
     check_connection(constants.HOST)
     
-    lock = mplti.Lock()### 
+    # lock = mplti.Lock()### 
     ctx = mplti.get_context('spawn') ###
 
     q1 = ctx.Queue(maxsize=8)
-    q_text = ctx.Queue(maxsize=8)
+    # q_text = ctx.Queue(maxsize=8)
     """
     Ecryptor puts key file information to q_textvas:
     {"root_path":key_path, "keys_to_share":fn_tar}
@@ -89,8 +93,8 @@ def main():
     e_sk.clear()
 
     # Query ciphertext saved
-    e_enc = mplti.Event()
-    e_enc.clear()
+    # e_enc = mplti.Event()
+    # e_enc.clear()
 
     # Encrypted prediction saved
     e_enc_ans = mplti.Event()
@@ -105,7 +109,7 @@ def main():
     e_quit.clear()
 
     p_enc = mplti.Process(target=run_encryptor, 
-                    args=(q1, q_text, q_answer, e_sk, e_enc, e_ans, e_enc_ans), daemon=False)
+                    args=(q1, q_answer, e_sk, e_ans, e_enc_ans), daemon=False)
     p_enc.start()
 
     # p_socket = mplti.Process(target=run_communicator, 
