@@ -2,7 +2,7 @@ import argparse
 from flask import Flask 
 from flask import request
 from werkzeug.utils import secure_filename
-from flask import send_from_directory
+from flask import send_file
 from celery import Celery
 
 app = Flask(__name__,static_folder='./static',template_folder = './templates')
@@ -67,12 +67,16 @@ def get_result():
     pred_0 ~ pred_4.dat 필요.
 
     """
-    print("REQUEST.HEADER", request.headers)    
+    print("\nREQUEST.HEADER", request.headers)
+    print("Method: ", request.method)
+    print("Args: ", request.args)
     if "dtype" in request.headers:
         if request.headers['dtype']=="test":
-            return send_from_directory("result/", "test.txt")
+            return send_file("test.txt", as_attachment=True)
     else:
-        return send_from_directory("result/", f"pred_{request.headers['cnt']}.dat")
+        fn = f"result/pred_{request.headers['cnt']}.dat"
+        print("SENDING", fn)
+        return send_file(fn, as_attachment=True)
 
         
 
