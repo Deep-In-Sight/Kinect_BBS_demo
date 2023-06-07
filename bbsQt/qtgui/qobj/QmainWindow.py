@@ -22,7 +22,6 @@ import mediapipe as mp
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils 
 mp_drawing_styles = mp.solutions.drawing_styles
-# pykinect.initialize_libraries(track_body=True)
 
 def getIcon(path):
     app_icon = QIcon()
@@ -112,7 +111,6 @@ class QMyMainWindow(QWidget):
 
 
         self.imgviwerRGB.emitDispImgSize.connect(self.qScenario.setRgbDispSize)
-        #self.imgviwerSkeleton.emitDispImgSize.connect(self.qScenario.setDepthDispSize)
 
         ############################
         LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
@@ -164,19 +162,8 @@ class QMyMainWindow(QWidget):
                     print("[QMainWindow.end]Saving done. device index", self.btn.cameranum.currentIndex())
 
                 # Reset device
-                ###
-                #self.device = pykinect.start_device(device_index=self.camera_choice[self.btn.action_num.currentIndex()+1], 
-                #                                    config=self.device_config)
-                #self.bodyTracker = pykinect.start_body_tracker()
-
                 self.qthreadrec.reset(self.device, self.bodyTracker)
         
-        # Every reached?? 
-        #else:
-        #    msgBox1 = QMessageBox()
-        #    msgBox1.setText("Check Score!")
-        #    msgBox1.exec()    
-
     def setLayout(self):
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
         LayoutMain.setAlignment(Qt.AlignTop)        
@@ -291,31 +278,18 @@ class QMyMainWindow(QWidget):
         self.startcamera(cameraidx)
 
     def _init_camera(self, cameraidx):
-        #if ENABLE_PYK4A:
-        # Modify camera configuration
-        # self.device_config = pykinect.default_configuration
-        # self.device_config.color_resolution = pykinect.K4A_COLOR_RESOLUTION_1080P
-        # self.device_config.depth_mode = pykinect.K4A_DEPTH_MODE_WFOV_2X2BINNED
-
         # Start cameras using modified configuration
         if VERBOSE: print("ACTION CHANGED, device index", cameraidx)
         self.device = cv2.VideoCapture(cameraidx)
-        # self.device = pykinect.start_device(device_index=cameraidx, config=self.device_config)
 
         # Initialize the body tracker
-        #self.bodyTracker = pykinect.start_body_tracker()
         self.bodyTracker = mp_pose.Pose(
                                 min_detection_confidence=0.5,
                                 min_tracking_confidence=0.5)
-        #else:
-        #    self.pyK4A = None
-        #try:
+
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
                                     self.PWD, cameraidx, self.imgviwerRGB,
                                     self.q1, self.e_sk, self.e_ans, self.q_answer)
-        #except:
-        #    print("Error in camera.... trying again")
-        #    self._init_camera(cameraidx)
 
     # add 20210107
     def startcamera(self, cameraidx):
@@ -327,9 +301,7 @@ class QMyMainWindow(QWidget):
             pass
         
         #self.qScenario.onchanged(cameraidx)
-
         #self.device.release()#close()
-        #self.bodyTracker.destroy()
         
         self._init_camera(cameraidx)
 
