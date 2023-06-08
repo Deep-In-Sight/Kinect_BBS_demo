@@ -69,8 +69,6 @@ class QMyMainWindow(QWidget):
 
         self.onPlay = False
         self.ScenarioNo = 1
-        #self.Locale = 'en_us' ## ?? G1은 무슨 의미일까? 
-        self.Locale = "G1"
 
         #self.recordReady = False
         
@@ -97,7 +95,7 @@ class QMyMainWindow(QWidget):
         # fix 2021/01/07
         self.camera_choice = CAM_LIST    
 
-        self._init_camera(0)
+        self._init_camera()
         self.setLayout()
 
         self.stackColor = []
@@ -131,14 +129,14 @@ class QMyMainWindow(QWidget):
 
             self.qthreadrec.setRun(False)
 
-            self.qthreadrec.mkd(self.Locale, self.qScenario.SubjectID, self.ScenarioNo)
+            self.qthreadrec.mkd(self.ScenarioNo)
 
             # skimage 를 뽑고 이걸 skimage label 넣는다. 
             skimage = self.qthreadrec.save_multiproc()
             print("skimage", skimage)
             if isinstance(skimage, int) and skimage == -1:
-                cameraidx = self.btn.cameranum.currentIndex()
-                self.startcamera(cameraidx)
+                #cameraidx = self.btn.cameranum.currentIndex()
+                self.startcamera()
             else:    
                 # 
                 self.skimageLabel.setPixmap(skimage)
@@ -159,7 +157,7 @@ class QMyMainWindow(QWidget):
                 self.btn.endtime.setText("F")
 
                 if VERBOSE: 
-                    print("[QMainWindow.end]Saving done. device index", self.btn.cameranum.currentIndex())
+                    print("[QMainWindow.end]Saving done")
 
                 # Reset device
                 self.qthreadrec.reset(self.device, self.bodyTracker)
@@ -226,20 +224,9 @@ class QMyMainWindow(QWidget):
 
     @pyqtSlot()
     def recordImages(self):
-        # self.year = str(datetime.today().year % 100).zfill(2)
-        # self.month = str(datetime.today().month).zfill(2)
-        # self.day = str(datetime.today().day).zfill(2)
-
-        # self.yymmdd = self.year + self.month + self.day
-
-        #self.qScenario.locale_option.currentText()
-        # self.stackPoints = []
-            
-        #t0 = time.time()
-
         self.qthreadrec.init(self.PWD, 
-                                self.Locale,
-                                self.qScenario.SubjectID,
+                                #self.Locale,
+                                #self.qScenario.SubjectID,
                                 self.btn,
                                 )
         self.qthreadrec.start()
@@ -261,26 +248,16 @@ class QMyMainWindow(QWidget):
     def actionChanged(self):
         if VERBOSE: print("action changed", self.btn.action_num.currentIndex())
         actionidx = self.btn.action_num.currentIndex() + 1
-        #a = 1
-        #e = 0
         
-        self.startcamera(self.camera_choice[actionidx])
         self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
         self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
 
     def scoreChanged(self, text):
         self.qScenario.scorenum.setText(f'Score : {text}')
 
-    # fix 20210107
-    def cameraChanged(self):
-        if VERBOSE: print("camera changed", self.btn.cameranum.currentIndex())
-        cameraidx = self.btn.cameranum.currentIndex()
-        self.startcamera(cameraidx)
-
-    def _init_camera(self, cameraidx):
+    def _init_camera(self):
         # Start cameras using modified configuration
-        if VERBOSE: print("ACTION CHANGED, device index", cameraidx)
-        self.device = cv2.VideoCapture(cameraidx)
+        self.device = cv2.VideoCapture(0)
 
         # Initialize the body tracker
         self.bodyTracker = mp_pose.Pose(
@@ -288,11 +265,11 @@ class QMyMainWindow(QWidget):
                                 min_tracking_confidence=0.5)
 
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
-                                    self.PWD, cameraidx, self.imgviwerRGB,
+                                    self.PWD, self.imgviwerRGB,
                                     self.q1, self.e_sk, self.e_ans, self.q_answer)
 
     # add 20210107
-    def startcamera(self, cameraidx):
+    def startcamera(self):
         try: 
             self.skindexbtn0.clicked.disconnect() 
             self.skindexbtn1.clicked.disconnect() 
@@ -300,14 +277,11 @@ class QMyMainWindow(QWidget):
         except Exception: 
             pass
         
-        #self.qScenario.onchanged(cameraidx)
-        #self.device.release()#close()
-        
-        self._init_camera(cameraidx)
+        self._init_camera()
 
         self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
-        self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
-        self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
+        #self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
+        #self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
  
     @pyqtSlot()        
     def updateOnPlay(self):    

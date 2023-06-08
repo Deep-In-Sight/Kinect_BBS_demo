@@ -54,11 +54,6 @@ class qButtons(QObject):
 		self.LbFPS = QLabel()
 		self.LbFPS.setMinimumWidth(70)
 
-		self.cameranum = QComboBox()
-		self.cameranum.addItem("e")
-		self.cameranum.addItem("a")
-		self.cameranum.currentIndexChanged.connect(self.qmain.cameraChanged)
-
 		self.action_name = QLabel()
 		self.action_name.setText('Select Scenario : ')
 		self.action_name.setFont(QFont("Arial", 12, QFont.Bold))

@@ -25,7 +25,7 @@ def is_valid_skeleton(skeleton):
 
 class qThreadRecord(QThread):
     
-    def __init__(self, cap, mp_pose, qScenario, PWD, camera_num, imgviwerRGB, q1, e_sk, e_ans, q_answer):
+    def __init__(self, cap, mp_pose, qScenario, PWD, imgviwerRGB, q1, e_sk, e_ans, q_answer):
         super().__init__()
         self.stackColor = []
         self.stackDepth = []
@@ -37,7 +37,6 @@ class qThreadRecord(QThread):
         self.Ncpu = 2
         self.pic_Count = 0
         self.PWD = PWD
-        self.camera_num = camera_num
         self.q1 = q1
         self.e_sk = e_sk
         self.e_ans = e_ans
@@ -47,10 +46,8 @@ class qThreadRecord(QThread):
     def setRun(self, Run):
         self.isRun = Run
 
-    def init(self, PWD, Locale, SubjectID, btn):
+    def init(self, PWD, btn):
         self.PWD = PWD
-        self.Locale = Locale
-        self.SubjectID = SubjectID
         self.btn = btn
         self.path_save = f"{self.PWD}/images"
         
@@ -59,14 +56,12 @@ class qThreadRecord(QThread):
             self.k4a = k4a
             self.bt = bt
 
-    def mkd(self, Locale, SubjectID, ScenarioNo):
+    def mkd(self, ScenarioNo):
         """Make directory for saving data"""
-        self.Locale = Locale
-        self.SubjectID = SubjectID
         self.ScenarioNo = ScenarioNo
         
-        self.path_color = f"{self.PWD}/{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB"
-        self.path_bt = f"{self.PWD}/{self.Locale}/{str(self.SubjectID).zfill(3)}/BT"
+        self.path_color = f"{self.PWD}/RGB"
+        self.path_bt = f"{self.PWD}/BT"
 
         os.makedirs(self.path_color, exist_ok = True)
         os.makedirs(self.path_bt, exist_ok = True)
@@ -177,12 +172,7 @@ class qThreadRecord(QThread):
         # idx = list(range(self.pic_Count))
 
         # if VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
-        # # queues = [Queue() for i in range(Ncpu)]
-        # t0 = time.time()
-        # if self.camera_num == 1 :
-        #     camera_num = 'a_'
-        # elif self.camera_num == 0:
-        #     camera_num = 'e_'
+
 
         # #for i, color in enumerate(self.stackColor):
         # #Save only one jpg
@@ -193,11 +183,9 @@ class qThreadRecord(QThread):
 
     def select_sk(self, skindex=0):
         """No selection needed anymore. MP finds only one skeleton"""
-        
         #pickle.dump(self.stackJoint, open(f"{self.path_bt}/bodytracking_data.pickle", "wb"))
         
         if VERBOSE: print(f'[Qthread obj] skeleton index : {skindex}')
-        if VERBOSE: print("[Qthread obj] camera_num", self.camera_num)
         
         # Safety check
         if not hasattr(self, 'skarr'):
@@ -220,18 +208,15 @@ class qThreadRecord(QThread):
                                 shift=1)
         skeleton = ru.ravel_rec(sub)[np.newaxis, :]
 
-        if self.camera_num == 0:
-            camera_num = 'a'
-        elif self.camera_num == 1:
-            camera_num = 'e'
+        camera_num = 'e'
 
         tm = time.localtime()
         time_mark = f"{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
-        sav_dir = f"{self.Locale}/BT/"
+        sav_dir = f"BT/"
         if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
         pickle.dump(self.skarr, open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
-        fn_scores = f"{self.Locale}/{str(self.SubjectID).zfill(3)}/Scores_{str(self.SubjectID).zfill(3)}.txt"
+        fn_scores = f"Scores_.txt"
 
         self.q1.put({"action":this_scenario,
                      "cam":camera_num, 

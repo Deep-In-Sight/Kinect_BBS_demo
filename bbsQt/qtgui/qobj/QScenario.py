@@ -39,7 +39,7 @@ class qScenario(QObject):
         self.q_answer = q_answer
 
         self.ScenarioNo = 0
-        self.SubjectID = 0
+        #self.SubjectID = 0
         self.MinRecordTime = recordconfig.minRecordTime # Minimum 2s
         self.MinRecordFrame = recordconfig.minRecordFrame # Minimum 20 frames
         self.info = ""
@@ -80,14 +80,6 @@ class qScenario(QObject):
     @pyqtSlot(int)
     def setDepthDispSize(self,val):
         self.depthdispsize = val            
-
-
-    def setSubjectID(self):
-        try:
-            self.SubjectID = int(self.SubjectIDInput.text())
-        except:
-            self.SubjectIDInput.setText(str(self.SubjectID))
-        self.update()
 
     def setMinRecordTime(self):
         try:
@@ -177,32 +169,6 @@ class qScenario(QObject):
         font.setPointSize(15)
         LayoutRecordStart.setFont(font)
 
-
-        LayoutLocale = QHBoxLayout() 
-        qLocaleName = QLabel()
-        qLocaleName.setText("Locale:")
-        LayoutLocale.addWidget(qLocaleName, alignment=Qt.AlignLeft)
-        self.locale_option = QComboBox()
-        self.locale_option.addItem("G1")
-
-        LayoutLocale.addWidget(self.locale_option, alignment=Qt.AlignRight)
-
-        LayoutID = QHBoxLayout() 
-        LayoutID.setAlignment(Qt.AlignTop)
-        LayoutID.setAlignment(Qt.AlignLeft)
-        qLabelName = QLabel()
-        qLabelName.setText("ID:")
-        LayoutID.addWidget(qLabelName)
-        self.SubjectIDInput = QLineEdit()
-        self.SubjectIDInput.setText(str(self.SubjectID))
-        self.SubjectIDInput.setFixedSize(50,20)
-        
-        LayoutID.addWidget(self.SubjectIDInput)
-
-        HVlayoutMain.addWidget(LayoutRecordStart, 10)
-        HVlayoutMain.addLayout(LayoutLocale, 10)
-        HVlayoutMain.addLayout(LayoutID, 10)
-
         LayoutRecordStartStep = QHBoxLayout() 
         LayoutRecordStartStep.setAlignment(Qt.AlignTop)
         LayoutRecordStartStep.setAlignment(Qt.AlignRight)
@@ -270,6 +236,6 @@ class qScenario(QObject):
         # result label
         HBlayoutMain.addLayout(LayoutInfo,20)    
 
-        self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
+        # self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
 
         return HBlayoutMain    
