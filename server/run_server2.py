@@ -1,12 +1,13 @@
 import sys
 import os
 import multiprocessing as mplti
+from multiprocessing import Queue
 import argparse
 
 # from bbsQt.qtgui.qobj.QmainWindow import *
 # from bbsQt.comm import app_server
 from bbsQt.constants import TEST_CLIENT
-from bbsQt.comm.utils import extract_ip
+#from bbsQt.comm.utils import extract_ip
 
 from flask import Flask 
 from flask import request
@@ -46,6 +47,8 @@ def upload_file2():
             print("Received ciphertext")
             e_enc.set()
             
+            q_text.put(f.filename)
+
             # action = request.headers['action']
             print("Calling HEAAN")
             # result = call_heaan.apply_async(args=[f.filename, action])
@@ -56,7 +59,7 @@ def upload_file2():
             ready_for_connection_test(f.filename)
             msg = "Connection Check"
 
-        q_text.put(f.filename)
+        
         
 
         return msg#"good"
@@ -88,7 +91,7 @@ def ready_for_connection_test(fn_in):
         fout.write(">>>> Connection GOOD\n")
 
 def run_server(host_ip):
-    app.run(host=host_ip, port=4443)
+    app.run(ssl_context=('cert.pem', 'key.pem'), host=host_ip, port=4443)
     
 
 def run_evaluator(q_text, evaluator_ready, e_enc):
@@ -105,15 +108,15 @@ def run_evaluator(q_text, evaluator_ready, e_enc):
     #app_server.query(q1, lock, e_enc, e_quit)
 
     
-def main():
-    HOST = extract_ip()
+def main(server_ip):
+    #HOST = extract_ip()
     #HOST = '127.0.0.1'
 
-    print("[SERVER] This server's IP:", HOST)
-    ctx = mplti.get_context('spawn') ###
+    print("[SERVER] This server's IP:", server_ip)
+    #ctx = mplti.get_context('spawn') ###
 
     #q1 = ctx.Queue(maxsize=8)
-    q_text = ctx.Queue(maxsize=8)
+    #q_text = ctx.Queue(maxsize=8)
 
     # Key existence
     evaluator_ready = mplti.Event()
@@ -134,7 +137,7 @@ def main():
     #                         args=(evaluator_ready, q_text, e_enc, e_ans, HOST), 
     #                         daemon=False)
     # p_socket.start()
-    p_flask = mplti.Process(target=run_server, kwargs={"host_ip":HOST})
+    p_flask = mplti.Process(target=run_server, kwargs={"host_ip":server_ip})
     p_flask.start()
 
     p_enc = mplti.Process(target=run_evaluator, 
@@ -156,11 +159,11 @@ def main():
 if __name__ == '__main__':
     # Set which version of HEAAN to use
     parser = argparse.ArgumentParser()
-
+    parser.add_argument("--host", dest="HOST", default="localhost")
     parser.add_argument("--fpga", dest='use_fpga', action='store_true')
     parser.add_argument("--cuda", dest='use_cuda', action='store_true')
     args = parser.parse_args()
-
+    server_ip = args.HOST
     if args.use_fpga:
         fase.USE_FPGA = True
     elif args.use_cuda:
@@ -168,4 +171,7 @@ if __name__ == '__main__':
 
     # import HEAAN_Evaluator *after* setting which HEAAN variants to use
     from bbsQt.core.evaluator import HEAAN_Evaluator
-    main()
+
+    q_text = Queue(maxsize=8)
+
+    main(server_ip)
