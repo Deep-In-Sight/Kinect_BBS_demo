@@ -51,7 +51,7 @@ def print_binary(s):
 
 def show_file_content(fn):
     with open(fn, 'rb') as fbin:
-        line = fbin.read(2000)
+        line = fbin.read(200)
         print("\n <<<<file in HEX>>>>")
         slow_print(line)
 
@@ -154,8 +154,10 @@ class HEAAN_Evaluator():
             #fn_data = self.server_path + q_text.get()
             fn_data = q_text.get()
             if DEBUG: print("[EVALUATOR] got a file", fn_data)
-            _, action, cam, _ = fn_data.split("/")[-1].split("_")
+            _, action, _cam, _ = fn_data.split("/")[-1].split("_")
             action = int(action)
+            cam = CAM_NAMES[action]
+
             if DEBUG: print("[EVALUATOR] action class:", action)
 
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)

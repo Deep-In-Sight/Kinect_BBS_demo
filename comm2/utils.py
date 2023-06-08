@@ -1,7 +1,7 @@
 import numpy as np
 import json
 from time import sleep
-from fase.heaan import he
+from fase.heaan_loader import he
 from bbsconfig import FN_STATE, empty_state
 
 def slow_print(line):

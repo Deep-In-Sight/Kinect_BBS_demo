@@ -39,28 +39,29 @@ def upload_file2():
         #print(f, ) can I print only a few lines? 
         f.save(secure_filename(f.filename)) # 
         if request.headers['dtype']=="enc_key":
-            print("Processing ENCKEY")
             msg = "stored ENCKEY"
         elif request.headers['dtype']=="mul_key":
             msg = "stored MULKEY"
+        elif request.headers['dtype']=="conj_key":
+            msg = "stored CONJKEY"
+        elif request.headers['dtype']=="rot_key":
+            msg = "stored ROTKEY"
         elif request.headers['dtype']=="ctxt":
+        
             print("Received ciphertext")
             e_enc.set()
             
             q_text.put(f.filename)
 
             # action = request.headers['action']
-            print("Calling HEAAN")
             # result = call_heaan.apply_async(args=[f.filename, action])
-            print("Calculation DONE?")
-            
+            msg = "Ciphertext received"
         elif request.headers['dtype']=="test":
             print("Received test")
             ready_for_connection_test(f.filename)
             msg = "Connection Check"
 
-        
-        
+        print("[RECEIVING KEY] ", msg)        
 
         return msg#"good"
 
@@ -79,7 +80,7 @@ def get_result():
         if request.headers['dtype']=="test":
             return send_file("test.txt", as_attachment=True)
     else:
-        fn = f"result/pred_{request.headers['cnt']}.dat"
+        fn = f"pred_{request.headers['cnt']}.dat"
         print("SENDING", fn)
         return send_file(fn, as_attachment=True)
 
@@ -121,10 +122,6 @@ def main(server_ip):
     # Key existence
     evaluator_ready = mplti.Event()
     evaluator_ready.clear()
-
-    # Ciphertext saved
-    e_enc = mplti.Event()
-    e_enc.clear()
 
     # e_ans = mplti.Event()
     # e_ans.clear()
@@ -173,5 +170,8 @@ if __name__ == '__main__':
     from bbsQt.core.evaluator import HEAAN_Evaluator
 
     q_text = Queue(maxsize=8)
+    # Ciphertext saved
+    e_enc = mplti.Event()
+    e_enc.clear()
 
     main(server_ip)
