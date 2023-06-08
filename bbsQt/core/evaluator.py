@@ -59,7 +59,6 @@ def show_file_content(fn):
 class HEAAN_Evaluator():
     def __init__(self, server_path, evaluator_ready=None):
 
-        
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
@@ -144,7 +143,7 @@ class HEAAN_Evaluator():
         print("[EVALUATOR] running model...")
         return model(ctx)
 
-    def start_evaluate_loop(self, q_text, e_enc, e_ans, tar=True):
+    def start_evaluate_loop(self, q_text, e_enc):
         """
         filename : ctxt_a05_{i}.dat, where a05 means action #5.
         """
@@ -187,7 +186,6 @@ class HEAAN_Evaluator():
             # #print(self.hec.decrypt(ctx))
             # ###############################################
 
-
             preds = self.run_model(action, cam, ctx)
             print(f"[EVALUATOR] Prediction took {time()-t0:.2f} seconds")
 
@@ -197,13 +195,13 @@ class HEAAN_Evaluator():
                 fn = self.server_path+f"pred_{i}.dat"
                 he.SerializationUtils.writeCiphertext(pred, fn)
                 fn_preds.append(f"pred_{i}.dat")
-            if tar:
-                fn_tar = FN_PREDS#"preds.tar.gz"
-                compress_files(fn_tar, fn_preds)
-                q_text.put({"root_path":self.server_path,  # Not using root path
-                        "filename":fn_tar})
-                        #"filename":self.server_path+fn_tar})
-            e_ans.set()
+            # if tar:
+            #     fn_tar = FN_PREDS#"preds.tar.gz"
+            #     compress_files(fn_tar, fn_preds)
+            #     q_text.put({"root_path":self.server_path,  # Not using root path
+            #             "filename":fn_tar})
+            #             #"filename":self.server_path+fn_tar})
+            # e_ans.set()
 
     def eval_once(self, fn_data, action):
         ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
