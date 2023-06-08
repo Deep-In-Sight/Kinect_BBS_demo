@@ -137,6 +137,7 @@ class qThreadRecord(QThread):
 
             # prepare image 
             img = np.array(self.stackColor[-1]).astype(np.uint8)
+            img = cv2.resize(img, (320, 240))
             height, width, channel = img.shape
             bytesPerLine = 3 * width
             pixmap   = QPixmap(QImage(img, width, height, bytesPerLine, QImage.Format_RGB888))
@@ -216,12 +217,15 @@ class qThreadRecord(QThread):
         if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
         pickle.dump(self.skarr, open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
-        fn_scores = f"Scores_.txt"
+        
 
         self.q1.put({"action":this_scenario,
                      "cam":camera_num, 
                      "skeleton": skeleton})
         self.e_sk.set()
+
+
+        
         #############
         # Encryptor runs...
         # Then send ctxt to server
@@ -233,6 +237,7 @@ class qThreadRecord(QThread):
         answer_int = int(answer.split(":")[-1])
 
         # Update this score
+        fn_scores = f"Scores_.txt"
         scu = Score_updator(fn_scores)
         scu.update(int(this_scenario), answer_int)
         all_txt = scu.text_output()
@@ -289,7 +294,7 @@ class qThreadRecord(QThread):
         img = cv2.imread(fn_img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         #img = imgutil.rgb2gray(img)
-        img = cv2.resize(img, (270, 270))
+        img = cv2.resize(img, (320, 240))
         img = np.array(img).astype(np.uint8)
         height, width, channel = img.shape
         bytesPerLine = 3 * width

@@ -43,7 +43,7 @@ def get_layout(mylabel):
 
 def load_image(fn_img = "imgs/instruct_1.png"):
     img = cv2.imread(fn_img)
-    img = cv2.resize(img, (480, 270))
+    img = cv2.resize(img, (320, 240))
     img = img[:,:,::-1]
     img = np.array(img).astype(np.uint8)
     height, width, channel = img.shape
@@ -87,9 +87,9 @@ class QMyMainWindow(QWidget):
 
         self.curScenario = self.config.scenario[self.ScenarioNo]
 
-        self.setGeometry(100, 100, 1200, 850)
-        self.setMinimumSize(1000, 600)
-        self.setMaximumSize(2048, 1600)
+        self.setGeometry(100, 100, 1000, 700)
+        self.setMinimumSize(900, 600)
+        self.setMaximumSize(1920, 1080)
         self.setWindowTitle('Kinect BBS demo')
 
         # fix 2021/01/07
@@ -106,7 +106,6 @@ class QMyMainWindow(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.showTime)
         self.timer.start(1000)
-
 
         self.imgviwerRGB.emitDispImgSize.connect(self.qScenario.setRgbDispSize)
 
@@ -174,6 +173,7 @@ class QMyMainWindow(QWidget):
         #LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
         
         self.skimageLabel = QLabel()
+        self.skimageLabel.setFixedSize(320, 240)
         self.skimageLabel.setPixmap(load_image())
         
         # add 2021.12.27 skindexbtn
@@ -251,6 +251,7 @@ class QMyMainWindow(QWidget):
         
         self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
         self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
+        self.startcamera()
 
     def scoreChanged(self, text):
         self.qScenario.scorenum.setText(f'Score : {text}')

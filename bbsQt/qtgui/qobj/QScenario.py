@@ -110,6 +110,9 @@ class qScenario(QObject):
         self.scorenum.setText(f'Score : {text}')
         #self.scenarionum.setText(f'Scenario : {text}')
 
+    # def download(self):
+        
+    
     def videoplay(self):
         # fix 2021/01/07
         video_name = glob(DIR_VIDEO+f"?{self.btn.action_num.currentIndex()+1}_{self.btn.score_num.currentText()}_*.mp4")[0]
@@ -179,6 +182,12 @@ class qScenario(QObject):
         LayoutRecordStartStep.addWidget(self.videoplaybtn)
         self.videoplaybtn.clicked.connect(self.videoplay)
 
+        # self.downloadbtn = QPushButton('Download')
+        # self.downloadbtn.setMinimumHeight(40)
+        # self.downloadbtn.setMinimumWidth(140)
+        # LayoutRecordStartStep.addWidget(self.downloadbtn)
+        # self.downloadbtn.clicked.connect(self.videoplay)
+
         self.Ready = QPushButton()
         self.Ready.setCheckable(True)
         self.Ready.setText('Start')
@@ -225,7 +234,7 @@ class qScenario(QObject):
         # Todo: add result 
         LayoutInfo = QVBoxLayout()
         self.viewInfo = QLabel()
-        self.viewInfo.setAlignment(Qt.AlignCenter)
+        self.viewInfo.setAlignment(Qt.AlignTop)
         self.viewInfo.setScaledContents(True)
         self.viewInfo.setText(self.showinfo())
         self.viewInfo.setMinimumHeight(30)
