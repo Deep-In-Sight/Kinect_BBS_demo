@@ -15,7 +15,7 @@ from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
 
 
-sleep_time = 3 # allow server at least 60s to run inference
+sleep_time = 10 # allow server at least 60s to run inference
 
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
 class HETreeFeaturizer:
@@ -99,7 +99,14 @@ def get_5results(result_url):
     recieved_files = []
     n_try = 0
     for cnt in range(5):
-        while n_try < 5:
+        if cnt == 0 :
+            n_try_max = 10
+            tsleep = 10
+        else:
+            n_try_max = 5
+            tsleep = 2
+
+        while n_try < n_try_max:
             r = requests.get(result_url, 
                             stream=True, 
                             headers={"cnt":f"{cnt}"},
@@ -110,7 +117,7 @@ def get_5results(result_url):
                 recieved_files.append(get_filename(r))
                 break
             else:
-                sleep(2)
+                sleep(tsleep)
                 n_try+=1
         else:
             print("Retry limit reached. Try again later")
