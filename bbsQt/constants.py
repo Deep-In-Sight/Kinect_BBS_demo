@@ -14,9 +14,9 @@ mp_pose_lm_name = ["nose", "l_eye_inner", "l_eye", "l_eye_outer", 'r_eye_inner',
                    "l_knee", "r_knee", "l_ankle", "r_ankle", "l_heel", "r_heel", 
                    "l_foot_index", "r_foot_index"]
 
-HEAAN_CONTEXT_PARAMS = {'logq':450,
+HEAAN_CONTEXT_PARAMS = {'logq':540,
                         'logp':30,
-                        'logn':14,
+                        'logn':5,
                         'n':1*2**14}
 
 location = ['DI', 'ETRI', 'local'][2]

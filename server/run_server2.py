@@ -3,6 +3,7 @@ import os
 import multiprocessing as mplti
 from multiprocessing import Queue
 import argparse
+from time import sleep
 
 # from bbsQt.qtgui.qobj.QmainWindow import *
 # from bbsQt.comm import app_server
@@ -49,19 +50,22 @@ def upload_file2():
         elif request.headers['dtype']=="ctxt":
         
             print("Received ciphertext")
-            e_enc.set()
-            
             q_text.put(f.filename)
+            
+            print("q_text", q_text)
+            print(f.filename)
 
             # action = request.headers['action']
             # result = call_heaan.apply_async(args=[f.filename, action])
             msg = "Ciphertext received"
+
+            e_enc.set()
         elif request.headers['dtype']=="test":
             print("Received test")
             ready_for_connection_test(f.filename)
             msg = "Connection Check"
 
-        print("[RECEIVING KEY] ", msg)        
+        print("[RECEIVING FILES] ", msg)        
 
         return msg#"good"
 
@@ -141,6 +145,11 @@ def main(server_ip):
                           args=(q_text, evaluator_ready, e_enc), 
                           daemon=False)
     p_enc.start()
+
+    # sleep(5)
+    # q_text.put("ctx_01_e_.dat")
+    # e_enc.set()
+
 
     #evaluator_ready.set()
     e_quit.wait()

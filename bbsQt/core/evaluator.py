@@ -62,13 +62,18 @@ class HEAAN_Evaluator():
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
+        logq = 150
+        logn = 14
+        
         n = 1*2**logn
+        print("XXXXXXXXXXXXXXX", logn, logp, logq)
 
         self.parms = Param(n=n, logp=logp, logq=logq)
         self.server_path = server_path
-        self.key_path = server_path + 'serkey/'
+        self.key_path = server_path
         print("[ENCRYPTOR] key path", self.key_path)
-
+        
+        
         hec = HEAANContext(logn, logp, logq, rot_l=[1], 
                    key_path=self.key_path,
                    FN_SK="secret.key",
@@ -159,7 +164,7 @@ class HEAAN_Evaluator():
             cam = CAM_NAMES[action]
 
             if DEBUG: print("[EVALUATOR] action class:", action)
-
+            
             ctx = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
             he.SerializationUtils.readCiphertext(ctx, fn_data)
             show_file_content(fn_data)
