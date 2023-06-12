@@ -100,6 +100,7 @@ def get_5results(result_url):
     recieved_files = []
     n_try = 0
     for cnt in range(5):
+        fn = f'{client_save_dir}/pred{cnt}.dat'
         if cnt == 0 :
             n_try_max = 10
             tsleep = 10
@@ -112,10 +113,10 @@ def get_5results(result_url):
                             stream=True, 
                             headers={"cnt":f"{cnt}"},
                             verify=cert)
-            if r.status_code == 200:
-                save_binary(r, f'{client_save_dir}/pred{cnt}.dat')
+            if r.ok:
+                save_binary(r, fn)
                 print(f"Result recieved: {cnt}/5")
-                recieved_files.append(get_filename(r))
+                recieved_files.append(fn)
                 break
             else:
                 sleep(tsleep)
@@ -311,7 +312,7 @@ class HEAAN_Encryptor():
             #e_enc_ans.wait()  ## FLOW CONTROL
 
             # Load predictions
-            print("fn_preds", fn_preds)
+            print("[encryptor] Check fn_preds:::", fn_preds)
             
             preds=[]
             #t0 = time.time()
