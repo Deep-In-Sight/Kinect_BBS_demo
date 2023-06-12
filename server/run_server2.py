@@ -23,6 +23,10 @@ app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024
 q_text = None
 e_enc = None
 
+def fn_pred(i):
+    dir = "./results/"
+    return dir+f"pred_{i}.dat"
+
 @app.route('/upload',methods=['POST'])
 def upload_file2():
     if request.method=='POST':
@@ -36,8 +40,11 @@ def upload_file2():
         #print("Received POST request")
         print("request", request)
 
+
         f=request.files['file']
+        
         #print(f, ) can I print only a few lines? 
+        
         f.save(secure_filename(f.filename)) # 
         if request.headers['dtype']=="enc_key":
             msg = "stored ENCKEY"
@@ -46,28 +53,48 @@ def upload_file2():
         elif request.headers['dtype']=="conj_key":
             msg = "stored CONJKEY"
         elif request.headers['dtype']=="rot_key":
-            msg = "stored ROTKEY"
+            msg = "stored ROTKEY"     
         elif request.headers['dtype']=="ctxt":
         
             print("Received ciphertext")
+            
             q_text.put(f.filename)
             
             print("q_text", q_text)
+            
             print(f.filename)
 
             # action = request.headers['action']
+            
             # result = call_heaan.apply_async(args=[f.filename, action])
             msg = "Ciphertext received"
 
             e_enc.set()
         elif request.headers['dtype']=="test":
             print("Received test")
+            
             ready_for_connection_test(f.filename)
             msg = "Connection Check"
 
         print("[RECEIVING FILES] ", msg)        
 
         return msg#"good"
+
+
+def predictions_ready():
+    """Check if all predictions are ready.
+    """
+    for i in range(5):
+        if not os.path.exists(fn_pred(i)):
+            return False
+    return True
+
+@app.route('/ready', methods=['GET'])
+def check_result():
+    if predictions_ready():
+        return "ready"
+    else:
+        return "not ready"
 
 @app.route('/result', methods=['GET'])
 def get_result():
@@ -84,7 +111,7 @@ def get_result():
         if request.headers['dtype']=="test":
             return send_file("test.txt", as_attachment=True)
     else:
-        fn = f"pred_{request.headers['cnt']}.dat"
+        fn = fn_pred(request.headers['cnt'])
         print("SENDING", fn)
         return send_file(fn, as_attachment=True)
 

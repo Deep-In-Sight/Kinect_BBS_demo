@@ -27,16 +27,6 @@ def run_qt_app(q1, q_answer, e_sk , e_ans):
     #e_quit.wait()
     #quit
 
-
-########################## DEBUGGING ############################
-# from bbsQt.core.evaluator import HEAAN_Evaluator
-# def run_evaluator(q_text, e_key, e_enc, e_ans, server_path="./server/"):
-#     e_key.wait()
-#     henc = HEAAN_Evaluator(server_path, e_ans)
-#     e_key.clear()
-#     print("[MAIN] Running evaluation loop")
-#     henc.start_evaluate_loop(q_text, e_enc, e_ans)
-
 def check_connection(upload_url):
     fn = "test.txt"
     # 연결 테스트용

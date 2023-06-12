@@ -16,6 +16,7 @@ from fase.hnrf.tree import NeuralTreeMaker
 
 
 sleep_time = 10 # allow server at least 60s to run inference
+client_save_dir = "./client_results"
 
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
 class HETreeFeaturizer:
@@ -112,7 +113,7 @@ def get_5results(result_url):
                             headers={"cnt":f"{cnt}"},
                             verify=cert)
             if r.status_code == 200:
-                save_binary(r,f'./client_results/pred{cnt}.dat')
+                save_binary(r, f'{client_save_dir}/pred{cnt}.dat')
                 print(f"Result recieved: {cnt}/5")
                 recieved_files.append(get_filename(r))
                 break
@@ -155,8 +156,9 @@ class HEAAN_Encryptor():
         self.key_path = key_path
         if debug: print("[ENCRYPTOR] key path", key_path)
 
-        # Make dir for keys
+        # Make dirs
         if not os.path.isdir(key_path): os.mkdir(key_path)
+        if not os.path.isdir(client_save_dir): os.mkdir(client_save_dir)
 
         self.ring = he.Ring()
         print("Loading secret key", key_path+FN_SK)
@@ -207,8 +209,6 @@ class HEAAN_Encryptor():
         When skeleton is ready (e_sk), get the skeleton from q1, 
         encrypt, and store it as ctx_{i}.dat file. 
         """
-        scheme = self.scheme
-        parms = self.parms
 
         while True:
             e_sk.wait()  ## FLOW CONTROL
@@ -259,22 +259,22 @@ class HEAAN_Encryptor():
 
             # Still some values can surpass 1.0. 
             # I need a more strict rule for standardization.. 
-            # The following is an ad-hoc measure.
-            
+            # The following is an ad-hoc measure.        
 
             featurizer = self.featurizers[f"{action}_{cam}"]
             if debug: print("Featurizing skeleton...")
             t0 = time.time()
             ctx1 = featurizer.encrypt(sc0)
             print("Encryption done in ", time.time() - t0, "seconds")
-            pickle.dump(sc0, open("scaled.pickle", "wb"))
-            if debug: print(f"Featurizing done in {time.time() - t0:.2f}s")
-            if debug: print(ctx1.n, ctx1.logp, ctx1.logq)
-            if debug: print("[Encryptor] Ctxt encrypted")
-
+            
+            if debug: 
+                pickle.dump(sc0, open("scaled.pickle", "wb"))
+                print(f"Featurizing done in {time.time() - t0:.2f}s")
+                print(ctx1.n, ctx1.logp, ctx1.logq)
+                print("[Encryptor] Ctxt encrypted")
 
             he.SerializationUtils.writeCiphertext(ctx1, fn)
-            if debug: print("[Encryptor] Ctxt wrote")
+            if debug: print("[Encryptor] Ctxt written to", fn)
 
             # q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
             # if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
@@ -289,16 +289,23 @@ class HEAAN_Encryptor():
                         headers={"dtype":"ctxt", "action":str(action)},
                         verify=cert)
             
-            if ret != 200:
+            if not ret.ok:
                 # HTTP error handling
-                print(ret.status_code)
                 print("Error in uploading the file to the server.")
-                pass
-
+                print(ret.status_code)
+                print(ret)
+                
             if debug: print("[Encryptor] Waiting for prediction...")
+            
             sleep(sleep_time)
 
-            fn_preds = get_5results(self.server_url + "/result")
+            predicts_ready = query_ready(self.server_url, 
+                                        path='/ready', 
+                                        retry_interval=10,
+                                        max_trials = 10)
+            
+            if predicts_ready:
+                fn_preds = get_5results(self.server_url + "/result")
             
             # Decrypt answer
             #e_enc_ans.wait()  ## FLOW CONTROL
@@ -307,7 +314,7 @@ class HEAAN_Encryptor():
             print("fn_preds", fn_preds)
             
             preds=[]
-            t0 = time.time()
+            #t0 = time.time()
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
                 # readCiphertext할 때 logp, logq, logn을 미리 알아야함? 
@@ -320,11 +327,10 @@ class HEAAN_Encryptor():
                 preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
                 print("[encryptor] decrypted prediction array", dec[:10])
                 del ctx_pred
-            print("Decryption done in ", time.time() - t0, "seconds")
+            #print("Decryption done in ", time.time() - t0, "seconds")
             del ctx1 
 
             ###########################
-            print("preds", preds)
             ans_str = f"Predicted score: {np.argmax(preds)}"
             print(ans_str)
             e_enc_ans.clear()  ## FLOW CONTROL
@@ -334,7 +340,6 @@ class HEAAN_Encryptor():
             e_ans.set()  ## FLOW CONTROL
             #print("is e_sk set?", e_sk.is_set())
 
-            #i+=1
     
     def setup_eval(self, server_path="./"):
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -416,3 +421,27 @@ class HEAAN_Encryptor():
         
         return np.all(all_found)
 
+
+
+############## Communicator
+def query_ready(server_ip, path='/ready', 
+                retry_interval=30,
+                max_trials = 10):
+    # Query if predictions are ready 
+    url = server_ip + path
+    print("URL", url )
+    ret_ready = requests.get(url, verify=cert)
+
+    n_trials = 0
+    while ret_ready.ok and ret_ready.text != "ready":
+        print("[Comm] Predictions are not ready yet")
+        print("[Comm] Retrying in", retry_interval, "seconds...")
+        sleep(retry_interval)
+        ret_ready = requests.get(url, verify=cert)
+        n_trials += 1
+
+        if n_trials > max_trials:
+            print("[Comm] Maximum polling trials reached. Quitting...")
+            return False
+    
+    return True
