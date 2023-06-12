@@ -4,6 +4,7 @@ FN_KEYS = ["ENCRYPTION.txt",
            "ROTATION_1.txt"]
 FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
+FN_SCORES = f"Scores_.txt"
 
 cert = False # Certification file or ignore
 

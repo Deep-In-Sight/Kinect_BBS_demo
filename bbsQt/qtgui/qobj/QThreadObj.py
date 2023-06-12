@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from bbsQt.model import kinect_utils as ku 
 from bbsQt.model import rec_utils as ru
-from bbsQt.constants import NFRAMES, VERBOSE, mp_pose_lm_name
+from bbsQt.constants import NFRAMES, VERBOSE, FN_SCORES, mp_pose_lm_name
 from bbsQt.model.Fall_predict import Score_updator
 WAIT = 0.01
 
@@ -224,8 +224,6 @@ class qThreadRecord(QThread):
                      "skeleton": skeleton})
         self.e_sk.set()
 
-
-        
         #############
         # Encryptor runs...
         # Then send ctxt to server
@@ -237,8 +235,7 @@ class qThreadRecord(QThread):
         answer_int = int(answer.split(":")[-1])
 
         # Update this score
-        fn_scores = f"Scores_.txt"
-        scu = Score_updator(fn_scores)
+        scu = Score_updator(FN_SCORES)
         scu.update(int(this_scenario), answer_int)
         all_txt = scu.text_output()
         scu.write_txt()
