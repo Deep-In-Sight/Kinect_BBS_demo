@@ -165,12 +165,12 @@ class qScenario(QObject):
         HVlayoutMain = QVBoxLayout() 
         HVlayoutMain.setAlignment(Qt.AlignTop)
 
-        LayoutRecordStart = QLabel()
-        LayoutRecordStart.setText("Record START")
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        LayoutRecordStart.setFont(font)
+        # LayoutRecordStart = QLabel()
+        # LayoutRecordStart.setText("Record START")
+        # font = QFont()
+        # font.setBold(True)
+        # font.setPointSize(15)
+        # LayoutRecordStart.setFont(font)
 
         LayoutRecordStartStep = QHBoxLayout() 
         LayoutRecordStartStep.setAlignment(Qt.AlignTop)

@@ -83,14 +83,15 @@ class qThreadRecord(QThread):
     def run(self):
         t_elapsed = 0
         nframes = 0
-        i = 0
+        #i = 0
 
         t0 = time.time()
         self.resetstate()
         
         joint = np.zeros((33,3))
         #joint[:,0] = mp_pose_lm_name
-        while (self.btn.endtime.text() == "F"):
+        #while (self.btn.endtime.text() == "F"):
+        while self.isRun:
             #try:
             success, image = self.cap.read()
             if success:

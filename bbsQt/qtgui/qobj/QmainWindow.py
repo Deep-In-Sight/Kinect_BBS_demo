@@ -116,15 +116,12 @@ class QMyMainWindow(QWidget):
 
     def end(self):
         """Stop recording and save the video and skeleton"""
-        self.btn.endtime.setText("T")
+        #self.btn.endtime.setText("T")
         checkfile = f"{self.PWD}/bodytracking_data.csv"
 
         if not(os.path.isfile(checkfile)):
             print("checkfile", checkfile)
             t1 = time.time()
-
-            #self.device.release()
-            #self.bodyTracker.destroy()
 
             self.qthreadrec.setRun(False)
 
@@ -153,7 +150,7 @@ class QMyMainWindow(QWidget):
 
                 self.resetRecordInterface()
 
-                self.btn.endtime.setText("F")
+                #self.btn.endtime.setText("F")
 
                 if VERBOSE: 
                     print("[QMainWindow.end]Saving done")
@@ -304,11 +301,7 @@ class QMyMainWindow(QWidget):
             self.imgviwerRGB.setImg(cv2.flip(image, 1))
             #self.imgviwerSkeleton.setImg(cv2.flip(image, 1)) ## <<<<<<<<<<<
 
-            if True:
-                self.imgviwerRGB.start()
-                #self.imgviwerSkeleton.start()
-            else:
-                pass
+            self.imgviwerRGB.start()
 
             t1 = time.time()
             self.btn.LbFPS.setText("{:.2f}FPS".format(1./(t1-t0)))

@@ -213,10 +213,6 @@ def main(server_ip):
     e_quit = mplti.Event()
     e_quit.clear()
 
-    # p_socket = mplti.Process(target=run_communicator, 
-    #                         args=(evaluator_ready, q_text, e_enc, e_ans, HOST), 
-    #                         daemon=False)
-    # p_socket.start()
     p_flask = mplti.Process(target=run_server, 
                             kwargs={"host_ip":server_ip})
     p_flask.start()

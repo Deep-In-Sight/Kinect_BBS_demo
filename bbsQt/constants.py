@@ -2,9 +2,10 @@ import subprocess
 FN_KEYS = ["ENCRYPTION.txt",
            "MULTIPLICATION.txt",
            "ROTATION_1.txt"]
+DIR_WORK = "./client/"
 FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
-FN_SCORES = f"Scores_.txt"
+FN_SCORES = DIR_WORK+f"Scores_.txt"
 
 cert = False # Certification file or ignore
 
