@@ -3,6 +3,7 @@ import os
 import multiprocessing as mplti
 from multiprocessing import Queue
 import argparse
+from glob import glob
 from time import sleep
 
 # from bbsQt.qtgui.qobj.QmainWindow import *
@@ -23,8 +24,10 @@ app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024
 q_text = None
 e_enc = None
 
+q_key = Queue(maxsize=8)
+
 def fn_pred(i):
-    dir = "./results/"
+    dir = "./"
     return dir+f"pred_{i}.dat"
 
 @app.route('/upload',methods=['POST'])
@@ -46,15 +49,15 @@ def upload_file2():
         #print(f, ) can I print only a few lines? 
         
         f.save(secure_filename(f.filename)) # 
-        if request.headers['dtype']=="enc_key":
-            msg = "stored ENCKEY"
-        elif request.headers['dtype']=="mul_key":
-            msg = "stored MULKEY"
-        elif request.headers['dtype']=="conj_key":
-            msg = "stored CONJKEY"
-        elif request.headers['dtype']=="rot_key":
-            msg = "stored ROTKEY"     
-        elif request.headers['dtype']=="ctxt":
+        # if request.headers['dtype']=="enc_key":
+        #     msg = "stored ENCKEY"
+        # elif request.headers['dtype']=="mul_key":
+        #     msg = "stored MULKEY"
+        # elif request.headers['dtype']=="conj_key":
+        #     msg = "stored CONJKEY"
+        # elif request.headers['dtype']=="rot_key":
+        #     msg = "stored ROTKEY"     
+        if request.headers['dtype']=="ctxt":
         
             print("Received ciphertext")
             
@@ -80,6 +83,55 @@ def upload_file2():
 
         return msg#"good"
 
+@app.route('/keys',methods=['POST'])
+def upload_keys():
+    if request.method=='POST':
+        print("\nMethod: ", request.method)
+        print("Headers: ", request.headers)
+        print("Args: ", request.args)
+        print("Form data: ", request.form)
+        print("FILE: ", request.files)
+        # print("JSON data: ", request.get_json())
+        
+        #print("Received POST request")
+        print("request", request)
+
+
+        f=request.files['file']
+        
+        #print(f, ) can I print only a few lines? 
+        
+        f.save(secure_filename(f.filename)) # 
+        if request.headers['dtype']=="enc_key":
+            msg = "stored ENCKEY"
+        elif request.headers['dtype']=="mul_key":
+            msg = "stored MULKEY"
+        elif request.headers['dtype']=="conj_key":
+            msg = "stored CONJKEY"
+        elif request.headers['dtype']=="rot_key":
+            msg = "stored ROTKEY"
+        elif request.headers['dtype']=="test":
+            print("Received test")
+            
+            ready_for_connection_test(f.filename)
+            msg = "Connection Check"
+
+        print("[RECEIVING FILES] ", msg)        
+
+        # Flask/Werkzeug's default behavior is that
+        # the "route" function is called only after the file transfer is done.
+        # So, if the file exists, it means that the file is ready to be used.
+        if check_for_keys():
+            q_key.put("ready")
+            print("Keys are ready!")
+        
+        return msg#"good"
+
+def check_for_keys():
+    for fn in ["EncKey.txt", "MulKey.txt", "RotKey_1.txt"]:
+        if not os.path.exists(fn):
+            return False
+    return True
 
 def predictions_ready():
     """Check if all predictions are ready.
@@ -133,29 +185,29 @@ def run_evaluator(q_text, evaluator_ready, e_enc):
         print("[SERVER] Running evaluation loop")
         henc.start_evaluate_loop(q_text, e_enc)
 
-# def run_communicator(evaluator_ready, q_text, e_enc, e_ans, HOST):
-#     # 1. send keys to server and do quick check
-#     app_server.run_server(q_text, evaluator_ready, e_enc, e_ans, HOST)
-    #e_enc.wait()
-    #app_server.query(q1, lock, e_enc, e_quit)
-
     
 def main(server_ip):
     #HOST = extract_ip()
     #HOST = '127.0.0.1'
 
     print("[SERVER] This server's IP:", server_ip)
-    #ctx = mplti.get_context('spawn') ###
-
-    #q1 = ctx.Queue(maxsize=8)
-    #q_text = ctx.Queue(maxsize=8)
+    
+    
+    # Clean up keys
+    for fn in glob("*.dat"):
+        if os.path.exists(fn):
+            os.remove(fn)
+    
+    for fn in glob("*.txt"):
+        if os.path.exists(fn):
+            os.remove(fn)
 
     # Key existence
     evaluator_ready = mplti.Event()
     evaluator_ready.clear()
 
-    # e_ans = mplti.Event()
-    # e_ans.clear()
+    keys_ready = mplti.Event()
+    keys_ready.clear()
 
     # Quit the application
     e_quit = mplti.Event()
@@ -165,18 +217,18 @@ def main(server_ip):
     #                         args=(evaluator_ready, q_text, e_enc, e_ans, HOST), 
     #                         daemon=False)
     # p_socket.start()
-    p_flask = mplti.Process(target=run_server, kwargs={"host_ip":server_ip})
+    p_flask = mplti.Process(target=run_server, 
+                            kwargs={"host_ip":server_ip})
     p_flask.start()
 
     p_enc = mplti.Process(target=run_evaluator, 
                           args=(q_text, evaluator_ready, e_enc), 
                           daemon=False)
-    p_enc.start()
-
-    # sleep(5)
-    # q_text.put("ctx_01_e_.dat")
-    # e_enc.set()
-
+    
+    print("[SERVER] Waiting for keys...")
+    
+    if q_key.get() == "ready":
+        p_enc.start()
 
     #evaluator_ready.set()
     e_quit.wait()

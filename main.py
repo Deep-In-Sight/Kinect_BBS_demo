@@ -52,7 +52,7 @@ def check_connection(upload_url):
     print(ret.text)
     
 
-def run_encryptor(q1, q_answer, e_sk, e_ans, e_enc_ans, key_path="./serkey/"):
+def run_encryptor(q1, q_answer, e_sk, e_ans, e_enc_ans, key_path="./client/"):
     henc = HEAAN_Encryptor(args.HOST, key_path)
      #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_answer, e_sk, e_ans, e_enc_ans)

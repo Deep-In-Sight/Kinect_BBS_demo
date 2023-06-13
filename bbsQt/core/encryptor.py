@@ -4,7 +4,7 @@ import numpy as np
 import os 
 import pickle
 import time
-import tarfile
+# import tarfile
 from bbsQt.constants import CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK, cert
 import torch
 from time import sleep
@@ -13,12 +13,107 @@ from urllib.parse import unquote
 from fase.hnrf.hetree import HNRF
 from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
+from fase.core.heaan import HEAANContext
 
-
-sleep_time = 10 # allow server at least 60s to run inference
-client_save_dir = "./client_results"
+sleep_time = 40 # allow server at least 60s to run inference
 
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
+
+
+############## Communicator
+def query_ready(server_ip, path='/ready', 
+                retry_interval=30,
+                max_trials = 10):
+    """Ask the server if predictions are ready.
+    """
+    url = server_ip + path
+    print("URL", url )
+    ret_ready = requests.get(url, verify=cert)
+
+    n_trials = 0
+    while ret_ready.ok and ret_ready.text != "ready":
+        print("[Comm] Predictions are not ready yet")
+        print("[Comm] Retrying in", retry_interval, "seconds...")
+        sleep(retry_interval)
+        ret_ready = requests.get(url, verify=cert)
+        n_trials += 1
+
+        if n_trials > max_trials:
+            print("[Comm] Maximum polling trials reached. Quitting...")
+            return False
+    
+    return True
+
+def save_binary(r, fn_save):
+    if r.status_code == 200:
+        with open(fn_save, 'wb') as f:
+            for chunk in r:
+                f.write(chunk)
+    else:
+        raise FileNotFoundError
+
+def get_5results(result_url, client_save_dir):
+    recieved_files = []
+    n_try = 0
+    for cnt in range(5):
+        fn = f'{client_save_dir}/pred{cnt}.dat'
+        if cnt == 0 :
+            n_try_max = 10
+            tsleep = 10
+        else:
+            n_try_max = 5
+            tsleep = 2
+
+        while n_try < n_try_max:
+            r = requests.get(result_url, 
+                            stream=True, 
+                            headers={"cnt":f"{cnt}"},
+                            verify=cert)
+            if r.ok:
+                save_binary(r, fn)
+                print(f"Result recieved: {cnt}/5")
+                recieved_files.append(fn)
+                break
+            else:
+                sleep(tsleep)
+                n_try+=1
+        else:
+            print("Retry limit reached. Try again later")
+            return False
+
+    return recieved_files
+
+def get_filename(response):
+    if 'Content-Disposition' in response.headers:
+        content_disposition = response.headers['Content-Disposition']
+        parts = content_disposition.split(';')
+
+        for part in parts:
+            if 'filename' in part:
+                filename = part.split('=')[1]
+                filename = unquote(filename.strip(' "'))  # remove quotes and spaces
+                
+    return filename
+
+def send_ctxt(server_url, fn, action):
+    print(f"Uploading {fn} to the server")
+    print("action", action)
+
+    ret = requests.post(server_url + "/upload", 
+                files={"file": open(fn, "rb")},
+                headers={"dtype":"ctxt", "action":str(action)},
+                verify=cert)
+    
+    if not ret.ok:
+        # HTTP error handling
+        print("Error in uploading the file to the server.")
+        print(ret.status_code)
+        print(ret)
+        return False
+    
+    return True
+
+
 class HETreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
@@ -83,97 +178,75 @@ def encrypt(scheme, val, parms):
     del vv
     return ctxt
 
-def compress_files(fn_tar, fn_list):
-    with tarfile.open(fn_tar, "w:gz") as tar:
-        for name in fn_list:
-            tar.add(name)
+# def compress_files(fn_tar, fn_list):
+#     with tarfile.open(fn_tar, "w:gz") as tar:
+#         for name in fn_list:
+#             tar.add(name)
 
-def save_binary(r, fn_save):
-    if r.status_code == 200:
-        with open(fn_save, 'wb') as f:
-            for chunk in r:
-                f.write(chunk)
-    else:
-        raise FileNotFoundError
-
-def get_5results(result_url):
-    recieved_files = []
-    n_try = 0
-    for cnt in range(5):
-        fn = f'{client_save_dir}/pred{cnt}.dat'
-        if cnt == 0 :
-            n_try_max = 10
-            tsleep = 10
-        else:
-            n_try_max = 5
-            tsleep = 2
-
-        while n_try < n_try_max:
-            r = requests.get(result_url, 
-                            stream=True, 
-                            headers={"cnt":f"{cnt}"},
-                            verify=cert)
-            if r.ok:
-                save_binary(r, fn)
-                print(f"Result recieved: {cnt}/5")
-                recieved_files.append(fn)
-                break
-            else:
-                sleep(tsleep)
-                n_try+=1
-        else:
-            print("Retry limit reached. Try again later")
-            return False
-
-    return recieved_files
-
-def get_filename(response):
-    if 'Content-Disposition' in response.headers:
-        content_disposition = response.headers['Content-Disposition']
-        parts = content_disposition.split(';')
-
-        for part in parts:
-            if 'filename' in part:
-                filename = part.split('=')[1]
-                filename = unquote(filename.strip(' "'))  # remove quotes and spaces
-                
-    return filename
 
 class HEAAN_Encryptor():
-    def __init__(self, server_url, key_path="./serkey/", 
+    def __init__(self, server_url, work_dir="./client/", 
                 debug=True):
         
         self.server_url = f"https://{server_url}"
         print("Paired with server at", self.server_url)
-        self.model_dir = "./models/"
+        self.model_dir = "./client/models/"
 
-        self.logq = HEAAN_CONTEXT_PARAMS['logq']#540
-        self.logp = HEAAN_CONTEXT_PARAMS['logp']#30
-        self.logn = HEAAN_CONTEXT_PARAMS['logn']#14
-        n = 1*2**self.logn
-        is_serialized = True
+        logq = HEAAN_CONTEXT_PARAMS['logq']#540
+        logp = HEAAN_CONTEXT_PARAMS['logp']#30
+        logn = HEAAN_CONTEXT_PARAMS['logn']#14
+        #logq = 150
+        #logn = 14
+        n = 1*2**logn
 
-        self.parms = Param(n=n, logp=self.logp, logq=self.logq)
-        self.key_path = key_path
-        if debug: print("[ENCRYPTOR] key path", key_path)
+        self.parms = Param(n=n, logp=logp, logq=logq)
+        self.work_dir = work_dir
+        if debug: print("[ENCRYPTOR] key path", work_dir)
 
         # Make dirs
-        if not os.path.isdir(key_path): os.mkdir(key_path)
-        if not os.path.isdir(client_save_dir): os.mkdir(client_save_dir)
+        if not os.path.isdir(work_dir): os.mkdir(work_dir)
+        #if not os.path.isdir(client_save_dir): os.mkdir(client_save_dir)
 
-        self.ring = he.Ring()
-        print("Loading secret key", key_path+FN_SK)
-        self.secretKey = he.SecretKey(key_path+FN_SK)
-        self.scheme = he.Scheme(self.ring, is_serialized, key_path)
-        self.algo = he.SchemeAlgo(self.scheme)
+        self.hec = HEAANContext(logn, logp, logq, rot_l=[1], 
+            key_path=self.work_dir,
+            FN_SK="secret.key",
+            boot=False, 
+            is_owner=True,
+            load_sk=False
+            )
+
+        print("FHE Keys are set", self.work_dir)
+        if not self.send_keys():
+            raise ConnectionError("Can't send keys to the server")
+        
+        # self.ring = he.Ring()
+        # self.secretKey = he.SecretKey(key_path+FN_SK)
+        # self.scheme = he.Scheme(self.ring, is_serialized, key_path)
+        # self.algo = he.SchemeAlgo(self.scheme)
 
         self.set_featurizers()
         self.load_scalers()
 
         if debug: print("[Encryptor] HEAAN is ready")
 
+    def send_keys(self):
+        # 미리 정해져있음 
+        # Conj 필요 없음 
+        flists = [("enc_key", 'EncKey.txt'), 
+                ('mul_key', 'MulKey.txt'),
+                ('rot_key', 'RotKey_1.txt')]
+        for dtype, fn in flists:
+            r = requests.post(self.server_url+'/keys', 
+                            files={'file':open(self.work_dir+fn, 'rb')}, 
+                            headers={'dtype':dtype},
+                            verify=cert)
+            if not r.ok:
+                print("ERROR")
+                return False
+        return True
+    
     def set_featurizers(self):
-        scheme = self.scheme
+        scheme = self.hec._scheme
         parms = self.parms
 
         featurizers =[]
@@ -229,7 +302,7 @@ class HEAAN_Encryptor():
             cam = CAM_NAMES[action] # No need to depend on the undeterministic camera order.
 
             sc = self.scalers[f"{action}_{cam}"]
-            fn = f"ctx_{action:02d}_{cam}_.dat"
+            fn = self.work_dir + f"ctx_{action:02d}_{cam}_.dat"
            
             t0 = time.time()            
 
@@ -282,19 +355,22 @@ class HEAAN_Encryptor():
             # e_enc.set()  ## FLOW CONTROL: encryption is done and file is ready
             #set_ctxt_to_server
 
-            print(f"Uploading {fn} to the server")
-            print("action", action)
 
-            ret = requests.post(self.server_url + "/upload", 
-                        files={"file": open(fn, "rb")},
-                        headers={"dtype":"ctxt", "action":str(action)},
-                        verify=cert)
+            if not send_ctxt(self.server_url, fn, action):
+                raise ConnectionError("Can't send ctxt to the server")
+            # print(f"Uploading {fn} to the server")
+            # print("action", action)
+
+            # ret = requests.post(self.server_url + "/upload", 
+            #             files={"file": open(fn, "rb")},
+            #             headers={"dtype":"ctxt", "action":str(action)},
+            #             verify=cert)
             
-            if not ret.ok:
-                # HTTP error handling
-                print("Error in uploading the file to the server.")
-                print(ret.status_code)
-                print(ret)
+            # if not ret.ok:
+            #     # HTTP error handling
+            #     print("Error in uploading the file to the server.")
+            #     print(ret.status_code)
+            #     print(ret)
                 
             if debug: print("[Encryptor] Waiting for prediction...")
             
@@ -306,7 +382,8 @@ class HEAAN_Encryptor():
                                         max_trials = 10)
             
             if predicts_ready:
-                fn_preds = get_5results(self.server_url + "/result")
+                fn_preds = get_5results(self.server_url + "/result", 
+                                        self.work_dir)
             
             # Decrypt answer
             #e_enc_ans.wait()  ## FLOW CONTROL
@@ -319,11 +396,11 @@ class HEAAN_Encryptor():
             for fn_ctx in fn_preds:
                 print("[encryptor] make an empty ctxt")
                 # readCiphertext할 때 logp, logq, logn을 미리 알아야함? 
-                ctx_pred = he.Ciphertext(ctx1.logp, self.logq, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
+                ctx_pred = he.Ciphertext(ctx1.logp, 180, ctx1.n) # 나중에 오는 애는 logq가 다를 수도 있음
                 print("[encryptor] load ctxt", fn_ctx)
                 he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
                 print("[encryptor] decrypt ctxt", ctx_pred)
-                dec=decrypt(self.scheme, self.secretKey, ctx_pred, self.parms)
+                dec=decrypt(self.hec._scheme, self.hec.sk, ctx_pred, self.parms)
                 print("[encryptor] append decrypted ctxt")
                 preds.append(np.sum(dec))# Must sum the whole vector. partial sum gives wrong answer
                 print("[encryptor] decrypted prediction array", dec[:10])
@@ -341,23 +418,6 @@ class HEAAN_Encryptor():
             e_ans.set()  ## FLOW CONTROL
             #print("is e_sk set?", e_sk.is_set())
 
-    
-    def setup_eval(self, server_path="./"):
-        logq = HEAAN_CONTEXT_PARAMS['logq']#540
-        logp = HEAAN_CONTEXT_PARAMS['logp']#30
-        logn = HEAAN_CONTEXT_PARAMS['logn']#14
-        n = 1*2**logn
-
-        self.parms2 = Param(n=n, logp=logp, logq=logq)
-        self.server_path2 = server_path
-        self.key_path2 = server_path + 'serkey/'
-        print("[ENCRYPTOR] key path", self.key_path2)
-
-        self.ring2 = he.Ring()
-        
-        self.scheme2 = he.Scheme(self.ring2, True, self.server_path2)
-        self.algo2 = he.SchemeAlgo(self.scheme2)
-        self.scheme2.loadLeftRotKey(1)
 
     def load_models(self):
         self.models = {}
@@ -421,28 +481,22 @@ class HEAAN_Encryptor():
             print(f"{this_fn} is","found" if found else "missing" )
         
         return np.all(all_found)
-
-
-
-############## Communicator
-def query_ready(server_ip, path='/ready', 
-                retry_interval=30,
-                max_trials = 10):
-    # Query if predictions are ready 
-    url = server_ip + path
-    print("URL", url )
-    ret_ready = requests.get(url, verify=cert)
-
-    n_trials = 0
-    while ret_ready.ok and ret_ready.text != "ready":
-        print("[Comm] Predictions are not ready yet")
-        print("[Comm] Retrying in", retry_interval, "seconds...")
-        sleep(retry_interval)
-        ret_ready = requests.get(url, verify=cert)
-        n_trials += 1
-
-        if n_trials > max_trials:
-            print("[Comm] Maximum polling trials reached. Quitting...")
-            return False
     
-    return True
+    # def setup_eval(self, server_path="./"):
+    #     logq = HEAAN_CONTEXT_PARAMS['logq']#540
+    #     logp = HEAAN_CONTEXT_PARAMS['logp']#30
+    #     logn = HEAAN_CONTEXT_PARAMS['logn']#14
+    #     n = 1*2**logn
+
+    #     self.parms2 = Param(n=n, logp=logp, logq=logq)
+    #     self.server_path2 = server_path
+    #     self.key_path2 = server_path + 'serkey/'
+    #     print("[ENCRYPTOR] key path", self.key_path2)
+
+    #     self.ring2 = he.Ring()
+        
+    #     self.scheme2 = he.Scheme(self.ring2, True, self.server_path2)
+    #     self.algo2 = he.SchemeAlgo(self.scheme2)
+    #     self.scheme2.loadLeftRotKey(1)
+
+

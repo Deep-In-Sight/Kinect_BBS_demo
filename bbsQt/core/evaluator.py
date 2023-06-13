@@ -4,7 +4,7 @@ import pickle
 import torch
 from time import time, sleep
 
-from bbsQt.constants import FN_PREDS, HEAAN_CONTEXT_PARAMS, CAM_NAMES
+from bbsQt.constants import HEAAN_CONTEXT_PARAMS, CAM_NAMES
 
 DEBUG = True
 
@@ -13,7 +13,7 @@ from fase.hnrf.hetree import HNRF
 from fase import hnrf as hnrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.hnrf import heaan_nrf 
-from fase.core.common import HEAANContext
+from fase.core.heaan import HEAANContext
 
 
 def slow_print(line):
@@ -62,8 +62,8 @@ class HEAAN_Evaluator():
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
-        logq = 150
-        logn = 14
+        #logq = 150
+        #logn = 14
         
         n = 1*2**logn
         print("XXXXXXXXXXXXXXX", logn, logp, logq)
@@ -74,7 +74,7 @@ class HEAAN_Evaluator():
         print("[ENCRYPTOR] key path", self.key_path)
         
         
-        hec = HEAANContext(logn, logp, logq, rot_l=[1], 
+        self.hec = HEAANContext(logn, logp, logq, rot_l=[1], 
                    key_path=self.key_path,
                    FN_SK="secret.key",
                    boot=False, 
@@ -84,7 +84,6 @@ class HEAAN_Evaluator():
 
         ## DEBUGGING
         #self.sk = he.SecretKey(self.key_path + 'secret.key')
-        self.hec = hec
         self.prepare_model_load()
 
         print("[Encryptor] HEAAN is ready")
@@ -124,7 +123,7 @@ class HEAAN_Evaluator():
                                                     self.my_tm_tanh.coeffs,
                                                     do_reduction = False,
                                                     sk = sk,#self.hec.sk ### DEBUGGING
-                                                    silent=True)
+                                                    silent=False)
         print(f"[EVAL.model_loader] HNRF model loaded for class {action} in {time() - t0:.2f} seconds")
         #allmodels.append((f"{action}",nrf_evaluator))
         self.models.update({f"{action}_{cam}":nrf_evaluator})            
@@ -145,7 +144,7 @@ class HEAAN_Evaluator():
             self.load_model(action, cam)
             model = self.models[f"{action}_{cam}"]
 
-        print("[EVALUATOR] running model...")
+        print("[EVALUATOR] running model...", model)
         return model(ctx)
 
     def start_evaluate_loop(self, q_text, e_enc):
@@ -183,7 +182,7 @@ class HEAAN_Evaluator():
             #     compress_files(fn_tar, fn_preds)
             #     q_text.put({"root_path":self.server_path,  # Not using root path
             #             "filename":self.server_path+fn_tar})
-            #     e_ans.set()
+            #     e_ans.set()run_model
             #     continue
 
             # ###############################################
@@ -198,7 +197,7 @@ class HEAAN_Evaluator():
 
             fn_preds = []
             for i, pred in enumerate(preds):
-                #print("PRED", i, pred)
+                print("PRED", i, pred)
                 fn = self.server_path+f"pred_{i}.dat"
                 he.SerializationUtils.writeCiphertext(pred, fn)
                 fn_preds.append(f"pred_{i}.dat")
