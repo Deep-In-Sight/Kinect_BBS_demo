@@ -111,5 +111,3 @@ class Score_updator():
             return f"총점 {tot}\n" + "낙상의 위험이 낮습니다."
         else: 
             return -1
-
-

@@ -5,7 +5,7 @@ import os
 import pickle
 import time
 import tarfile
-from bbsQt.constants import CAM_LIST, CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK, cert
+from bbsQt.constants import CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK, cert
 import torch
 from time import sleep
 import requests
