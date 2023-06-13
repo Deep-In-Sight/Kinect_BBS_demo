@@ -178,12 +178,6 @@ def encrypt(scheme, val, parms):
     del vv
     return ctxt
 
-# def compress_files(fn_tar, fn_list):
-#     with tarfile.open(fn_tar, "w:gz") as tar:
-#         for name in fn_list:
-#             tar.add(name)
-
-
 class HEAAN_Encryptor():
     def __init__(self, server_url, work_dir="./client/", 
                 debug=True):
@@ -219,11 +213,6 @@ class HEAAN_Encryptor():
         if not self.send_keys():
             raise ConnectionError("Can't send keys to the server")
         
-        # self.ring = he.Ring()
-        # self.secretKey = he.SecretKey(key_path+FN_SK)
-        # self.scheme = he.Scheme(self.ring, is_serialized, key_path)
-        # self.algo = he.SchemeAlgo(self.scheme)
-
         self.set_featurizers()
         self.load_scalers()
 
@@ -283,8 +272,6 @@ class HEAAN_Encryptor():
             print("[Encryptor] good to go") 
             sk = q1.get()  ## FLOW CONTROL
             "++++++++++++++++++++++++++ SKELETON POINTS ++++++++++++++++++++++"
-            print(sk)
-            
             e_sk.clear()  ## FLOW CONTROL: reset skeleton event
             
             if not 'skeleton' in sk.keys():
@@ -359,7 +346,7 @@ class HEAAN_Encryptor():
 
             predicts_ready = query_ready(self.server_url, 
                                         path='/ready', 
-                                        retry_interval=10,
+                                        retry_interval=5,
                                         max_trials = 10)
             
             if predicts_ready:
