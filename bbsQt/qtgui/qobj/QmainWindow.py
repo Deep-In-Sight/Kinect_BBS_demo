@@ -87,7 +87,7 @@ class QMyMainWindow(QWidget):
 
         self.curScenario = self.config.scenario[self.ScenarioNo]
 
-        self.setGeometry(100, 100, 1000, 700)
+        self.setGeometry(100, 100, 1200, 900)
         self.setMinimumSize(900, 600)
         self.setMaximumSize(1920, 1080)
         self.setWindowTitle('Kinect BBS demo')
@@ -123,7 +123,7 @@ class QMyMainWindow(QWidget):
             print("checkfile", checkfile)
             t1 = time.time()
 
-            self.device.release()
+            #self.device.release()
             #self.bodyTracker.destroy()
 
             self.qthreadrec.setRun(False)
@@ -179,18 +179,8 @@ class QMyMainWindow(QWidget):
         # add 2021.12.27 skindexbtn
         self.skindexbtn0 = QPushButton()
         self.skindexbtn0.setCheckable(False)
-        self.skindexbtn0.setText('blue')
+        self.skindexbtn0.setText('SEND')
         self.skindexbtn0.setMinimumHeight(40)
-
-        self.skindexbtn1 = QPushButton()
-        self.skindexbtn1.setCheckable(False)
-        self.skindexbtn1.setText('orange')
-        self.skindexbtn1.setMinimumHeight(40)
-
-        self.skindexbtn2 = QPushButton()
-        self.skindexbtn2.setCheckable(False)
-        self.skindexbtn2.setText('green')
-        self.skindexbtn2.setMinimumHeight(40)
         
         # add 2021.12.27 skbtnlayout
         skBBoxLayout = QVBoxLayout()
@@ -199,8 +189,8 @@ class QMyMainWindow(QWidget):
         LayoutViewers.addLayout(get_layout(self.skimageLabel))
         
         skBBoxLayout.addWidget(self.skindexbtn0)
-        skBBoxLayout.addWidget(self.skindexbtn1)
-        skBBoxLayout.addWidget(self.skindexbtn2)
+        # skBBoxLayout.addWidget(self.skindexbtn1)
+        # skBBoxLayout.addWidget(self.skindexbtn2)
         LayoutViewers.addLayout(skBBoxLayout)
 
         LayoutViewers.addLayout(QVBoxLayout(),7) # 이건 뭐지? 모양 맞추기용?
@@ -214,8 +204,8 @@ class QMyMainWindow(QWidget):
 
         # # add 2021.12.27  skindexbox connect 
         self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
-        self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
-        self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
+        # self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
+        # self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -251,7 +241,7 @@ class QMyMainWindow(QWidget):
         
         self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
         self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
-        self.startcamera()
+        # self.startcamera()
 
     def scoreChanged(self, text):
         self.qScenario.scorenum.setText(f'Score : {text}')
@@ -273,8 +263,8 @@ class QMyMainWindow(QWidget):
     def startcamera(self):
         try: 
             self.skindexbtn0.clicked.disconnect() 
-            self.skindexbtn1.clicked.disconnect() 
-            self.skindexbtn2.clicked.disconnect() 
+            #self.skindexbtn1.clicked.disconnect() 
+            #self.skindexbtn2.clicked.disconnect() 
         except Exception: 
             pass
         

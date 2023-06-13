@@ -149,38 +149,7 @@ class qThreadRecord(QThread):
             font.setPointSize(14)
             self.qScenario.viewInfo.setFont(font)
             return -1
-        #return 1
-        #nframes = len(self.skarr)
-        
-        # i_person_exist = np.ones(nframes, dtype=bool)
-        # for karr in self.skarr_list:
-        #     i_non_empty = np.ones(nframes, dtype=bool)
-        #     for name in karr.dtype.names:
-        #         i_non_empty *= np.array(karr[name] > 0)
-        #     i_person_exist *= i_non_empty
-        
-        # maxframe_idx = np.argmin(i_person_exist)
-        # if VERBOSE: print('[Qthread obj] maxframe idx',maxframe_idx)
-
-        #self.sk_viewer(self.skarr_list, self.stackColor, maxframe_idx, 1)
-        #self.sk_viewer_single(self.skarr, self.stackColor, 1)
-        #skimage = self.load_image(maxframe_idx)
-        
-        # 왜 저장하지? 
-        # -> 녹화할 때는 skeleton 화면을 따로 보여주지 않음. 
-        # 녹화할때도 skeleton 보여주기로... 
-        # IMAGE SAVE 
-        # idx = list(range(self.pic_Count))
-
-        # if VERBOSE: print("[Qthread obj] Number of frames", len(self.stackColor))
-
-
-        # #for i, color in enumerate(self.stackColor):
-        # #Save only one jpg
-        # color = self.stackColor#[maxframe_idx]
-        # cv2.imwrite(f"./{self.Locale}/{str(self.SubjectID).zfill(3)}/RGB/{camera_num+str((idx) + 1).zfill(4)}.jpg", color)
-        # # 저장한 이미지의 인덱스를 읽어서 뷰어에 연결해주는 함수 
-        # return skimage
+    
 
     def select_sk(self, skindex=0):
         """No selection needed anymore. MP finds only one skeleton"""
@@ -222,7 +191,9 @@ class qThreadRecord(QThread):
         self.q1.put({"action":this_scenario,
                      "cam":camera_num, 
                      "skeleton": skeleton})
+        print("[QtThreadObj] Skeleton sent to encryptor")
         self.e_sk.set()
+        print("[QtThreadObj] Waiting for Evaluator's response...")
 
         #############
         # Encryptor runs...

@@ -5,7 +5,7 @@ import os
 import pickle
 import time
 # import tarfile
-from bbsQt.constants import CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, FN_SK, cert
+from bbsQt.constants import CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, cert
 import torch
 from time import sleep
 import requests
@@ -15,7 +15,7 @@ from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.core.heaan import HEAANContext
 
-sleep_time = 40 # allow server at least 60s to run inference
+sleep_time = 30 # allow server at least 60s to run inference
 
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
 
@@ -270,13 +270,7 @@ class HEAAN_Encryptor():
 
     def _quick_check(self):
         scheme = self.scheme
-
         return True
-
-    def get_keys(self):
-        #print("good to go") 
-        #sk = q1.get()
-        pass
 
     def start_encrypt_loop(self, q1, q_answer, e_sk, e_ans, e_enc_ans, debug=True):
         """
@@ -358,20 +352,7 @@ class HEAAN_Encryptor():
 
             if not send_ctxt(self.server_url, fn, action):
                 raise ConnectionError("Can't send ctxt to the server")
-            # print(f"Uploading {fn} to the server")
-            # print("action", action)
-
-            # ret = requests.post(self.server_url + "/upload", 
-            #             files={"file": open(fn, "rb")},
-            #             headers={"dtype":"ctxt", "action":str(action)},
-            #             verify=cert)
             
-            # if not ret.ok:
-            #     # HTTP error handling
-            #     print("Error in uploading the file to the server.")
-            #     print(ret.status_code)
-            #     print(ret)
-                
             if debug: print("[Encryptor] Waiting for prediction...")
             
             sleep(sleep_time)
@@ -481,22 +462,3 @@ class HEAAN_Encryptor():
             print(f"{this_fn} is","found" if found else "missing" )
         
         return np.all(all_found)
-    
-    # def setup_eval(self, server_path="./"):
-    #     logq = HEAAN_CONTEXT_PARAMS['logq']#540
-    #     logp = HEAAN_CONTEXT_PARAMS['logp']#30
-    #     logn = HEAAN_CONTEXT_PARAMS['logn']#14
-    #     n = 1*2**logn
-
-    #     self.parms2 = Param(n=n, logp=logp, logq=logq)
-    #     self.server_path2 = server_path
-    #     self.key_path2 = server_path + 'serkey/'
-    #     print("[ENCRYPTOR] key path", self.key_path2)
-
-    #     self.ring2 = he.Ring()
-        
-    #     self.scheme2 = he.Scheme(self.ring2, True, self.server_path2)
-    #     self.algo2 = he.SchemeAlgo(self.scheme2)
-    #     self.scheme2.loadLeftRotKey(1)
-
-

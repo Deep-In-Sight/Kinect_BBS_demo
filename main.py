@@ -67,24 +67,11 @@ def main():
     ctx = mplti.get_context('spawn') ###
 
     q1 = ctx.Queue(maxsize=8)
-    # q_text = ctx.Queue(maxsize=8)
-    """
-    Ecryptor puts key file information to q_textvas:
-    {"root_path":key_path, "keys_to_share":fn_tar}
-    """
     q_answer = ctx.Queue(maxsize=8)
 
-    # Key exists
-    #e_key = mplti.Event()
-    #e_key.clear()
-    
     # Skeleton exists
     e_sk = mplti.Event()
     e_sk.clear()
-
-    # Query ciphertext saved
-    # e_enc = mplti.Event()
-    # e_enc.clear()
 
     # Encrypted prediction saved
     e_enc_ans = mplti.Event()
@@ -102,10 +89,6 @@ def main():
                     args=(q1, q_answer, e_sk, e_ans, e_enc_ans), daemon=False)
     p_enc.start()
 
-    # p_socket = mplti.Process(target=run_communicator, 
-    #         args=(q1, q_text, e_enc, e_enc_ans), daemon=False)
-    # p_socket.start()
-    
     p_qt = mplti.Process(target=run_qt_app, 
                         args=(q1, q_answer, e_sk, e_ans), daemon=False) # 진짜
     # ## signal quit()  
@@ -113,8 +96,6 @@ def main():
 
         
     e_quit.wait()
-    # p_socket.join()
-    # p_socket.close()
     p_enc.join()
     p_enc.close()
     p_qt.join()
