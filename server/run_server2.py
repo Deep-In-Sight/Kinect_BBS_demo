@@ -4,97 +4,60 @@ import multiprocessing as mplti
 from multiprocessing import Queue
 import argparse
 from glob import glob
-#from time import sleep
 from flask import Flask 
 from flask import request
 from werkzeug.utils import secure_filename
 from flask import send_file
 
-from bbsQt.constants import TEST_CLIENT
+from bbsQt.constants import TEST_CLIENT, DEBUG
+from server_utils import (
+    fn_pred, 
+    request_summary, 
+    ready_for_connection_test, 
+    check_for_keys, 
+    predictions_ready)
 import fase
 
-app = Flask(__name__,static_folder='./static',template_folder = './templates')
+
+app = Flask(__name__)
+# Allow large file uploads (~70MB)
 app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024 
-q_text = None
-e_enc = None
+#q_text = None
+#e_enc = None
 
-q_key = Queue(maxsize=8)
 
-def fn_pred(i):
-    dir = "./"
-    return dir+f"pred_{i}.dat"
 
 @app.route('/upload',methods=['POST'])
 def upload_file2():
+    if DEBUG: request_summary(request)
     if request.method=='POST':
-        print("\nMethod: ", request.method)
-        print("Headers: ", request.headers)
-        print("Args: ", request.args)
-        print("Form data: ", request.form)
-        print("FILE: ", request.files)
-        # print("JSON data: ", request.get_json())
-        
-        #print("Received POST request")
-        print("request", request)
-
-
         f=request.files['file']
         
-        #print(f, ) can I print only a few lines? 
-        
-        f.save(secure_filename(f.filename)) # 
-        # if request.headers['dtype']=="enc_key":
-        #     msg = "stored ENCKEY"
-        # elif request.headers['dtype']=="mul_key":
-        #     msg = "stored MULKEY"
-        # elif request.headers['dtype']=="conj_key":
-        #     msg = "stored CONJKEY"
-        # elif request.headers['dtype']=="rot_key":
-        #     msg = "stored ROTKEY"     
         if request.headers['dtype']=="ctxt":
-        
-            print("Received ciphertext")
-            
+            f.save(secure_filename(f.filename))
+            print("[Comm] Received ciphertext")
+            # The name of ciphertext file to be evaluated
             q_text.put(f.filename)
-            
-            print("q_text", q_text)
-            
-            print(f.filename)
+            # Inform evaluator that a new task is ready
+            e_enc.set()
 
-            # action = request.headers['action']
-            
-            # result = call_heaan.apply_async(args=[f.filename, action])
+            if DEBUG: print("q_text", q_text)
             msg = "Ciphertext received"
 
-            e_enc.set()
         elif request.headers['dtype']=="test":
-            print("Received test")
+            print("[Comm] Received test")
             
             ready_for_connection_test(f.filename)
             msg = "Connection Check"
 
-        print("[RECEIVING FILES] ", msg)        
-
-        return msg#"good"
+        return msg
 
 @app.route('/keys',methods=['POST'])
 def upload_keys():
     if request.method=='POST':
-        print("\nMethod: ", request.method)
-        print("Headers: ", request.headers)
-        print("Args: ", request.args)
-        print("Form data: ", request.form)
-        print("FILE: ", request.files)
-        # print("JSON data: ", request.get_json())
-        
-        #print("Received POST request")
-        print("request", request)
-
+        if DEBUG: request_summary(request)
 
         f=request.files['file']
-        
-        #print(f, ) can I print only a few lines? 
-        
         f.save(secure_filename(f.filename)) # 
         if request.headers['dtype']=="enc_key":
             msg = "stored ENCKEY"
@@ -104,36 +67,15 @@ def upload_keys():
             msg = "stored CONJKEY"
         elif request.headers['dtype']=="rot_key":
             msg = "stored ROTKEY"
-        elif request.headers['dtype']=="test":
-            print("Received test")
-            
-            ready_for_connection_test(f.filename)
-            msg = "Connection Check"
-
-        print("[RECEIVING FILES] ", msg)        
 
         # Flask/Werkzeug's default behavior is that
         # the "route" function is called only after the file transfer is done.
         # So, if the file exists, it means that the file is ready to be used.
         if check_for_keys():
             q_key.put("ready")
-            print("Keys are ready!")
+            print("[Comm] Keys are ready!")
         
         return msg#"good"
-
-def check_for_keys():
-    for fn in ["EncKey.txt", "MulKey.txt", "RotKey_1.txt"]:
-        if not os.path.exists(fn):
-            return False
-    return True
-
-def predictions_ready():
-    """Check if all predictions are ready.
-    """
-    for i in range(5):
-        if not os.path.exists(fn_pred(i)):
-            return False
-    return True
 
 @app.route('/ready', methods=['GET'])
 def check_result():
@@ -161,13 +103,6 @@ def get_result():
         print("SENDING", fn)
         return send_file(fn, as_attachment=True)
 
-def on_raw_message(body):
-    pass
-
-def ready_for_connection_test(fn_in):
-    with open(fn_in, "a") as fout:
-        fout.write(">>>> Connection GOOD\n")
-
 def run_server(host_ip):
     app.run(ssl_context=('cert.pem', 'key.pem'), host=host_ip, port=4443)
     
@@ -185,7 +120,6 @@ def main(server_ip):
     #HOST = '127.0.0.1'
 
     print("[SERVER] This server's IP:", server_ip)
-    
     
     # Clean up keys
     for fn in glob("*.dat"):
@@ -247,6 +181,7 @@ if __name__ == '__main__':
     # import HEAAN_Evaluator *after* setting which HEAAN variants to use
     from bbsQt.core.evaluator import HEAAN_Evaluator
 
+    q_key = Queue(maxsize=8)
     q_text = Queue(maxsize=8)
     # Ciphertext saved
     e_enc = mplti.Event()

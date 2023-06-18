@@ -4,164 +4,20 @@ import numpy as np
 import os 
 import pickle
 import time
-# import tarfile
 from bbsQt.constants import CAM_NAMES, FN_KEYS, HEAAN_CONTEXT_PARAMS, DEBUG, cert
 import torch
 from time import sleep
-import requests
-from urllib.parse import unquote
 from fase.hnrf.hetree import HNRF
 from fase.hnrf import heaan_nrf
 from fase.hnrf.tree import NeuralTreeMaker
 from fase.core.heaan import HEAANContext
 
-sleep_time = 30 # allow server at least 60s to run inference
-
 from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
+from client_comm import ClientCommunicator
+from featurizer import HETreeFeaturizer, Param
 
 
-############## Communicator
-def query_ready(server_ip, path='/ready', 
-                retry_interval=30,
-                max_trials = 10):
-    """Ask the server if predictions are ready.
-    """
-    url = server_ip + path
-    print("URL", url )
-    ret_ready = requests.get(url, verify=cert)
-
-    n_trials = 0
-    while ret_ready.ok and ret_ready.text != "ready":
-        print("[Comm] Predictions are not ready yet")
-        print("[Comm] Retrying in", retry_interval, "seconds...")
-        sleep(retry_interval)
-        ret_ready = requests.get(url, verify=cert)
-        n_trials += 1
-
-        if n_trials > max_trials:
-            print("[Comm] Maximum polling trials reached. Quitting...")
-            return False
-    
-    return True
-
-def save_binary(r, fn_save):
-    if r.status_code == 200:
-        with open(fn_save, 'wb') as f:
-            for chunk in r:
-                f.write(chunk)
-    else:
-        raise FileNotFoundError
-
-def get_5results(result_url, client_save_dir="./"):
-    recieved_files = []
-    n_try = 0
-    for cnt in range(5):
-        fn = f'{client_save_dir}/pred{cnt}.dat'
-        if cnt == 0 :
-            n_try_max = 10
-            tsleep = 10
-        else:
-            n_try_max = 5
-            tsleep = 2
-
-        while n_try < n_try_max:
-            r = requests.get(result_url, 
-                            stream=True, 
-                            headers={"cnt":f"{cnt}"},
-                            verify=cert)
-            if r.ok:
-                save_binary(r, fn)
-                print(f"Result recieved: {cnt}/5")
-                recieved_files.append(fn)
-                break
-            else:
-                sleep(tsleep)
-                n_try+=1
-        else:
-            print("Retry limit reached. Try again later")
-            return False
-
-    return recieved_files
-
-def get_filename(response):
-    if 'Content-Disposition' in response.headers:
-        content_disposition = response.headers['Content-Disposition']
-        parts = content_disposition.split(';')
-
-        for part in parts:
-            if 'filename' in part:
-                filename = part.split('=')[1]
-                filename = unquote(filename.strip(' "'))  # remove quotes and spaces
-                
-    return filename
-
-def send_ctxt(server_url, fn, action):
-    print(f"Uploading {fn} to the server")
-    print("action", action)
-
-    ret = requests.post(server_url + "/upload", 
-                files={"file": open(fn, "rb")},
-                headers={"dtype":"ctxt", "action":str(action)},
-                verify=cert)
-    
-    if not ret.ok:
-        # HTTP error handling
-        print("Error in uploading the file to the server.")
-        print(ret.status_code)
-        print(ret)
-        return False
-    
-    return True
-
-
-class HETreeFeaturizer:
-    """Featurizer used by the client to encode and encrypt data.
-       모든 Context 정보를 다 필요로 함. 
-       이것만 따로 class를 만들고 CKKS context 보내기 좀 귀찮은데? 
-    """
-    def __init__(self, comparator: np.ndarray,
-                 scheme, 
-                 ckks_parms,
-                 use_symmetric_key=False):
-        self.comparator = comparator
-        self.scheme = scheme
-        #self.encoder = encoder
-        self._parms = ckks_parms
-        self.use_symmetric_key = use_symmetric_key
-
-    def encrypt(self, x: np.ndarray):
-        features = x[self.comparator]
-        features[self.comparator == -1] = 0
-        features = list(features)
-
-        ctx = self._encrypt(features)
-        return ctx
-
-    def _encrypt(self, val, n=None, logp=None, logq=None):
-        if n == None: n = self._parms.n
-        if logp == None: logp = self._parms.logp
-        if logq == None: logq = self._parms.logq
-
-        ctxt = he.Ciphertext()#logp, logq, n)
-        vv = np.zeros(n) # Need to initialize to zero or will cause "unbound"
-        vv[:len(val)] = val
-        self.scheme.encrypt(ctxt, he.Double(vv), n, logp, logq)
-        del vv
-        return ctxt
-
-    def save(self, path:str):
-        pickle.dump(self.comparator, open(path, "wb"))
-
-
-class Param():
-    def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
-        self.n = n
-        self.logn = logn
-        self.logp = logp
-        self.logq = logq 
-        self.logQboot = logQboot
-        if self.logn == None:
-            self.logn = int(np.log2(n))
+sleep_time = 30 # allow server at least 60s to run inference
 
 def decrypt(scheme, secretKey, enc, parms):
     featurized = scheme.decrypt(secretKey, enc)
@@ -186,9 +42,8 @@ class HEAAN_Encryptor():
         self.model_dir =  os.path.join(self.work_dir, "models")
         if not os.path.isdir(work_dir): os.mkdir(work_dir)
 
-        # connection info
-        self.server_url = f"https://{server_url}"
-        print("Paired with server at", self.server_url)
+        # communicator
+        self.comm = ClientCommunicator(f"https://{server_url}", cert)
 
         # FHE context        
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -206,30 +61,13 @@ class HEAAN_Encryptor():
             )
 
         print("FHE Keys are set", self.work_dir)
-        if not self.send_keys():
+        if not self.comm.send_keys(self.work_dir):
             raise ConnectionError("Can't send keys to the server")
         
         self.set_featurizers()
         self.load_scalers()
 
         if debug: print("[Encryptor] HEAAN is ready")
-
-    def send_keys(self):
-        # 미리 정해져있음 
-        # Conj 필요 없음 
-        flists = [("enc_key", 'EncKey.txt'), 
-                ('mul_key', 'MulKey.txt'),
-                ('rot_key', 'RotKey_1.txt')]
-        for dtype, fn in flists:
-            r = requests.post(self.server_url+'/keys', 
-                            files={'file':open(self.work_dir+fn, 'rb')}, 
-                            headers={'dtype':dtype},
-                            verify=cert)
-            if not r.ok:
-                print("ERROR")
-                return False
-            
-        return True
     
     def set_featurizers(self):
         scheme = self.hec._scheme
@@ -245,7 +83,6 @@ class HEAAN_Encryptor():
         self.featurizers = dict(featurizers)
 
     def load_scalers(self):
-        
         scalers =[]
         for action in range(1,15):
             cam = CAM_NAMES[action]
@@ -302,7 +139,7 @@ class HEAAN_Encryptor():
             
             
             #print("scaled", scaled.shape)
-            print("Check for scales", sc0.min(), sc0.max())
+            print(f"Check for scales {sc0.min():.2f}, {sc0.max():.2f}")
 
             # Still some values can surpass 1.0. 
             # I need a more strict rule for standardization.. 
@@ -312,7 +149,7 @@ class HEAAN_Encryptor():
             if DEBUG: print("Featurizing skeleton...")
             t0 = time.time()
             ctx1 = featurizer.encrypt(sc0)
-            print("Encryption done in ", time.time() - t0, "seconds")
+            print(f"Encryption done in {time.time() - t0:.2f} seconds")
             
             if DEBUG: 
                 pickle.dump(sc0, open("scaled.pickle", "wb"))
@@ -329,21 +166,19 @@ class HEAAN_Encryptor():
             #set_ctxt_to_server
 
 
-            if not send_ctxt(self.server_url, fn, action):
+            if not self.comm.send_ctxt(fn, action):
                 raise ConnectionError("Can't send ctxt to the server")
             
             if DEBUG: print("[Encryptor] Waiting for prediction...")
             
             sleep(sleep_time)
 
-            predicts_ready = query_ready(self.server_url, 
-                                        path='/ready', 
-                                        retry_interval=5,
-                                        max_trials = 10)
-            
+            predicts_ready = self.comm.query_ready(
+                retry_interval=5,
+                max_trials = 10
+                )
             if predicts_ready:
-                fn_preds = get_5results(self.server_url + "/result", 
-                                        self.work_dir)
+                fn_preds = self.comm.get_5results(self.work_dir)
             
             # Decrypt answer
             #e_enc_ans.wait()  ## FLOW CONTROL

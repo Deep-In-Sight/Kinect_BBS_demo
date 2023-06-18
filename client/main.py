@@ -5,7 +5,7 @@ import argparse
 from PyQt5.QtWidgets import QApplication
 
 from bbsQt.qtgui.qobj.QmainWindow import *
-from bbsQt.core.encryptor import HEAAN_Encryptor
+from client.encryptor import HEAAN_Encryptor
 from bbsQt import constants
 import requests
 
@@ -15,19 +15,17 @@ args = parser.parse_args()
 
 constants.HOST = args.HOST
 cert = False
-#from bbsQt.comm import app_client
 
 def run_qt_app(q1, q_answer, e_sk , e_ans):
+    """Run the Qt application."""
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
     imageEditor = QMyMainWindow(q1, q_answer, e_sk, e_ans) ### 여기가 아닌가? 
     imageEditor.show()
     quit = app.exec_()
-    #sys.exit(app.exec_())
-    #e_quit.wait()
-    #quit
 
 def check_connection(upload_url):
+    """Check if the server is up and running."""
     fn = "test.txt"
     # 연결 테스트용
     with open(fn, "w") as f:
@@ -53,8 +51,8 @@ def check_connection(upload_url):
     
 
 def run_encryptor(q1, q_answer, e_sk, e_ans, e_enc_ans, work_dir="./"):
+    """Run the FHE encryptor."""
     henc = HEAAN_Encryptor(args.HOST, work_dir)
-     #print(henc.prams.n)
     henc.start_encrypt_loop(q1, q_answer, e_sk, e_ans, e_enc_ans)
 
     

@@ -146,7 +146,7 @@ class QMyMainWindow(QWidget):
                 self.qthreadrec.resetstate()
 
                 if VERBOSE: 
-                    print("[QMainWindow.end]time during saving images: {} sec.".format(t2 - t1))
+                    print(f"[QMainWindow.end]time during saving images: {t2 - t1:.2f} sec.")
 
                 self.resetRecordInterface()
 
