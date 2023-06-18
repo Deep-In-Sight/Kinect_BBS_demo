@@ -2,7 +2,8 @@ import subprocess
 FN_KEYS = ["ENCRYPTION.txt",
            "MULTIPLICATION.txt",
            "ROTATION_1.txt"]
-DIR_WORK = "./client/"
+DIR_WORK = "./" # client work directory
+IMG_DIR = "./img/" # instruction image directory
 FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
 FN_SCORES = DIR_WORK+f"Scores_.txt"
@@ -64,7 +65,6 @@ except:
     print("Going for totem")
 
 
-SCP_PORT = 22
 HOST=None # placeholder
 
 ############# DEBUGGING ##############

@@ -2,7 +2,7 @@ import numpy as np
 import os
 import cv2
 
-from bbsQt.constants import CAM_LIST, VERBOSE
+from bbsQt.constants import CAM_LIST, VERBOSE, IMG_DIR
 
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel)

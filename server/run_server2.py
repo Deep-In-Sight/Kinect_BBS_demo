@@ -4,20 +4,14 @@ import multiprocessing as mplti
 from multiprocessing import Queue
 import argparse
 from glob import glob
-from time import sleep
-
-# from bbsQt.qtgui.qobj.QmainWindow import *
-# from bbsQt.comm import app_server
-from bbsQt.constants import TEST_CLIENT
-#from bbsQt.comm.utils import extract_ip
-
+#from time import sleep
 from flask import Flask 
 from flask import request
 from werkzeug.utils import secure_filename
 from flask import send_file
 
+from bbsQt.constants import TEST_CLIENT
 import fase
-
 
 app = Flask(__name__,static_folder='./static',template_folder = './templates')
 app.config['MAX_CONTENT_LENGTH'] = 128 * 1024 * 1024 

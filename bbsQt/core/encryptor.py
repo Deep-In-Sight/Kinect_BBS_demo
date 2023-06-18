@@ -52,7 +52,7 @@ def save_binary(r, fn_save):
     else:
         raise FileNotFoundError
 
-def get_5results(result_url, client_save_dir):
+def get_5results(result_url, client_save_dir="./"):
     recieved_files = []
     n_try = 0
     for cnt in range(5):
@@ -163,7 +163,6 @@ class Param():
         if self.logn == None:
             self.logn = int(np.log2(n))
 
-
 def decrypt(scheme, secretKey, enc, parms):
     featurized = scheme.decrypt(secretKey, enc)
     arr = np.zeros(parms.n, dtype=np.complex128)
@@ -179,28 +178,25 @@ def encrypt(scheme, val, parms):
     return ctxt
 
 class HEAAN_Encryptor():
-    def __init__(self, server_url, work_dir="./client/", 
+    def __init__(self, server_url, work_dir="./", 
                 debug=True):
-        
+        #Setup work dir
+        self.work_dir = work_dir
+        if debug: print("[ENCRYPTOR] key path", work_dir)
+        self.model_dir =  os.path.join(self.work_dir, "models")
+        if not os.path.isdir(work_dir): os.mkdir(work_dir)
+
+        # connection info
         self.server_url = f"https://{server_url}"
         print("Paired with server at", self.server_url)
-        self.model_dir = "./client/models/"
 
+        # FHE context        
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
         logp = HEAAN_CONTEXT_PARAMS['logp']#30
         logn = HEAAN_CONTEXT_PARAMS['logn']#14
-        #logq = 150
-        #logn = 14
         n = 1*2**logn
 
         self.parms = Param(n=n, logp=logp, logq=logq)
-        self.work_dir = work_dir
-        if debug: print("[ENCRYPTOR] key path", work_dir)
-
-        # Make dirs
-        if not os.path.isdir(work_dir): os.mkdir(work_dir)
-        #if not os.path.isdir(client_save_dir): os.mkdir(client_save_dir)
-
         self.hec = HEAANContext(logn, logp, logq, rot_l=[1], 
             key_path=self.work_dir,
             FN_SK="secret.key",
@@ -232,6 +228,7 @@ class HEAAN_Encryptor():
             if not r.ok:
                 print("ERROR")
                 return False
+            
         return True
     
     def set_featurizers(self):
@@ -241,7 +238,7 @@ class HEAAN_Encryptor():
         featurizers =[]
         for action in range(1,15):
             cam = CAM_NAMES[action]
-            Nmodel = pickle.load(open(self.model_dir+f"Nmodel_{action}_{cam}.pickle", "rb"))
+            Nmodel = pickle.load(open(os.path.join(self.model_dir, f"Nmodel_{action}_{cam}.pickle"), "rb"))
             h_rf = HNRF(Nmodel)
             featurizers.append((f"{action}_{cam}", HETreeFeaturizer(h_rf.return_comparator(), scheme, parms)))
                 
@@ -252,7 +249,7 @@ class HEAAN_Encryptor():
         scalers =[]
         for action in range(1,15):
             cam = CAM_NAMES[action]
-            sc = pickle.load(open(self.model_dir+f'scaler_{action}_{cam}.pickle', "rb"))
+            sc = pickle.load(open(os.path.join(self.model_dir, f'scaler_{action}_{cam}.pickle'), "rb"))
             scalers.append((f"{action}_{cam}", sc))
             
         self.scalers = dict(scalers)
@@ -261,7 +258,7 @@ class HEAAN_Encryptor():
         scheme = self.scheme
         return True
 
-    def start_encrypt_loop(self, q1, q_answer, e_sk, e_ans, e_enc_ans, debug=True):
+    def start_encrypt_loop(self, q1, q_answer, e_sk, e_ans, e_enc_ans):
         """
         When skeleton is ready (e_sk), get the skeleton from q1, 
         encrypt, and store it as ctx_{i}.dat file. 
@@ -276,25 +273,20 @@ class HEAAN_Encryptor():
             
             if not 'skeleton' in sk.keys():
                 raise LookupError("Can't find skeleton in queue")    
-            if debug: print("[Encryptor] Got a skeleton, Encrypting...")
-            if debug: print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
+            if DEBUG: 
+                print("[Encryptor] Got a skeleton, Encrypting...")
+                print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
             action = int(sk['action'])
             #cam = sk['cam']
             cam = CAM_NAMES[action] # No need to depend on the undeterministic camera order.
 
             sc = self.scalers[f"{action}_{cam}"]
-            fn = self.work_dir + f"ctx_{action:02d}_{cam}_.dat"
+            fn = os.path.join(self.work_dir, f"ctx_{action:02d}_{cam}_.dat")
            
             t0 = time.time()            
 
             skeleton = sk['skeleton']
-
-            # if DEBUG:
-            #     scaled = sc.transform(skeleton)
-            # else:
-            #     rav_sub = skeleton[0]
-            #     scaled = sc.transform(rav_sub.reshape(1,-1))
-            
+        
             if DEBUG:
                 print("[ENCRYPTOR] DEBUGGING MODE !!!!!!!")
                 scaled = sc.transform(skeleton)
@@ -317,19 +309,19 @@ class HEAAN_Encryptor():
             # The following is an ad-hoc measure.        
 
             featurizer = self.featurizers[f"{action}_{cam}"]
-            if debug: print("Featurizing skeleton...")
+            if DEBUG: print("Featurizing skeleton...")
             t0 = time.time()
             ctx1 = featurizer.encrypt(sc0)
             print("Encryption done in ", time.time() - t0, "seconds")
             
-            if debug: 
+            if DEBUG: 
                 pickle.dump(sc0, open("scaled.pickle", "wb"))
                 print(f"Featurizing done in {time.time() - t0:.2f}s")
                 print(ctx1.n, ctx1.logp, ctx1.logq)
                 print("[Encryptor] Ctxt encrypted")
 
             he.SerializationUtils.writeCiphertext(ctx1, fn)
-            if debug: print("[Encryptor] Ctxt written to", fn)
+            if DEBUG: print("[Encryptor] Ctxt written to", fn)
 
             # q1.put({"fn_enc_skeleton": fn})  ## FLOW CONTROL
             # if debug: print("[Encryptor] skeleton encrypted and saved as", fn)
@@ -340,7 +332,7 @@ class HEAAN_Encryptor():
             if not send_ctxt(self.server_url, fn, action):
                 raise ConnectionError("Can't send ctxt to the server")
             
-            if debug: print("[Encryptor] Waiting for prediction...")
+            if DEBUG: print("[Encryptor] Waiting for prediction...")
             
             sleep(sleep_time)
 
