@@ -5,7 +5,6 @@ import fase.HEAAN as he
 class HETreeFeaturizer:
     """Featurizer used by the client to encode and encrypt data.
        모든 Context 정보를 다 필요로 함. 
-       이것만 따로 class를 만들고 CKKS context 보내기 좀 귀찮은데? 
     """
     def __init__(self, comparator: np.ndarray,
                  scheme, 
@@ -26,9 +25,9 @@ class HETreeFeaturizer:
         return ctx
 
     def _encrypt(self, val, n=None, logp=None, logq=None):
-        if n == None: n = self._parms.n
-        if logp == None: logp = self._parms.logp
-        if logq == None: logq = self._parms.logq
+        n = n or self._parms.n
+        logp = logp or self._parms.logp
+        logq = logq or self._parms.logq
 
         ctxt = he.Ciphertext()#logp, logq, n)
         vv = np.zeros(n) # Need to initialize to zero or will cause "unbound"
@@ -42,6 +41,8 @@ class HETreeFeaturizer:
 
 
 class Param():
+    """FHE parameters used by the HEAAN Encryptor.
+    """
     def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
         self.n = n
         self.logn = logn

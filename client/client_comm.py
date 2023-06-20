@@ -126,6 +126,33 @@ class ClientCommunicator:
             
         return True
 
+    def check_connection(self):
+        """Check if the server is up and running."""
+        fn = "test.txt"
+        # 연결 테스트용
+        with open(fn, "w") as f:
+            f.write("Connecting from: " + self._server_ip + "\n")
+
+        try:
+            r = requests.post(self._server_ip+'/upload', 
+                        files={'file':open(fn, 'rb')}, 
+                        headers={'dtype':"test"},
+                        verify=self._cert)
+        except (requests.exceptions.ConnectionError, 
+                requests.exceptions.InvalidURL, 
+                requests.exceptions.Timeout) as e:
+            print(e)
+            print("Connection Error")
+            
+        except requests.exceptions.HTTPError:
+            print("Connection Established")    
+
+        ret = requests.get(self._server_ip+'/result',
+                            files={"file": open(fn, "rb")},
+                            headers={"dtype":"test"},
+                            verify=self._cert)
+        print(ret.text)
+
     @staticmethod
     def get_filename(response):
         if 'Content-Disposition' in response.headers:
@@ -147,3 +174,6 @@ class ClientCommunicator:
                     f.write(chunk)
         else:
             raise FileNotFoundError
+        
+
+

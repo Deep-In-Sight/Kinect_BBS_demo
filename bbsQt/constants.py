@@ -8,7 +8,9 @@ FN_SK = "secret.key"
 FN_PREDS = 'preds.tar.gz'
 FN_SCORES = DIR_WORK+f"Scores_.txt"
 
-cert = False # Certification file or ignore
+CERTIFICATE = False # Certification file or ignore
+SLEEP_TIME = 30 # sleep time for the client to wait for the server
+
 
 mp_pose_lm_name = ["nose", "l_eye_inner", "l_eye", "l_eye_outer", 'r_eye_inner', "r_eye", "r_eye_outer",
                    "l_ear", "r_ear", "mouth_left", "mouth_right", "l_shoulder", "r_shoulder", 
@@ -68,11 +70,10 @@ except:
 HOST=None # placeholder
 
 ############# DEBUGGING ##############
-DEBUG_FLAG1 = False
 TEST_CLIENT=False
 DEBUG=False
 VERBOSE=True
-
+######################################
 
 ################
 NFRAMES={'1':8,

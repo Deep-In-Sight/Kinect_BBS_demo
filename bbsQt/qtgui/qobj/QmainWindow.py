@@ -1,9 +1,9 @@
 import numpy as np
 import os
 import cv2
+import time
 
-from bbsQt.constants import CAM_LIST, VERBOSE, IMG_DIR
-
+from bbsQt.constants import CAM_LIST, VERBOSE
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
@@ -15,9 +15,7 @@ from .QButtons import qButtons
 from .QImgViewer import PhotoViewer
 from .QScenario import qScenario
 from .QThreadObj import qThreadRecord
-#from datetime import datetime
 
-import time
 import mediapipe as mp
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils 
