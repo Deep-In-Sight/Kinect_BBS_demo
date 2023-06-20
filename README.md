@@ -3,14 +3,10 @@
 
 # installation
 ```bash
-$ pip install celery redis flask
-$ sudo apt install redis-server
-$ redis-server
+$ pip install flask
 
-
-$ sudo systemctl stop redis  (or, $ sudo service redis stop)
 ```
-# ERRORS
+# Trouble shooting
 conda install matplotlib and pip install mediapipe had some trouble.   
 -> uninstall matplotlib and let pip install matplotlib along with mediapipe  
 
