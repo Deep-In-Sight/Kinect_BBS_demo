@@ -1,7 +1,5 @@
 import numpy as np 
 
-
-
 def fn_npy(cam, ID, class_name, score,idx):
     return f'{class_name}/{score}/{ID}/{cam}_{ID}_{class_name}_{score}_{idx}.npy'
 

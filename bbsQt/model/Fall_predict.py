@@ -41,11 +41,11 @@ class Score_updator():
             try:
                 self.load_txt(fn)
             except:
-                print("Can't load score file", fn)
+                print("[Score Updator] Can't load score file", fn)
+                print("[Score Updator] Creating a new score file")
                 self._score_dict = dict([(act,sc) for act, sc in zip(range(1,15), [-1]*14)])    
         else:
             self._score_dict = dict([(act,sc) for act, sc in zip(range(1,15), [-1]*14)])
-        
         
     def load_txt(self, fn):
         new_scores = []
@@ -89,7 +89,7 @@ class Score_updator():
         dsum = []
         for dd, vv in self._score_dict.items():
             if vv < 0:
-                print("[Score_Updator] ERROR: Not all actions are assessed!!")
+                print("[Score_Updator] Warning: Not all actions are assessed!!")
                 return -1
             dsum.append(vv)
 
@@ -111,5 +111,3 @@ class Score_updator():
             return f"총점 {tot}\n" + "낙상의 위험이 낮습니다."
         else: 
             return -1
-
-

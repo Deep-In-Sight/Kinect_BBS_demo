@@ -7,6 +7,9 @@
 *.tar.gz
 *.txt
 *.dat
+*/state.json
+
+*.npy
 
 # C++ objects and libs
 *.slo
@@ -60,3 +63,10 @@ compile_commands.json
 
 # QtCreator local machine specific files for imported projects
 *creator.user*
+nbs/data/20230508_BT전처리데이터.zip
+nbs/BBS_data.zip
+nbs/npy_a.zip
+nbs/models
+bbsQt.zip
+comm2/동형암호_comm.zip
+secret.key

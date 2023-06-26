@@ -39,7 +39,7 @@ class qScenario(QObject):
         self.q_answer = q_answer
 
         self.ScenarioNo = 0
-        self.SubjectID = 0
+        #self.SubjectID = 0
         self.MinRecordTime = recordconfig.minRecordTime # Minimum 2s
         self.MinRecordFrame = recordconfig.minRecordFrame # Minimum 20 frames
         self.info = ""
@@ -81,14 +81,6 @@ class qScenario(QObject):
     def setDepthDispSize(self,val):
         self.depthdispsize = val            
 
-
-    def setSubjectID(self):
-        try:
-            self.SubjectID = int(self.SubjectIDInput.text())
-        except:
-            self.SubjectIDInput.setText(str(self.SubjectID))
-        self.update()
-
     def setMinRecordTime(self):
         try:
             self.MinRecordTime = int(self.RecordTimeInput.text())
@@ -118,6 +110,9 @@ class qScenario(QObject):
         self.scorenum.setText(f'Score : {text}')
         #self.scenarionum.setText(f'Scenario : {text}')
 
+    # def download(self):
+        
+    
     def videoplay(self):
         # fix 2021/01/07
         video_name = glob(DIR_VIDEO+f"?{self.btn.action_num.currentIndex()+1}_{self.btn.score_num.currentText()}_*.mp4")[0]
@@ -170,38 +165,12 @@ class qScenario(QObject):
         HVlayoutMain = QVBoxLayout() 
         HVlayoutMain.setAlignment(Qt.AlignTop)
 
-        LayoutRecordStart = QLabel()
-        LayoutRecordStart.setText("Record START")
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        LayoutRecordStart.setFont(font)
-
-
-        LayoutLocale = QHBoxLayout() 
-        qLocaleName = QLabel()
-        qLocaleName.setText("Locale:")
-        LayoutLocale.addWidget(qLocaleName, alignment=Qt.AlignLeft)
-        self.locale_option = QComboBox()
-        self.locale_option.addItem("G1")
-
-        LayoutLocale.addWidget(self.locale_option, alignment=Qt.AlignRight)
-
-        LayoutID = QHBoxLayout() 
-        LayoutID.setAlignment(Qt.AlignTop)
-        LayoutID.setAlignment(Qt.AlignLeft)
-        qLabelName = QLabel()
-        qLabelName.setText("ID:")
-        LayoutID.addWidget(qLabelName)
-        self.SubjectIDInput = QLineEdit()
-        self.SubjectIDInput.setText(str(self.SubjectID))
-        self.SubjectIDInput.setFixedSize(50,20)
-        
-        LayoutID.addWidget(self.SubjectIDInput)
-
-        HVlayoutMain.addWidget(LayoutRecordStart, 10)
-        HVlayoutMain.addLayout(LayoutLocale, 10)
-        HVlayoutMain.addLayout(LayoutID, 10)
+        # LayoutRecordStart = QLabel()
+        # LayoutRecordStart.setText("Record START")
+        # font = QFont()
+        # font.setBold(True)
+        # font.setPointSize(15)
+        # LayoutRecordStart.setFont(font)
 
         LayoutRecordStartStep = QHBoxLayout() 
         LayoutRecordStartStep.setAlignment(Qt.AlignTop)
@@ -212,6 +181,12 @@ class qScenario(QObject):
         self.videoplaybtn.setMinimumWidth(140)
         LayoutRecordStartStep.addWidget(self.videoplaybtn)
         self.videoplaybtn.clicked.connect(self.videoplay)
+
+        # self.downloadbtn = QPushButton('Download')
+        # self.downloadbtn.setMinimumHeight(40)
+        # self.downloadbtn.setMinimumWidth(140)
+        # LayoutRecordStartStep.addWidget(self.downloadbtn)
+        # self.downloadbtn.clicked.connect(self.videoplay)
 
         self.Ready = QPushButton()
         self.Ready.setCheckable(True)
@@ -259,7 +234,7 @@ class qScenario(QObject):
         # Todo: add result 
         LayoutInfo = QVBoxLayout()
         self.viewInfo = QLabel()
-        self.viewInfo.setAlignment(Qt.AlignCenter)
+        self.viewInfo.setAlignment(Qt.AlignTop)
         self.viewInfo.setScaledContents(True)
         self.viewInfo.setText(self.showinfo())
         self.viewInfo.setMinimumHeight(30)
@@ -270,6 +245,6 @@ class qScenario(QObject):
         # result label
         HBlayoutMain.addLayout(LayoutInfo,20)    
 
-        self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
+        # self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
 
         return HBlayoutMain    
