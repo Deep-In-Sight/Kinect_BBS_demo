@@ -9,7 +9,7 @@ py_include_dir = os.path.join(get_python_inc())
 __version__ = "1.0"
 
 setup(
-    name="bbsQt",
+    name="bbs_client",
     version=__version__,
     author="DeepInsight",
     packages=find_packages(),

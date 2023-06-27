@@ -1,7 +1,0 @@
-Metadata-Version: 2.1
-Name: bbsQt
-Version: 1.0
-Summary: BBS scoring application using fully homomorphic encryption over TCP socket communication
-Home-page: https://github.com/Hoseung/Kinect_BBS_demo
-Author: DeepInsight
-Author-email: hschoi@dinsight.ai

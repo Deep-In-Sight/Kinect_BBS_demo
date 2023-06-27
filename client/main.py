@@ -4,9 +4,9 @@ import multiprocessing as mplti
 import argparse
 from PyQt5.QtWidgets import QApplication
 
-from bbsQt.qtgui.qobj.QmainWindow import *
+from bbs_client.qtgui.QmainWindow import *
 from client.encryptor import HEAANEncryptor
-from bbsQt import constants
+from bbs_client import constants
 
 def run_qt_app(q_sk, q_answer, e_sk , e_ans):
     """Run the Qt application."""

@@ -4,12 +4,12 @@ import numpy as np
 import os 
 import pickle
 import time
-from bbsQt.constants import CAM_NAMES, HEAAN_CONTEXT_PARAMS, DEBUG, SLEEP_TIME
+from bbs_client.constants import CAM_NAMES, HEAAN_CONTEXT_PARAMS, DEBUG, SLEEP_TIME
 from time import sleep
 from fase.hnrf.hetree import HNRF
 from fase.core.heaan import HEAANContext
 
-from bbsQt.model.data_preprocessing import shift_to_zero, measure_lengths
+from bbs_client.model.data_preprocessing import shift_to_zero, measure_lengths
 from client_comm import ClientCommunicator
 from featurizer import HETreeFeaturizer, Param
 
@@ -181,7 +181,6 @@ class HEAANEncryptor():
         preds=[]
         for fn_ctx in fn_preds:
             preds.append(self.load_and_decrypt(fn_ctx, ctxt_ref))
-        del ctx1 
 
         return np.argmax(preds)
 
