@@ -1,7 +1,6 @@
 import os
 from setuptools import setup, find_packages
 from distutils.sysconfig import get_python_inc
-import pathlib
 
 # python include dir
 py_include_dir = os.path.join(get_python_inc())

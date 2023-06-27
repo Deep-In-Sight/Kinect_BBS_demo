@@ -11,7 +11,6 @@ import mediapipe as mp
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils 
 mp_drawing_styles = mp.solutions.drawing_styles
-import matplotlib.pyplot as plt 
 
 from bbs_client.model import kinect_utils as ku 
 from bbs_client.model import rec_utils as ru
@@ -166,10 +165,6 @@ class qThreadRecord(QThread):
             print("[QThreadObj.select_sk] Invalid skeleton")
             return 
         
-       # print("~~~~~~!!!!!!!!~~~~~~~")
-       # print(self.skarr)
-        #scene = ku.kinect2mobile_direct(self.stackJoint)
-        
         # FIX   20210107
         this_scenario = self.btn.action_num.currentText()
         this_score = self.btn.score_num.currentText()
@@ -224,40 +219,7 @@ class qThreadRecord(QThread):
 
         self.e_ans.clear()
 
-            
-    def sk_viewer(self, json_to_arr_list, jpg_list, idx=0, save=1):
-        """Skeleton viewer"""
-        left_arms = ['l_shoulder', 'l_elbow', 'l_hand']
-        right_arms = ['head', 'r_shoulder',  'r_elbow', 'r_hand']
-        body = ['head','l_shoulder', 'r_shoulder', 'r_hip', 'l_hip', 'l_shoulder']
-        leg = ['r_foot', 'r_knee', 'r_hip', 'l_hip', 'l_knee', 'l_foot']
-        bodyparts = [left_arms, right_arms, body, leg]
-
-        #print(json_to_arr_list.shape)
-
-        fig, ax = plt.subplots(figsize=(16,9))
-        im = jpg_list[idx]
-        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-
-        ax.imshow(im, zorder=1)
-        for color_idx, skarr in enumerate(json_to_arr_list):
-            if color_idx == 0: 
-                color = 'tab:blue'
-            elif color_idx == 1:
-                color = 'tab:orange'
-            else:
-                color = 'tab:green'
-            for j in bodyparts:
-                ax.plot([skarr['x'+sa][idx]*2.3 + 30 for sa in j if skarr['x'+sa][idx] !=0], 
-                        [skarr['y'+sa][idx]*1.8 for sa in j if skarr['x'+sa][idx] !=0],
-                        color=color, lw=10)
-                ax.axes.xaxis.set_visible(False)
-                ax.axes.yaxis.set_visible(False)        
-        if save == 1:
-            os.makedirs('image', exist_ok=True)
-            plt.savefig(f'image/img_00{idx}.jpg', bbox_inches='tight')
-        plt.close()
-
+        
     def load_image(self, idx):
         fn_img = f'image/img_00{idx}.jpg'
         img = cv2.imread(fn_img)
