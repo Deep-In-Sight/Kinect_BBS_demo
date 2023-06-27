@@ -1,7 +1,6 @@
 import os
 from setuptools import setup, find_packages
 from distutils.sysconfig import get_python_inc
-import pathlib
 
 # python include dir
 py_include_dir = os.path.join(get_python_inc())
@@ -9,7 +8,7 @@ py_include_dir = os.path.join(get_python_inc())
 __version__ = "1.0"
 
 setup(
-    name="bbsQt",
+    name="bbs_server",
     version=__version__,
     author="DeepInsight",
     packages=find_packages(),
