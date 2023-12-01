@@ -137,7 +137,7 @@ class qThreadRecord(QThread):
 
             # prepare image 
             img = np.array(self.stackColor[-1]).astype(np.uint8)
-            img = cv2.resize(img, (320, 240))
+            img = cv2.resize(img, (640, 480))
             height, width, channel = img.shape
             bytesPerLine = 3 * width
             pixmap   = QPixmap(QImage(img, width, height, bytesPerLine, QImage.Format_RGB888))
@@ -225,7 +225,7 @@ class qThreadRecord(QThread):
         img = cv2.imread(fn_img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         #img = imgutil.rgb2gray(img)
-        img = cv2.resize(img, (320, 240))
+        img = cv2.resize(img, (640, 480))
         img = np.array(img).astype(np.uint8)
         height, width, channel = img.shape
         bytesPerLine = 3 * width

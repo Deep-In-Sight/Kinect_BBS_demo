@@ -5,7 +5,8 @@ import time
 
 from bbs_client.constants import CAM_LIST, VERBOSE
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
-                            QPushButton, QHBoxLayout, QVBoxLayout, QLabel)
+                            QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
+                            )
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
 from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PyQt5.QtPrintSupport import *
@@ -41,7 +42,7 @@ def get_layout(mylabel):
 
 def load_image(fn_img = "imgs/instruct_1.png"):
     img = cv2.imread(fn_img)
-    img = cv2.resize(img, (320, 240))
+    img = cv2.resize(img, (640, 480))
     img = img[:,:,::-1]
     img = np.array(img).astype(np.uint8)
     height, width, channel = img.shape
@@ -168,14 +169,18 @@ class QMyMainWindow(QWidget):
         #LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
         
         self.skimageLabel = QLabel()
-        self.skimageLabel.setFixedSize(320, 240)
-        self.skimageLabel.setPixmap(load_image())
-        
+        self.skimageLabel.setFixedSize(640, 480)
+        # self.skimageLabel.setPixmap(load_image())
+
         # add 2021.12.27 skindexbtn
-        self.skindexbtn0 = QPushButton()
-        self.skindexbtn0.setCheckable(False)
-        self.skindexbtn0.setText('SEND')
-        self.skindexbtn0.setMinimumHeight(40)
+        # self.skindexbtn0 = QPushButton()
+        # self.skindexbtn0.setCheckable(False)
+        # self.skindexbtn0.setText('Encrypt')
+        # self.skindexbtn0.setMinimumHeight(40)
+        
+        # self.fileopenButton = QPushButton('Open', self)
+        # self.fileopenButton.clicked.connect(self.openFileNameDialog)
+        
         
         # add 2021.12.27 skbtnlayout
         skBBoxLayout = QVBoxLayout()
@@ -183,7 +188,8 @@ class QMyMainWindow(QWidget):
         # sk select viewr
         LayoutViewers.addLayout(get_layout(self.skimageLabel))
         
-        skBBoxLayout.addWidget(self.skindexbtn0)
+        # skBBoxLayout.addWidget(self.skindexbtn0)
+        # skBBoxLayout.addWidget(self.fileopenButton)
         # skBBoxLayout.addWidget(self.skindexbtn1)
         # skBBoxLayout.addWidget(self.skindexbtn2)
         LayoutViewers.addLayout(skBBoxLayout)
@@ -198,9 +204,10 @@ class QMyMainWindow(QWidget):
         LayoutMain.addLayout(self.qScenario.getLayout(),49)
 
         # # add 2021.12.27  skindexbox connect 
-        self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
+        # self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
         # self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
         # self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
+
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -235,11 +242,11 @@ class QMyMainWindow(QWidget):
         actionidx = self.btn.action_num.currentIndex() + 1
         
         self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
-        self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
+        # self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
         # self.startcamera()
 
-    def scoreChanged(self, text):
-        self.qScenario.scorenum.setText(f'Score : {text}')
+    # def scoreChanged(self, text):
+    #     self.qScenario.scorenum.setText(f'Score : {text}')
 
     def _init_camera(self):
         # Start cameras using modified configuration
@@ -256,16 +263,16 @@ class QMyMainWindow(QWidget):
 
     # add 20210107
     def startcamera(self):
-        try: 
-            self.skindexbtn0.clicked.disconnect() 
-            #self.skindexbtn1.clicked.disconnect() 
-            #self.skindexbtn2.clicked.disconnect() 
-        except Exception: 
-            pass
+        # try: 
+        #     # self.skindexbtn0.clicked.disconnect() 
+        #     #self.skindexbtn1.clicked.disconnect() 
+        #     #self.skindexbtn2.clicked.disconnect() 
+        # except Exception: 
+        #     pass
         
         self._init_camera()
 
-        self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
+        # self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
         #self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
         #self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
  

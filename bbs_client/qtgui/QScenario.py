@@ -8,9 +8,9 @@ import subprocess
 from bbs_client.constants import DIR_VIDEO, BIN_PLAYER
 from glob import glob
 
-BTN_MIN_WIDTH         = 100
-BTN_MAX_WIDTH         = 200
-ICON_MIN_WIDTH         = 30
+BTN_MIN_WIDTH       = 100
+BTN_MAX_WIDTH       = 200
+ICON_MIN_WIDTH      = 30
 ICON_MIN_HEIGHT     = 32
 
 recordconfig = setConfig()
@@ -106,8 +106,8 @@ class qScenario(QObject):
         QApplication.processEvents()
 
     # fix 2021/01/07
-    def onchanged(self, text):
-        self.scorenum.setText(f'Score : {text}')
+    # def onchanged(self, text):
+    #     self.scorenum.setText(f'Score : {text}')
         #self.scenarionum.setText(f'Scenario : {text}')
 
     # def download(self):
@@ -145,7 +145,7 @@ class qScenario(QObject):
         timer.setMinimumHeight(40)
         return timer
         
-    @pyqtSlot(bool)
+    # @pyqtSlot(bool)
     def start_rec(self, state):
         if state:
             self.Ready.setStyleSheet("background-color: red")
@@ -154,7 +154,7 @@ class qScenario(QObject):
             
         else:
             self.Ready.setStyleSheet("background-color: green")
-            self.Ready.setText("Start")
+            self.Ready.setText("Decrypt")
             self.stopRecord.emit()            
 
 
@@ -176,7 +176,8 @@ class qScenario(QObject):
         LayoutRecordStartStep.setAlignment(Qt.AlignTop)
         LayoutRecordStartStep.setAlignment(Qt.AlignRight)
 
-        self.videoplaybtn = QPushButton('Video Play')
+        self.videoplaybtn = QPushButton('Encrypt')
+        self.videoplaybtn.setStyleSheet("background-color: green")
         self.videoplaybtn.setMinimumHeight(40)
         self.videoplaybtn.setMinimumWidth(140)
         LayoutRecordStartStep.addWidget(self.videoplaybtn)
@@ -188,12 +189,14 @@ class qScenario(QObject):
         # LayoutRecordStartStep.addWidget(self.downloadbtn)
         # self.downloadbtn.clicked.connect(self.videoplay)
 
+        
         self.Ready = QPushButton()
         self.Ready.setCheckable(True)
-        self.Ready.setText('Start')
+        self.Ready.setText('Decrypt')
         self.Ready.setStyleSheet("background-color: green")
         self.Ready.setMinimumWidth(100)
         self.Ready.setMinimumHeight(50)
+        # TODO: Record start 대신 Decrypt 기능 
         self.Ready.clicked.connect(self.start_rec)
 
         LayoutRecordStartStep.addWidget(self.Ready)
@@ -201,14 +204,14 @@ class qScenario(QObject):
         HVlayoutMain.addLayout(LayoutRecordStartStep, 40)
 
         ###############################
-        LayoutRecordEnd = QLabel()
-        LayoutRecordEnd.setText("SAVE")
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        LayoutRecordEnd.setFont(font)
+        # LayoutRecordEnd = QLabel()
+        # LayoutRecordEnd.setText("SAVE")
+        # font = QFont()
+        # font.setBold(True)
+        # font.setPointSize(15)
+        # LayoutRecordEnd.setFont(font)
 
-        HVlayoutMain.addWidget(LayoutRecordEnd, 10)
+        # HVlayoutMain.addWidget(LayoutRecordEnd, 10)
         ###############################
 
         LayoutScenarioNum = QHBoxLayout()
@@ -221,29 +224,18 @@ class qScenario(QObject):
         LayoutScenarioNum.addWidget(self.scenarionum)
 
         # score update txt label /fix 2021/12/22
-        self.scorenum = QLabel()
-        self.scorenum.setText(f'Score : {self.btn.score_num.currentIndex()}')
-        LayoutScenarioNum.addWidget(self.scorenum)
+        # self.scorenum = QLabel()
+        # self.scorenum.setText(f'Score : {self.btn.score_num.currentIndex()}')
+        # LayoutScenarioNum.addWidget(self.scorenum)
         HVlayoutMain.addLayout(LayoutScenarioNum, 2)
 
 
         qlabel_dummy = QLabel()
         HVlayoutMain.addWidget(qlabel_dummy, 10)
         HBlayoutMain.addLayout(HVlayoutMain, 30)
-
-        # Todo: add result 
-        LayoutInfo = QVBoxLayout()
-        self.viewInfo = QLabel()
-        self.viewInfo.setAlignment(Qt.AlignTop)
-        self.viewInfo.setScaledContents(True)
-        self.viewInfo.setText(self.showinfo())
-        self.viewInfo.setMinimumHeight(30)
-
-        # result label
-        LayoutInfo.addWidget(self.viewInfo,10)
         
         # result label
-        HBlayoutMain.addLayout(LayoutInfo,20)    
+        # HBlayoutMain.addLayout(LayoutInfo,20)    
 
         # self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
 

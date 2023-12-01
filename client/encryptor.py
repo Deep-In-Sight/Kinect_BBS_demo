@@ -23,15 +23,12 @@ class HEAANEncryptor():
     """
     def __init__(self, server_url, cert, work_dir="./", 
                 debug=True):
-        #Setup work directories
+        # Setup work directories
         self.work_dir = work_dir
         self._model_dir = os.path.join(work_dir, "models")
         if debug: print("[ENCRYPTOR] key path", work_dir)
         self.model_dir =  os.path.join(self.work_dir, "models")
         if not os.path.isdir(work_dir): os.mkdir(work_dir)
-
-        # communicator
-        self.comm = ClientCommunicator(f"https://{server_url}", cert)
 
         # FHE context        
         logq = HEAAN_CONTEXT_PARAMS['logq']#540
@@ -154,18 +151,10 @@ class HEAANEncryptor():
             fn_ctxt = os.path.join(self.work_dir, f"ctx_{action:02d}_{cam}_.dat")
             he.SerializationUtils.writeCiphertext(ctx1, fn_ctxt)
             print("[Encryptor] Ctxt is written to", fn_ctxt)
-
-            # True if transmission is successful
-            if not self.comm.send_ctxt(fn_ctxt, action):
-                raise ConnectionError("Can't send ctxt to the server")
             
-            if DEBUG: print("[Encryptor] Waiting for prediction...")
-            
-            sleep(SLEEP_TIME)
-
-            if self.comm.query_ready(retry_interval=5, max_trials = 10):
-                fn_preds = self.comm.get_5results(self.work_dir)
-            
+            ## TODO: 
+            ## separate out decryptor
+            fn_preds = None
             # Load predictions
             print("[encryptor] Prediction files are ready:", fn_preds)
             
