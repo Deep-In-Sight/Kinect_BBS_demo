@@ -21,26 +21,20 @@ WAIT = 0.01
 def is_valid_skeleton(skeleton):
     return np.all(skeleton['frame'] != 0)
 
-
 class qThreadRecord(QThread):
     
-    def __init__(self, cap, mp_pose, qScenario, PWD, imgviwerRGB, q1, e_sk, e_ans, q_answer):
+    def __init__(self, cap, mp_pose, qScenario, PWD, imgviwerRGB, q_sk, e_sk):
         super().__init__()
         self.stackColor = []
-        self.stackDepth = []
         self.stackJoint = []
         self.cap = cap
         self.mp_pose = mp_pose
         self.isRun = False
         self.qScenario = qScenario
-        self.Ncpu = 2
-        self.pic_Count = 0
         self.PWD = PWD
-        self.q1 = q1
-        self.e_sk = e_sk
-        self.e_ans = e_ans
-        self.q_answer = q_answer
         self.imgviwerRGB = imgviwerRGB
+        self.q_sk = q_sk
+        self.e_sk = e_sk
 
     def setRun(self, Run):
         self.isRun = Run
@@ -70,8 +64,6 @@ class qThreadRecord(QThread):
 
     def resetstate(self):
         self.stackColor = []
-        self.stackIR = []
-        self.stackDepth = []
         self.stackJoint = []
         self.pic_Count = 0
 
@@ -166,12 +158,12 @@ class qThreadRecord(QThread):
         
         # FIX   20210107
         this_scenario = self.btn.action_num.currentText()
-        this_score = self.btn.score_num.currentText()
+        # this_score = self.btn.score_num.currentText()
         
         sub = ru.smoothed_frame_N(self.skarr, 
                                 nframe=NFRAMES[f'{this_scenario}'],
                                 shift=1)
-        skeleton = ru.ravel_rec(sub)[np.newaxis, :]
+        skeleton = ru.ravel_rec(sub).reshape(1,-1) #[np.newaxis, :]
 
         camera_num = 'e'
 
@@ -181,9 +173,7 @@ class qThreadRecord(QThread):
         if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
         pickle.dump(self.skarr, open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
-        
-
-        self.q1.put({"action":this_scenario,
+        self.q_sk.put({"action":this_scenario,
                      "cam":camera_num, 
                      "skeleton": skeleton})
         print("[QtThreadObj] Skeleton sent to encryptor")
@@ -194,14 +184,13 @@ class qThreadRecord(QThread):
         # Encryptor runs...
         # Then send ctxt to server
         # and Wait for server's answer
-        self.e_ans.wait()
-        self.e_sk.clear() # Just in case...
-        
-        answer = self.q_answer.get()
+
+    def update_score(self, answer):        
         answer_int = int(answer.split(":")[-1])
 
         # Update this score
         scu = Score_updator(FN_SCORES)
+        this_scenario = self.btn.action_num.currentText()
         scu.update(int(this_scenario), answer_int)
         all_txt = scu.text_output()
         scu.write_txt()
@@ -215,9 +204,6 @@ class qThreadRecord(QThread):
         #font.setBold(True)
         font.setPointSize(14)
         self.qScenario.viewInfo.setFont(font)
-
-        self.e_ans.clear()
-
         
     def load_image(self, idx):
         fn_img = f'image/img_00{idx}.jpg'

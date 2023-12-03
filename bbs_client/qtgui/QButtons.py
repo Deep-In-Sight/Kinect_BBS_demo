@@ -3,7 +3,6 @@ from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QIcon, QFont
 import os
 
-
 BTN_MIN_WIDTH         = 100
 BTN_MAX_WIDTH         = 200
 ICON_MIN_WIDTH         = 30
@@ -27,10 +26,10 @@ class qButtons(QObject):
         self.BtnCalib = QPushButton()
         self.BtnCalib.setCheckable(True)
         self.BtnCalib.setIcon(QIcon(os.path.join(self.PWD,'res','play.png')))
-        self.BtnCalib.setText('[R]ecord')
+        self.BtnCalib.setText('Camera')
         self.BtnCalib.setMinimumWidth(ICON_MIN_WIDTH)
         self.BtnCalib.setMinimumHeight(ICON_MIN_HEIGHT)
-        self.BtnCalib.setToolTip('Record New Video')
+        self.BtnCalib.setToolTip('Camera On/Off')
         
         self.fileopenButton = QPushButton()
         self.fileopenButton.setText("Load video")
@@ -66,14 +65,6 @@ class qButtons(QObject):
         [self.action_num.addItem(f"{i}") for i in range(1, 15)]
         self.action_num.currentIndexChanged.connect(self.qmain.actionChanged)
 
-        # self.score_name = QLabel()
-        # self.score_name.setText('Select Scenario Score : ')
-        # self.score_name.setFont(QFont("Arial", 12, QFont.Bold))
-        
-        # self.score_num = QComboBox()
-        # [self.score_num.addItem(f"{i}") for i in range(5)]
-        # self.score_num.activated[str].connect(self.qmain.scoreChanged)
-
         self.BtnCalib.clicked.connect(self.qmain.updateOnPlay)
         self.BtnCalib.clicked.connect(self.qmain.calibration2)
         
@@ -98,7 +89,7 @@ class qButtons(QObject):
         HBlayoutEdits.addWidget(self.LbFPS)
         # fix 2021/12/23
         HBlayoutEdits.addWidget(self.action_name)
-        HBlayoutEdits.addWidget(self.action_num)
+        #HBlayoutEdits.addWidget(self.action_num)
         # HBlayoutEdits.addWidget(self.score_name)
         # HBlayoutEdits.addWidget(self.score_num)
         HBlayoutEdits.addWidget(self.empty_space)

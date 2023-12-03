@@ -142,7 +142,7 @@ class HEAANEncryptor():
         scheme = self.scheme
         return True
 
-    def start_encrypt_loop(self, q_sk):#, e_sk):
+    def encrypt(self, sk):#, e_sk):
         """Consumes skeleton from q_sk, encrypt it, send to server, and get the result.
         1. If skeleton is ready (e_sk) 
         2. get the skeleton from q_sk
@@ -151,13 +151,6 @@ class HEAANEncryptor():
         #5. wait for the result from the server
         #6. decrypt the result and send it to GUI (q_answer)
         """
-        #while True:
-        #    e_sk.wait()  ## FLOW CONTROL
-        print("[Encryptor] good to go") 
-        sk = q_sk.get()  ## FLOW CONTROL
-        "++++++++++++++++++++++++++ SKELETON POINTS ++++++++++++++++++++++"
-        #e_sk.clear()  ## FLOW CONTROL: reset skeleton event
-        
         if not 'skeleton' in sk.keys():
             raise LookupError("Can't find skeleton in queue")    
         if DEBUG: 
@@ -190,6 +183,7 @@ class HEAANEncryptor():
         if DEBUG: print("Featurizing skeleton...")
 
         t0 = time.time()
+        print("[ENCRYPROR>>>>>] FINAL SKELETON", final_skeleton)
         ctx1 = featurizer.encrypt(final_skeleton)
         print(f"Encryption done in {time.time() - t0:.2f} seconds")
         

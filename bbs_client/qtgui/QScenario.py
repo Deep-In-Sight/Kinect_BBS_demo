@@ -7,6 +7,7 @@ from .config import Config as setConfig
 import subprocess
 from bbs_client.constants import DIR_VIDEO, BIN_PLAYER
 from glob import glob
+from client.encryptor import HEAANEncryptor
 
 BTN_MIN_WIDTH       = 100
 BTN_MAX_WIDTH       = 200
@@ -26,17 +27,19 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
     return btn
 
 class qScenario(QObject):
-    def __init__(self, qmain, pwd, q_answer, btn, startRecord, stopRecord):
+    def __init__(self, qmain, pwd, btn, startRecord, stopRecord, q_sk):
         super(qScenario, self).__init__(qmain)
+        
+        self.henc = HEAANEncryptor("./")
+        
         self.startRecord = startRecord
         self.stopRecord = stopRecord
         self.obj = ""
         self.PWD = pwd
         self.qmain = qmain    
         self.btn = btn    
-
+        self.q_sk = q_sk
         self.text_answer = ""
-        self.q_answer = q_answer
 
         self.ScenarioNo = 0
         #self.SubjectID = 0
@@ -52,6 +55,17 @@ class qScenario(QObject):
         self.currentRecSeq = 0
         self.currentRecCheck = False
         self.imgRecSizes = [0,0,0,0,0] # color, ir, depth, rec time, num frames
+        
+    def encrypt(self):
+        # Encrypt given skeleton 
+        skeleton = self.q_sk.get()
+        print("[QScenario] encrypt skeleton")
+        print("[QScenario] skeleton", skeleton)
+        self.henc.encrypt(skeleton)
+        
+    def decrypt(self, fn):
+        # Decrypt given skeleton 
+        self.henc.decrypt(fn)
        
     def updateRecImgSizes(self, imgsizes):
         self.imgRecSizes[0] += imgsizes[0]
@@ -136,16 +150,16 @@ class qScenario(QObject):
         return timer
         
     # @pyqtSlot(bool)
-    def start_rec(self, state):
-        if state:
-            self.Ready.setStyleSheet("background-color: red")
-            self.Ready.setText("Stop")
-            self.startRecord.emit()
+    # def start_rec(self, state):
+    #     if state:
+    #         self.Ready.setStyleSheet("background-color: red")
+    #         self.Ready.setText("Stop")
+    #         self.startRecord.emit()
             
-        else:
-            self.Ready.setStyleSheet("background-color: green")
-            self.Ready.setText("Decrypt")
-            self.stopRecord.emit()            
+    #     else:
+    #         self.Ready.setStyleSheet("background-color: green")
+    #         self.Ready.setText("Decrypt")
+    #         self.stopRecord.emit()            
 
 
     def getLayout(self):
@@ -154,41 +168,6 @@ class qScenario(QObject):
 
         HVlayoutMain = QVBoxLayout() 
         HVlayoutMain.setAlignment(Qt.AlignTop)
-
-        LayoutRecordStartStep = QHBoxLayout() 
-        LayoutRecordStartStep.setAlignment(Qt.AlignTop)
-        LayoutRecordStartStep.setAlignment(Qt.AlignRight)
-
-        self.videoplaybtn = QPushButton('Encrypt')
-        self.videoplaybtn.setStyleSheet("background-color: green")
-        self.videoplaybtn.setMinimumHeight(40)
-        self.videoplaybtn.setMinimumWidth(140)
-        LayoutRecordStartStep.addWidget(self.videoplaybtn)
-        self.videoplaybtn.clicked.connect(self.videoplay)
-
-        self.Ready = QPushButton()
-        self.Ready.setCheckable(True)
-        self.Ready.setText('Decrypt')
-        self.Ready.setStyleSheet("background-color: green")
-        self.Ready.setMinimumWidth(100)
-        self.Ready.setMinimumHeight(50)
-        # TODO: Record start 대신 Decrypt 기능 
-        self.Ready.clicked.connect(self.start_rec)
-
-        LayoutRecordStartStep.addWidget(self.Ready)
-
-        HVlayoutMain.addLayout(LayoutRecordStartStep, 40)
-
-        ###############################
-        # LayoutRecordEnd = QLabel()
-        # LayoutRecordEnd.setText("SAVE")
-        # font = QFont()
-        # font.setBold(True)
-        # font.setPointSize(15)
-        # LayoutRecordEnd.setFont(font)
-
-        # HVlayoutMain.addWidget(LayoutRecordEnd, 10)
-        ###############################
 
         LayoutScenarioNum = QHBoxLayout()
         LayoutScenarioNum.setAlignment(Qt.AlignTop)
