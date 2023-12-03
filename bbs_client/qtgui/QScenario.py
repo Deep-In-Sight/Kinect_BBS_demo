@@ -43,11 +43,6 @@ class qScenario(QObject):
         self.MinRecordTime = recordconfig.minRecordTime # Minimum 2s
         self.MinRecordFrame = recordconfig.minRecordFrame # Minimum 20 frames
         self.info = ""
-        self.imgMemoryInfoDisp = ""
-        self.imgMemoryInfoToSave = ""
-        self.imgMemoryInfoRec = ""
-        self.rgbdispsize = 0
-        self.irdispsize = 0
         self.depthdispsize = 0
         self.Correction = 0
         
@@ -57,7 +52,7 @@ class qScenario(QObject):
         self.currentRecSeq = 0
         self.currentRecCheck = False
         self.imgRecSizes = [0,0,0,0,0] # color, ir, depth, rec time, num frames
-
+       
     def updateRecImgSizes(self, imgsizes):
         self.imgRecSizes[0] += imgsizes[0]
         self.imgRecSizes[1] += imgsizes[1]        
@@ -73,13 +68,13 @@ class qScenario(QObject):
     def setRgbDispSize(self,val):
         self.rgbdispsize = val
 
-    @pyqtSlot(int)
-    def setIrDispSize(self,val):
-        self.irdispsize = val
+    # @pyqtSlot(int)
+    # def setIrDispSize(self,val):
+    #     self.irdispsize = val
 
-    @pyqtSlot(int)
-    def setDepthDispSize(self,val):
-        self.depthdispsize = val            
+    # @pyqtSlot(int)
+    # def setDepthDispSize(self,val):
+    #     self.depthdispsize = val            
 
     def setMinRecordTime(self):
         try:
@@ -104,14 +99,6 @@ class qScenario(QObject):
 
     def update(self):
         QApplication.processEvents()
-
-    # fix 2021/01/07
-    # def onchanged(self, text):
-    #     self.scorenum.setText(f'Score : {text}')
-        #self.scenarionum.setText(f'Scenario : {text}')
-
-    # def download(self):
-        
     
     def videoplay(self):
         # fix 2021/01/07
@@ -122,6 +109,9 @@ class qScenario(QObject):
             p = subprocess.Popen([BIN_PLAYER, video_abs_path])
         except:
             print("ERROR: cannot find video...", video_abs_path)
+
+    def generate_keys(self):
+        pass
 
     def showinfo(self):
         #{self.text_answer} 
@@ -165,13 +155,6 @@ class qScenario(QObject):
         HVlayoutMain = QVBoxLayout() 
         HVlayoutMain.setAlignment(Qt.AlignTop)
 
-        # LayoutRecordStart = QLabel()
-        # LayoutRecordStart.setText("Record START")
-        # font = QFont()
-        # font.setBold(True)
-        # font.setPointSize(15)
-        # LayoutRecordStart.setFont(font)
-
         LayoutRecordStartStep = QHBoxLayout() 
         LayoutRecordStartStep.setAlignment(Qt.AlignTop)
         LayoutRecordStartStep.setAlignment(Qt.AlignRight)
@@ -183,13 +166,6 @@ class qScenario(QObject):
         LayoutRecordStartStep.addWidget(self.videoplaybtn)
         self.videoplaybtn.clicked.connect(self.videoplay)
 
-        # self.downloadbtn = QPushButton('Download')
-        # self.downloadbtn.setMinimumHeight(40)
-        # self.downloadbtn.setMinimumWidth(140)
-        # LayoutRecordStartStep.addWidget(self.downloadbtn)
-        # self.downloadbtn.clicked.connect(self.videoplay)
-
-        
         self.Ready = QPushButton()
         self.Ready.setCheckable(True)
         self.Ready.setText('Decrypt')

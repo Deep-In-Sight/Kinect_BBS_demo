@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QApplication
 
 from bbs_client.qtgui.QmainWindow import *
 from client.encryptor import HEAANEncryptor
-from bbs_client import constants
 
 def run_qt_app(q_sk, q_answer, e_sk , e_ans):
     """Run the Qt application."""
@@ -18,9 +17,8 @@ def run_qt_app(q_sk, q_answer, e_sk , e_ans):
 
 def run_encryptor(q_sk, q_answer, e_sk, e_ans, work_dir="./"):
     """Run the FHE encryptor."""
-    henc = HEAANEncryptor(args.HOST, constants.CERTIFICATE, work_dir)
-    henc.start_encrypt_loop(q_sk, q_answer, e_sk, e_ans)
-
+    henc = HEAANEncryptor(work_dir)
+    henc.start_encrypt_loop(q_sk, e_sk)
     
 def main():
     KEYPATH = "./"  
@@ -65,8 +63,6 @@ def main():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='HOST')
     args = parser.parse_args()
 
-    constants.HOST = args.HOST
     main()

@@ -4,16 +4,28 @@ import numpy as np
 import os 
 import pickle
 import time
-from bbs_client.constants import CAM_NAMES, HEAAN_CONTEXT_PARAMS, DEBUG, SLEEP_TIME
+from bbs_client.constants import CAM_NAMES, HEAAN_CONTEXT_PARAMS, DEBUG
 from time import sleep
 from fase.hnrf.hetree import HNRF
 from fase.core.heaan import HEAANContext
 
 from bbs_client.model.data_preprocessing import shift_to_zero, measure_lengths
-from client_comm import ClientCommunicator
-from featurizer import HETreeFeaturizer, Param
+#from client_comm import ClientCommunicator
+from featurizer import HETreeFeaturizer
+import hashlib
 
-
+class Param():
+    """FHE parameters used by the HEAAN Encryptor.
+    """
+    def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
+        self.n = n
+        self.logn = logn
+        self.logp = logp
+        self.logq = logq 
+        self.logQboot = logQboot
+        if self.logn == None:
+            self.logn = int(np.log2(n))
+            
 class HEAANEncryptor():
     """Encrypt skeleton and communicate with server.
 
@@ -21,7 +33,7 @@ class HEAANEncryptor():
     decrypting the results from the server. 
     HTTPS communication is handled by ClientCommunicator.
     """
-    def __init__(self, server_url, cert, work_dir="./", 
+    def __init__(self, work_dir="./", 
                 debug=True):
         # Setup work directories
         self.work_dir = work_dir
@@ -37,23 +49,63 @@ class HEAANEncryptor():
         n = 1*2**logn
 
         self.parms = Param(n=n, logp=logp, logq=logq)
-        self.hec = HEAANContext(logn, logp, logq, rot_l=[1], 
-            key_path=self.work_dir,
-            FN_SK="secret.key",
-            boot=False, 
-            is_owner=True,
-            load_sk=False
-            )
+        self.hec = HEAANContext(self.parms.logn, 
+                                self.parms.logp, 
+                                self.parms.logq, 
+                                rot_l=[1], 
+                                key_path=self.work_dir,
+                                FN_SK="secret.key",
+                                boot=False, 
+                                is_owner=True,
+                                load_sk=False
+                                )
 
-        print("FHE Keys are set", self.work_dir)
-        if not self.comm.send_keys(self.work_dir):
-            raise ConnectionError("Can't send keys to the server")
-        
+        # print("FHE Keys are set", self.work_dir)
+        # if not self.comm.send_keys(self.work_dir):
+        #     raise ConnectionError("Can't send keys to the server")
+                
+        if debug: print("[Encryptor] HEAAN is ready")
         self.set_featurizers()
         self.load_scalers()
+        
+     
+        self._fn_chekcsum = os.path.join(self.work_dir, "checksum.txt")
+        self._fn_keys = ["EncKey.txt", "MulKey.txt", "RotKey_1.txt", "secret.key"]
 
-        if debug: print("[Encryptor] HEAAN is ready")
+    def _calculate_checksum(self):
+        dd = []
+        for key in self._fn_keys:
+            fn = os.path.join(self.work_dir, key)
+            dd.append((key, self._get_md5sum(fn)))
+
+        return dict(dd)
+
+    def save_checksum(self):
+        sums = self._calculate_checksum()
+        with open(self._fn_chekcsum, "w") as f:
+            for key in self._fn_keys:
+                f.write(f"{self._get_md5sum(key)}  {key}\n")
     
+    def _get_md5sum(self, file):
+        md5_hash = hashlib.md5()
+        with open(file, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                md5_hash.update(chunk)
+        return md5_hash.hexdigest()
+
+    def _read_checksum(self):
+        """Read the checksum from the checksum file."""
+        dd = []
+        with open(self._fn_chekcsum, "r") as f:
+            for l in f.readlines():
+                sum, key = l.split()
+                dd.append((key,sum))   
+        return dict(dd)
+        
+    def _check_checksum(self):
+        """Check if the checksum is correct."""
+        return self._calculate_checksum() == self._read_checksum()
+
     def set_featurizers(self):
         """Initialize featurizers for each action.
         
@@ -90,68 +142,68 @@ class HEAANEncryptor():
         scheme = self.scheme
         return True
 
-    def start_encrypt_loop(self, q_sk, q_answer, e_sk, e_answer):
+    def start_encrypt_loop(self, q_sk):#, e_sk):
         """Consumes skeleton from q_sk, encrypt it, send to server, and get the result.
-
         1. If skeleton is ready (e_sk) 
         2. get the skeleton from q_sk
         3. encrypt and store it as ctx_{i}.dat file
-        4. send the encrypted skeleton to the server
-        5. wait for the result from the server
-        6. decrypt the result and send it to GUI (q_answer)
+        #4. send the encrypted skeleton to the server
+        #5. wait for the result from the server
+        #6. decrypt the result and send it to GUI (q_answer)
         """
-        while True:
-            e_sk.wait()  ## FLOW CONTROL
-            print("[Encryptor] good to go") 
-            sk = q_sk.get()  ## FLOW CONTROL
-            "++++++++++++++++++++++++++ SKELETON POINTS ++++++++++++++++++++++"
-            e_sk.clear()  ## FLOW CONTROL: reset skeleton event
-            
-            if not 'skeleton' in sk.keys():
-                raise LookupError("Can't find skeleton in queue")    
-            if DEBUG: 
-                print("[Encryptor] Got a skeleton, Encrypting...")
-                print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
-            
-            action = int(sk['action'])
-            cam = CAM_NAMES[action] 
-
-            scaler = self.scalers[f"{action}_{cam}"]
-            
-            skeleton = sk['skeleton']
+        #while True:
+        #    e_sk.wait()  ## FLOW CONTROL
+        print("[Encryptor] good to go") 
+        sk = q_sk.get()  ## FLOW CONTROL
+        "++++++++++++++++++++++++++ SKELETON POINTS ++++++++++++++++++++++"
+        #e_sk.clear()  ## FLOW CONTROL: reset skeleton event
         
-            if DEBUG:
-                print("[ENCRYPTOR] DEBUGGING MODE !!!!!!!")
-                final_skeleton = scaler.transform(skeleton)
-            else:
-                # TODO: copy skeleton? 
-                rav_sub = skeleton#[0]
-                skeleton = shift_to_zero(skeleton)
-                body = measure_lengths(skeleton)
-                skeleton /= body['body'] 
-                pickle.dump(skeleton, open("skeleton_org.pickle", "wb"))
-                #print("rav_sub", rav_sub.min(), rav_sub.max())
-                final_skeleton = scaler.transform(rav_sub.reshape(1,-1))[0]
-            
-            print(f"Check for scales {final_skeleton.min():.2f}, {final_skeleton.max():.2f}")
+        if not 'skeleton' in sk.keys():
+            raise LookupError("Can't find skeleton in queue")    
+        if DEBUG: 
+            print("[Encryptor] Got a skeleton, Encrypting...")
+            print("[Encryptor] Length of the skeleton:", len(sk["skeleton"]))
+        
+        action = int(sk['action'])
+        cam = CAM_NAMES[action] 
 
-            featurizer = self.featurizers[f"{action}_{cam}"]
-            if DEBUG: print("Featurizing skeleton...")
+        scaler = self.scalers[f"{action}_{cam}"]
+        
+        skeleton = sk['skeleton']
+    
+        if DEBUG:
+            print("[ENCRYPTOR] DEBUGGING MODE !!!!!!!")
+            final_skeleton = scaler.transform(skeleton)
+        else:
+            # TODO: copy skeleton? 
+            rav_sub = skeleton#[0]
+            skeleton = shift_to_zero(skeleton)
+            body = measure_lengths(skeleton)
+            skeleton /= body['body'] 
+            pickle.dump(skeleton, open("skeleton_org.pickle", "wb"))
+            #print("rav_sub", rav_sub.min(), rav_sub.max())
+            final_skeleton = scaler.transform(rav_sub.reshape(1,-1))[0]
+        
+        print(f"Check for scales {final_skeleton.min():.2f}, {final_skeleton.max():.2f}")
 
-            t0 = time.time()
-            ctx1 = featurizer.encrypt(final_skeleton)
-            print(f"Encryption done in {time.time() - t0:.2f} seconds")
-            
-            if DEBUG: 
-                pickle.dump(final_skeleton, open("scaled.pickle", "wb"))
-                print(f"Featurizing done in {time.time() - t0:.2f}s")
-                print(ctx1.n, ctx1.logp, ctx1.logq)
-                print("[Encryptor] Ctxt encrypted")
+        featurizer = self.featurizers[f"{action}_{cam}"]
+        if DEBUG: print("Featurizing skeleton...")
 
-            fn_ctxt = os.path.join(self.work_dir, f"ctx_{action:02d}_{cam}_.dat")
-            he.SerializationUtils.writeCiphertext(ctx1, fn_ctxt)
-            print("[Encryptor] Ctxt is written to", fn_ctxt)
+        t0 = time.time()
+        ctx1 = featurizer.encrypt(final_skeleton)
+        print(f"Encryption done in {time.time() - t0:.2f} seconds")
+        
+        if DEBUG: 
+            pickle.dump(final_skeleton, open("scaled.pickle", "wb"))
+            print(f"Featurizing done in {time.time() - t0:.2f}s")
+            print(ctx1.n, ctx1.logp, ctx1.logq)
+            print("[Encryptor] Ctxt encrypted")
+
+        fn_ctxt = os.path.join(self.work_dir, f"ctx_{action:02d}_{cam}_.dat")
+        he.SerializationUtils.writeCiphertext(ctx1, fn_ctxt)
+        print("[Encryptor] Ctxt is written to", fn_ctxt)
             
+    def get_answer(self, q_answer, e_answer, ctx1):        
             ## TODO: 
             ## separate out decryptor
             fn_preds = None

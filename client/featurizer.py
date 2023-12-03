@@ -38,16 +38,3 @@ class HETreeFeaturizer:
 
     def save(self, path:str):
         pickle.dump(self.comparator, open(path, "wb"))
-
-
-class Param():
-    """FHE parameters used by the HEAAN Encryptor.
-    """
-    def __init__(self, n=None, logn=None, logp=None, logq=None, logQboot=None):
-        self.n = n
-        self.logn = logn
-        self.logp = logp
-        self.logq = logq 
-        self.logQboot = logQboot
-        if self.logn == None:
-            self.logn = int(np.log2(n))

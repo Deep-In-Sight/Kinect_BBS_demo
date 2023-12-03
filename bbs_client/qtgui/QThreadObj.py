@@ -50,20 +50,19 @@ class qThreadRecord(QThread):
         self.btn = btn
         self.path_save = f"{self.PWD}/images"
         
-
     def reset(self, k4a, bt):
             self.k4a = k4a
             self.bt = bt
 
-    def mkd(self, ScenarioNo):
-        """Make directory for saving data"""
-        self.ScenarioNo = ScenarioNo
+    # def mkd(self, ScenarioNo):
+    #     """Make directory for saving data"""
+    #     self.ScenarioNo = ScenarioNo
         
-        self.path_color = f"{self.PWD}/RGB"
-        self.path_bt = f"{self.PWD}/BT"
+    #     self.path_color = f"{self.PWD}/RGB"
+    #     self.path_bt = f"{self.PWD}/BT"
 
-        os.makedirs(self.path_color, exist_ok = True)
-        os.makedirs(self.path_bt, exist_ok = True)
+    #     os.makedirs(self.path_color, exist_ok = True)
+    #     os.makedirs(self.path_bt, exist_ok = True)
 
     def __del__(self):
         print(".... end thread.....")

@@ -5,7 +5,7 @@ import time
 
 from bbs_client.constants import CAM_LIST, VERBOSE
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
-                            QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
+                            QHBoxLayout, QVBoxLayout, QLabel,
                             )
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
 from PyQt5.QtGui import QPixmap, QIcon, QImage
@@ -37,6 +37,7 @@ def get_layout(mylabel):
     VBlayoutMain.setAlignment(Qt.AlignTop)
     VBlayoutMain.setAlignment(Qt.AlignLeft)
     VBlayoutMain.addWidget(mylabel)
+    VBlayoutMain.name = "VBlayoutMain"
     return VBlayoutMain
 
 
@@ -76,7 +77,6 @@ class QMyMainWindow(QWidget):
         self.btn = qButtons(self, self.PWD)
 
         self.imgviwerRGB = PhotoViewer(self,"RGB")
-        #self.imgviwerSkeleton = PhotoViewer(self, "Skeleton", ENABLE_PYK4A)
 
         self.startRecord.connect(self.recordImages)
         self.stopRecord.connect(self.end)
@@ -184,6 +184,7 @@ class QMyMainWindow(QWidget):
         
         # add 2021.12.27 skbtnlayout
         skBBoxLayout = QVBoxLayout()
+        testLayout = QVBoxLayout()
 
         # sk select viewr
         LayoutViewers.addLayout(get_layout(self.skimageLabel))
@@ -193,6 +194,7 @@ class QMyMainWindow(QWidget):
         # skBBoxLayout.addWidget(self.skindexbtn1)
         # skBBoxLayout.addWidget(self.skindexbtn2)
         LayoutViewers.addLayout(skBBoxLayout)
+        LayoutViewers.addLayout(testLayout)
 
         LayoutViewers.addLayout(QVBoxLayout(),7) # 이건 뭐지? 모양 맞추기용?
 
@@ -205,9 +207,6 @@ class QMyMainWindow(QWidget):
 
         # # add 2021.12.27  skindexbox connect 
         # self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
-        # self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
-        # self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
-
 
     def resetRecordInterface(self):
         if self.qScenario.Ready.isChecked():
@@ -217,8 +216,6 @@ class QMyMainWindow(QWidget):
     @pyqtSlot()
     def recordImages(self):
         self.qthreadrec.init(self.PWD, 
-                                #self.Locale,
-                                #self.qScenario.SubjectID,
                                 self.btn,
                                 )
         self.qthreadrec.start()
@@ -265,16 +262,9 @@ class QMyMainWindow(QWidget):
     def startcamera(self):
         # try: 
         #     # self.skindexbtn0.clicked.disconnect() 
-        #     #self.skindexbtn1.clicked.disconnect() 
-        #     #self.skindexbtn2.clicked.disconnect() 
-        # except Exception: 
-        #     pass
         
         self._init_camera()
-
         # self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
-        #self.skindexbtn1.clicked.connect(lambda: self.qthreadrec.select_sk(1))
-        #self.skindexbtn2.clicked.connect(lambda: self.qthreadrec.select_sk(2))
  
     @pyqtSlot()        
     def updateOnPlay(self):    
