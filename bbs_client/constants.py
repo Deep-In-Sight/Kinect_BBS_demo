@@ -72,7 +72,7 @@ HOST=None # placeholder
 ############# DEBUGGING ##############
 TEST_CLIENT=False
 DEBUG=False
-VERBOSE=True
+VERBOSE=False
 ######################################
 
 ################

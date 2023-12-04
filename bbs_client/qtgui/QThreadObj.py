@@ -49,16 +49,6 @@ class qThreadRecord(QThread):
             self.k4a = k4a
             self.bt = bt
 
-    # def mkd(self, ScenarioNo):
-    #     """Make directory for saving data"""
-    #     self.ScenarioNo = ScenarioNo
-        
-    #     self.path_color = f"{self.PWD}/RGB"
-    #     self.path_bt = f"{self.PWD}/BT"
-
-    #     os.makedirs(self.path_color, exist_ok = True)
-    #     os.makedirs(self.path_bt, exist_ok = True)
-
     def __del__(self):
         print(".... end thread.....")
         self.wait()        
@@ -171,7 +161,7 @@ class qThreadRecord(QThread):
                 #self.btn.capturetime.setText(str(round(t_elapsed,2)))
 
             # t0 = t1
-            print("NFRAMES", nframes)
+            # print("NFRAMES", nframes)
         cap.release()
         self.isRun = False
         
@@ -227,11 +217,11 @@ class qThreadRecord(QThread):
 
         camera_num = 'e'
 
-        tm = time.localtime()
-        time_mark = f"{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
-        sav_dir = f"BT/"
-        if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
-        pickle.dump(self.skarr, open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
+        # tm = time.localtime()
+        # time_mark = f"{tm.tm_mon:02d}{tm.tm_mday:02d}{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
+        # sav_dir = f"BT/"
+        # if not os.path.isdir(sav_dir): os.mkdir(sav_dir)
+        # pickle.dump(self.skarr, open(sav_dir+"f{camera_num}_{time_mark}_{this_scenario}_{this_score}_skeleton.pickle", "wb"))
         
         self.q_sk.put({"action":this_scenario,
                      "cam":camera_num, 
@@ -245,26 +235,6 @@ class qThreadRecord(QThread):
         # Then send ctxt to server
         # and Wait for server's answer
 
-    # def update_score(self, answer):        
-    #     answer_int = int(answer.split(":")[-1])
-
-    #     # Update this score
-    #     scu = Score_updator(FN_SCORES)
-    #     this_scenario = self.btn.action_num.currentText()
-    #     scu.update(int(this_scenario), answer_int)
-    #     all_txt = scu.text_output()
-    #     scu.write_txt()
-    #     fall_pred = scu.get_fall_prediction()
-    #     if fall_pred == -1:
-    #         self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n")
-    #     else:
-    #         self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n" + fall_pred)
-
-    #     font = QFont()
-    #     #font.setBold(True)
-    #     font.setPointSize(14)
-    #     self.qScenario.viewInfo.setFont(font)
-        
     def load_image(self, idx):
         fn_img = f'image/img_00{idx}.jpg'
         img = cv2.imread(fn_img)

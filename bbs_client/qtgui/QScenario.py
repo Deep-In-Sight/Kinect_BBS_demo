@@ -61,8 +61,8 @@ class qScenario(QObject):
     def encrypt(self):
         # Encrypt given skeleton 
         skeleton = self.q_sk.get()
-        print("[QScenario] encrypt skeleton")
-        print("[QScenario] skeleton", skeleton)
+        # print("[QScenario] encrypt skeleton")
+        # print("[QScenario] skeleton", skeleton)
         self.henc.encrypt(skeleton)
         
     def decrypt(self):

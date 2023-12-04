@@ -187,7 +187,7 @@ class HEAANEncryptor():
         if DEBUG: print("Featurizing skeleton...")
 
         t0 = time.time()
-        print("[ENCRYPROR>>>>>] FINAL SKELETON", final_skeleton)
+        # print("[ENCRYPROR>>>>>] FINAL SKELETON", final_skeleton)
         ctx1 = featurizer.encrypt(final_skeleton)
         print(f"Encryption done in {time.time() - t0:.2f} seconds")
         
@@ -225,6 +225,7 @@ class HEAANEncryptor():
 
     def unzip_new_zip(self):
         zip_list = glob("*.zip")
+        print("[encryptor] zip files", zip_list)
         zip_list.sort(key=os.path.getmtime, reverse=True)
         while len(zip_list) > 0:
             if self.extract_if_contains(zip_list.pop(), "pred_0.dat"):
@@ -237,16 +238,17 @@ class HEAANEncryptor():
             fn_ctx (str): filename of the ciphertext
             ctxt_ref (Ciphertext): reference ciphertext to get the parameters
         """
-        print("[encryptor] make an empty ctxt")
+        # print("[encryptor] make an empty ctxt")
         ctx_pred = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
-        print("[encryptor] load ctxt", fn_ctx)
+        # print("[encryptor] load ctxt", fn_ctx)
         he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
         print("[encryptor] decrypt ctxt", ctx_pred)
         dec = self.decrypt(self.hec._scheme, self.hec.sk, ctx_pred, self.parms)
-        print("[encryptor] decrypted prediction array", dec[:10])
+        # print("[encryptor] decrypted prediction array", dec[:10])
         del ctx_pred
         return np.sum(dec) # Must sum the whole vector. partial sum gives wrong answer
 
+    @staticmethod
     def extract_if_contains(zip_file_path, target_file_name, extract_to_folder = "./"):
         """
         Extracts the contents of a ZIP file to the specified folder if it contains a file with the given name.
