@@ -1,9 +1,11 @@
 #from fase import HEAAN
+import zipfile
 import fase.HEAAN as he
 import numpy as np
 import os 
 import pickle
 import time
+from glob import glob 
 from bbs_client.constants import CAM_NAMES, HEAAN_CONTEXT_PARAMS, DEBUG
 from time import sleep
 from fase.hnrf.hetree import HNRF
@@ -59,6 +61,8 @@ class HEAANEncryptor():
                                 is_owner=True,
                                 load_sk=False
                                 )
+        
+        # self.ctx1 = he.Ciphertext(logp, logq, self.parms.n)
 
         # print("FHE Keys are set", self.work_dir)
         # if not self.comm.send_keys(self.work_dir):
@@ -68,9 +72,9 @@ class HEAANEncryptor():
         self.set_featurizers()
         self.load_scalers()
         
-     
         self._fn_chekcsum = os.path.join(self.work_dir, "checksum.txt")
         self._fn_keys = ["EncKey.txt", "MulKey.txt", "RotKey_1.txt", "secret.key"]
+        self._fn_preds = ["pred_0.dat", "pred_1.dat", "pred_2.dat", "pred_3.dat", "pred_4.dat"]
 
     def _calculate_checksum(self):
         dd = []
@@ -197,29 +201,36 @@ class HEAANEncryptor():
         he.SerializationUtils.writeCiphertext(ctx1, fn_ctxt)
         print("[Encryptor] Ctxt is written to", fn_ctxt)
             
-    def get_answer(self, q_answer, e_answer, ctx1):        
+    def get_answer(self, q_answer):
             ## TODO: 
             ## separate out decryptor
-            fn_preds = None
+            self.unzip_new_zip()
             # Load predictions
-            print("[encryptor] Prediction files are ready:", fn_preds)
+            print("[encryptor] Prediction files are ready:", self._fn_preds)
             
             # Decrypt answers
-            answer = self.decrypt_answer(fn_preds, ctx1)
+            answer = self.decrypt_answer(self._fn_preds)
             answer_str = f"Predicted score: {answer}"
             # 복호화된 결과 QT로 전송
             q_answer.put(answer_str)  ## FLOW CONTROL
-            e_answer.set()  ## FLOW CONTROL
+            #e_answer.set()  ## FLOW CONTROL
 
-    def decrypt_answer(self, fn_preds, ctxt_ref):
+    def decrypt_answer(self, fn_preds):
         """Decrypt all prediction files and reutrn the answer."""
         preds=[]
         for fn_ctx in fn_preds:
-            preds.append(self.load_and_decrypt(fn_ctx, ctxt_ref))
+            preds.append(self.load_and_decrypt(fn_ctx))
 
         return np.argmax(preds)
 
-    def load_and_decrypt(self, fn_ctx, ctxt_ref=None):
+    def unzip_new_zip(self):
+        zip_list = glob("*.zip")
+        zip_list.sort(key=os.path.getmtime, reverse=True)
+        while len(zip_list) > 0:
+            if self.extract_if_contains(zip_list.pop(), "pred_0.dat"):
+                break
+            
+    def load_and_decrypt(self, fn_ctx):
         """Load ciphertext from file and decrypt it.
 
         Args:
@@ -227,7 +238,7 @@ class HEAANEncryptor():
             ctxt_ref (Ciphertext): reference ciphertext to get the parameters
         """
         print("[encryptor] make an empty ctxt")
-        ctx_pred = he.Ciphertext(ctxt_ref.logp, 180, ctxt_ref.n)
+        ctx_pred = he.Ciphertext(self.parms.logp, self.parms.logq, self.parms.n)
         print("[encryptor] load ctxt", fn_ctx)
         he.SerializationUtils.readCiphertext(ctx_pred, fn_ctx)
         print("[encryptor] decrypt ctxt", ctx_pred)
@@ -235,6 +246,34 @@ class HEAANEncryptor():
         print("[encryptor] decrypted prediction array", dec[:10])
         del ctx_pred
         return np.sum(dec) # Must sum the whole vector. partial sum gives wrong answer
+
+    def extract_if_contains(zip_file_path, target_file_name, extract_to_folder = "./"):
+        """
+        Extracts the contents of a ZIP file to the specified folder if it contains a file with the given name.
+
+        :param zip_file_path: Path to the ZIP file.
+        :param target_file_name: Name of the file to check for in the ZIP file.
+        :param extract_to_folder: Directory where the contents of the ZIP file will be extracted.
+        """
+        # Check if the ZIP file exists
+        if not os.path.exists(zip_file_path):
+            print(f"ZIP file not found: {zip_file_path}")
+            return
+
+        # Open the ZIP file
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            # Check if the target file is in the ZIP file
+            if any(target_file_name == os.path.basename(file.filename) for file in zip_ref.infolist()):
+                # Create the extract folder if it doesn't exist
+                if not os.path.exists(extract_to_folder):
+                    os.makedirs(extract_to_folder)
+                # Extract all the contents
+                zip_ref.extractall(extract_to_folder)
+                print(f"ZIP file extracted to {extract_to_folder}")
+                return True
+            else:
+                print(f"The file '{target_file_name}' was not found in the ZIP file.")
+                return False
 
     @staticmethod    
     def decrypt(scheme, secretKey, enc, parms):

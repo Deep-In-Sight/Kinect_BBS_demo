@@ -5,9 +5,10 @@ import os
 import os.path
 from .config import Config as setConfig
 import subprocess
-from bbs_client.constants import DIR_VIDEO, BIN_PLAYER
+from bbs_client.constants import DIR_VIDEO, BIN_PLAYER, FN_SCORES
 from glob import glob
 from client.encryptor import HEAANEncryptor
+from bbs_client.model.Fall_predict import Score_updator
 
 BTN_MIN_WIDTH       = 100
 BTN_MAX_WIDTH       = 200
@@ -27,7 +28,7 @@ def getPushButtonRecord(name, width = 30, height = 40, iconpath = None):
     return btn
 
 class qScenario(QObject):
-    def __init__(self, qmain, pwd, btn, startRecord, stopRecord, q_sk):
+    def __init__(self, qmain, pwd, btn, startRecord, stopRecord, q_sk, q_answer):
         super(qScenario, self).__init__(qmain)
         
         self.henc = HEAANEncryptor("./")
@@ -39,6 +40,7 @@ class qScenario(QObject):
         self.qmain = qmain    
         self.btn = btn    
         self.q_sk = q_sk
+        self.q_answer = q_answer
         self.text_answer = ""
 
         self.ScenarioNo = 0
@@ -63,9 +65,30 @@ class qScenario(QObject):
         print("[QScenario] skeleton", skeleton)
         self.henc.encrypt(skeleton)
         
-    def decrypt(self, fn):
+    def decrypt(self):
         # Decrypt given skeleton 
-        self.henc.decrypt(fn)
+        self.henc.get_answer(q_answer=self.q_answer)
+        self.update_score(self.q_answer.get())
+
+    def update_score(self, answer):        
+        answer_int = int(answer.split(":")[-1])
+
+        # Update this score
+        scu = Score_updator(FN_SCORES)
+        this_scenario = self.btn.action_num.currentText()
+        scu.update(int(this_scenario), answer_int)
+        all_txt = scu.text_output()
+        scu.write_txt()
+        fall_pred = scu.get_fall_prediction()
+        if fall_pred == -1:
+            self.qmain.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n")
+        else:
+            self.qmain.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n" + fall_pred)
+
+        font = QFont()
+        #font.setBold(True)
+        font.setPointSize(10)
+        self.qmain.viewInfo.setFont(font)
        
     def updateRecImgSizes(self, imgsizes):
         self.imgRecSizes[0] += imgsizes[0]
@@ -76,7 +99,6 @@ class qScenario(QObject):
 
     def updaterecseq(self, seq):
         self.recordseq = seq
-
 
     @pyqtSlot(int)
     def setRgbDispSize(self,val):
@@ -166,32 +188,42 @@ class qScenario(QObject):
         HBlayoutMain = QHBoxLayout() 
         HBlayoutMain.setAlignment(Qt.AlignTop)
 
+        # # result label
+        # LayoutInfo = QVBoxLayout()
+        # self.viewInfo = QLabel()
+        # self.viewInfo.setAlignment(Qt.AlignTop)
+        # self.viewInfo.setScaledContents(True)
+        # self.viewInfo.setText(self.showinfo())
+        # self.viewInfo.setMinimumHeight(30)
+        
+        # LayoutInfo.addWidget(self.viewInfo, 10)
+        # HBlayoutMain.addLayout(LayoutInfo,20)
+
+
         HVlayoutMain = QVBoxLayout() 
         HVlayoutMain.setAlignment(Qt.AlignTop)
 
-        LayoutScenarioNum = QHBoxLayout()
-        LayoutScenarioNum.setAlignment(Qt.AlignTop)
-        LayoutScenarioNum.setAlignment(Qt.AlignRight)
+        # LayoutScenarioNum = QHBoxLayout()
+        # LayoutScenarioNum.setAlignment(Qt.AlignTop)
+        # LayoutScenarioNum.setAlignment(Qt.AlignRight)
 
-        # scenario update txt label /fix 2021/12/22
-        self.scenarionum = QLabel()
-        self.scenarionum.setText(f'Scenario : {self.btn.action_num.currentIndex() + 1}')
-        LayoutScenarioNum.addWidget(self.scenarionum)
+        # # scenario update txt label /fix 2021/12/22
+        # self.scenarionum = QLabel()
+        # self.scenarionum.setText(f'Scenario : {self.btn.action_num.currentIndex() + 1}')
+        # LayoutScenarioNum.addWidget(self.scenarionum)
 
-        # score update txt label /fix 2021/12/22
-        # self.scorenum = QLabel()
-        # self.scorenum.setText(f'Score : {self.btn.score_num.currentIndex()}')
-        # LayoutScenarioNum.addWidget(self.scorenum)
-        HVlayoutMain.addLayout(LayoutScenarioNum, 2)
+        # # score update txt label /fix 2021/12/22
+        # # self.scorenum = QLabel()
+        # # self.scorenum.setText(f'Score : {self.btn.score_num.currentIndex()}')
+        # # LayoutScenarioNum.addWidget(self.scorenum)
+        # HVlayoutMain.addLayout(LayoutScenarioNum, 2)
 
 
         qlabel_dummy = QLabel()
         HVlayoutMain.addWidget(qlabel_dummy, 10)
         HBlayoutMain.addLayout(HVlayoutMain, 30)
         
-        # result label
-        # HBlayoutMain.addLayout(LayoutInfo,20)    
-
+        
         # self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
 
         return HBlayoutMain    

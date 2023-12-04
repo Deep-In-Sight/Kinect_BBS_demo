@@ -13,6 +13,7 @@ def main():
     ctx = mplti.get_context('spawn') ###
 
     q_sk = ctx.Queue(maxsize=4)
+    q_answer = ctx.Queue(maxsize=4)
 
     # Skeleton exists
     e_sk = mplti.Event()
@@ -20,7 +21,7 @@ def main():
     
     app = QApplication(sys.argv)
     app.setWindowIcon(getIcon(os.path.join(os.getcwd(),'res','icon')))
-    imageEditor = QMyMainWindow(q_sk, e_sk)
+    imageEditor = QMyMainWindow(q_sk, e_sk, q_answer)
     imageEditor.show()
     quit = app.exec_()
     

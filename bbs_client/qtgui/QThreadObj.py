@@ -23,7 +23,7 @@ def is_valid_skeleton(skeleton):
 
 class qThreadRecord(QThread):
     
-    def __init__(self, cap, mp_pose, qScenario, PWD, imgviwerRGB, q_sk, e_sk):
+    def __init__(self, cap, mp_pose, qScenario, PWD, imgviwerRGB, q_sk, e_sk, q_answer):
         super().__init__()
         self.stackColor = []
         self.stackJoint = []
@@ -35,6 +35,7 @@ class qThreadRecord(QThread):
         self.imgviwerRGB = imgviwerRGB
         self.q_sk = q_sk
         self.e_sk = e_sk
+        self.q_answer = q_answer
 
     def setRun(self, Run):
         self.isRun = Run
@@ -115,6 +116,65 @@ class qThreadRecord(QThread):
 
                 t0 = t1
         self.isRun = False
+        
+    @staticmethod
+    def _count_frames(video):
+        return int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    def _get_sample_frames(self, nframes):
+        return [int(i) for i in np.linspace(0, nframes-1, 10)]
+
+    def analyze_video(self, fn):
+        #t_elapsed = 0
+        nframes = 0
+        #i = 0
+
+        #t0 = time.time()
+        cap = cv2.VideoCapture(fn)
+        nframe_tot = self._count_frames(cap)
+        #self.resetstate()
+        
+        joint = np.zeros((33,3))
+        #joint[:,0] = mp_pose_lm_name
+        #while (self.btn.endtime.text() == "F"):
+        # while cap.isOpened():
+        for iframe in self._get_sample_frames(nframe_tot):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, iframe)
+        
+            #try:
+            success, image = cap.read()
+            if success:
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                results = self.mp_pose.process(image)
+
+                mp_drawing.draw_landmarks(
+                    image,
+                    results.pose_landmarks,
+                    mp_pose.POSE_CONNECTIONS,
+                    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
+
+                self.imgviwerRGB.setImg(cv2.flip(image, 1))
+
+                if results.pose_landmarks:
+                    for i, lm in enumerate(results.pose_landmarks.landmark):
+                        joint[i][0] = lm.x 
+                        joint[i][1] = lm.y
+
+                self.stackColor.append(image)
+                self.stackJoint.append(joint) # joints are stored here
+                # self.pic_Count += 1 # for what?
+                
+                nframes += 1
+                #t1 = time.time()
+                #t_elapsed += t1-t0
+
+                #self.btn.capturetime.setText(str(round(t_elapsed,2)))
+
+            # t0 = t1
+            print("NFRAMES", nframes)
+        cap.release()
+        self.isRun = False
+        
 
     # todo data tree  
     def save_multiproc(self):
@@ -185,25 +245,25 @@ class qThreadRecord(QThread):
         # Then send ctxt to server
         # and Wait for server's answer
 
-    def update_score(self, answer):        
-        answer_int = int(answer.split(":")[-1])
+    # def update_score(self, answer):        
+    #     answer_int = int(answer.split(":")[-1])
 
-        # Update this score
-        scu = Score_updator(FN_SCORES)
-        this_scenario = self.btn.action_num.currentText()
-        scu.update(int(this_scenario), answer_int)
-        all_txt = scu.text_output()
-        scu.write_txt()
-        fall_pred = scu.get_fall_prediction()
-        if fall_pred == -1:
-            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n")
-        else:
-            self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n" + fall_pred)
+    #     # Update this score
+    #     scu = Score_updator(FN_SCORES)
+    #     this_scenario = self.btn.action_num.currentText()
+    #     scu.update(int(this_scenario), answer_int)
+    #     all_txt = scu.text_output()
+    #     scu.write_txt()
+    #     fall_pred = scu.get_fall_prediction()
+    #     if fall_pred == -1:
+    #         self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n")
+    #     else:
+    #         self.qScenario.viewInfo.setText(f'Action #{this_scenario} \n {answer}\n\n' + all_txt + "\n" + fall_pred)
 
-        font = QFont()
-        #font.setBold(True)
-        font.setPointSize(14)
-        self.qScenario.viewInfo.setFont(font)
+    #     font = QFont()
+    #     #font.setBold(True)
+    #     font.setPointSize(14)
+    #     self.qScenario.viewInfo.setFont(font)
         
     def load_image(self, idx):
         fn_img = f'image/img_00{idx}.jpg'

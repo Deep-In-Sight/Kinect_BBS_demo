@@ -6,7 +6,7 @@ import time
 from bbs_client.constants import CAM_LIST, VERBOSE
 from PyQt5.QtWidgets import (QWidget, QMessageBox, QApplication, 
                             QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
-                            )
+                            QFileDialog)
 from PyQt5.QtCore import QTime, Qt, pyqtSlot, QSize, pyqtSignal, QTimer
 from PyQt5.QtGui import QPixmap, QIcon, QImage
 from PyQt5.QtPrintSupport import *
@@ -63,7 +63,7 @@ def is_valid_skeleton(skeleton):
 class QMyMainWindow(QWidget):
     startRecord = pyqtSignal()
     stopRecord = pyqtSignal()
-    def __init__(self, q_sk, e_sk):
+    def __init__(self, q_sk, e_sk, q_answer):
         """
         q_sk = mp.queue to put skeleton 
         e_sk = mp.event to signal skeleton is ready
@@ -75,6 +75,7 @@ class QMyMainWindow(QWidget):
         
         self.q_sk = q_sk
         self.e_sk = e_sk
+        self.q_answer = q_answer
 
         # add 2021/12/23 
         self.PWD = os.getcwd()
@@ -84,7 +85,7 @@ class QMyMainWindow(QWidget):
 
         self.startRecord.connect(self.recordImages)
         self.stopRecord.connect(self.end)
-        self.qScenario = qScenario(self, self.PWD, self.btn, self.startRecord, self.stopRecord, q_sk)
+        self.qScenario = qScenario(self, self.PWD, self.btn, self.startRecord, self.stopRecord, q_sk, q_answer)
 
         self.config = setConfig() # to be added
 
@@ -114,6 +115,10 @@ class QMyMainWindow(QWidget):
         LayoutFallPred = QVBoxLayout(self) # with "self", it becomes MAIN layout
         LayoutFallPred.setAlignment(Qt.AlignTop)
         LayoutFallPred.setAlignment(Qt.AlignLeft)
+        
+        self.qthreadrec.init(self.PWD, 
+                        self.btn,
+                        )
 
     def end(self):
         """Stop recording and save the video and skeleton"""
@@ -164,6 +169,7 @@ class QMyMainWindow(QWidget):
         LayoutMain = QVBoxLayout(self) # with "self", it becomes MAIN layout
         LayoutMain.setAlignment(Qt.AlignTop)        
         LayoutMain.setAlignment(Qt.AlignLeft)    
+        LayoutMain.addLayout(self.btn.getLayout(),1)
         
         LayoutViewers = QHBoxLayout()
         LayoutViewers.setAlignment(Qt.AlignLeft)
@@ -171,9 +177,16 @@ class QMyMainWindow(QWidget):
         LayoutViewers.addLayout(self.imgviwerRGB.getLayout(),1)
         #LayoutViewers.addLayout(self.imgviwerSkeleton.getLayout(),1)
         
-        # self.skimageLabel = QLabel()
-        # self.skimageLabel.setFixedSize(640, 480)
-        # self.skimageLabel.setPixmap(load_image())
+        # result label
+        LayoutInfo = QHBoxLayout()
+        self.viewInfo = QLabel()
+        self.viewInfo.setAlignment(Qt.AlignTop)
+        self.viewInfo.setAlignment(Qt.AlignRight)
+        self.viewInfo.setScaledContents(True)
+        self.viewInfo.setText(self.qScenario.showinfo())
+        self.viewInfo.setMinimumHeight(50)
+        
+        LayoutInfo.addWidget(self.viewInfo, 30)
 
         # add 2021.12.27 skindexbtn
         self.skindexbtn0 = QPushButton()
@@ -181,34 +194,26 @@ class QMyMainWindow(QWidget):
         self.skindexbtn0.setText('Encrypt')
         self.skindexbtn0.setMinimumHeight(40)
         
-        # add 2021.12.27 skbtnlayout
-        #skBBoxLayout = QVBoxLayout()
-        #testLayout = QVBoxLayout()
-
-        # sk select viewr
-        # LayoutViewers.addLayout(get_layout(self.skimageLabel))
-        
-        # skBBoxLayout.addWidget(self.skindexbtn0)
-        # skBBoxLayout.addWidget(self.fileopenButton)
-        # skBBoxLayout.addWidget(self.skindexbtn1)
-        # skBBoxLayout.addWidget(self.skindexbtn2)
-        #LayoutViewers.addLayout(skBBoxLayout)
-        #LayoutViewers.addLayout(testLayout)
-
         LayoutViewers.addLayout(QVBoxLayout(),7) # 이건 뭐지? 모양 맞추기용?
 
         LayoutFunctions = QHBoxLayout()
 
-        LayoutMain.addLayout(self.btn.getLayout(),1)
-        LayoutMain.addLayout(LayoutViewers,39)
-        LayoutMain.addLayout(LayoutFunctions,3)
-        LayoutMain.addLayout(self.qScenario.getLayout(),49)
+        LargeLayout = QHBoxLayout()
+        LayoutMain.addLayout(LargeLayout)
+        LeftLayout = QVBoxLayout()
+        LargeLayout.addLayout(LeftLayout)
+        LargeLayout.addLayout(LayoutInfo)
+        
+        LeftLayout.addLayout(LayoutViewers,39)
+        LeftLayout.addLayout(LayoutFunctions,3)
+        LeftLayout.addLayout(self.qScenario.getLayout(),49)
 
         self.Ready = QPushButton()
         self.Ready.setCheckable(True)
         self.Ready.setText('Record')
         self.Ready.setStyleSheet("background-color: green")
         self.Ready.setMinimumWidth(100)
+        self.Ready.setMaximumWidth(140)
         self.Ready.setMinimumHeight(50)
         # TODO: Record start 대신 Decrypt 기능 
         self.Ready.clicked.connect(self.start_rec)
@@ -219,6 +224,7 @@ class QMyMainWindow(QWidget):
         self.encryptbtn.setStyleSheet("background-color: green")
         self.encryptbtn.setMinimumHeight(40)
         self.encryptbtn.setMinimumWidth(140)
+        self.encryptbtn.setMaximumWidth(140)
         #LayoutRecordStartStep.addWidget(self.encryptbtn)
         self.encryptbtn.clicked.connect(self.qScenario.encrypt)
 
@@ -226,13 +232,14 @@ class QMyMainWindow(QWidget):
         self.decryptbtn.setStyleSheet("background-color: green")
         self.decryptbtn.setMinimumHeight(40)
         self.decryptbtn.setMinimumWidth(140)
+        self.decryptbtn.setMaximumWidth(140)
         #LayoutRecordStartStep.addWidget(self.decryptbtn)
         self.decryptbtn.clicked.connect(self.qScenario.decrypt)
-
 
         LayoutFunctions.addWidget(self.Ready)
         LayoutFunctions.addWidget(self.encryptbtn)
         LayoutFunctions.addWidget(self.decryptbtn)
+        LayoutFunctions.addStretch()
 
         # # add 2021.12.27  skindexbox connect 
         # self.skindexbtn0.clicked.connect(lambda: self.qthreadrec.select_sk(0))
@@ -254,9 +261,9 @@ class QMyMainWindow(QWidget):
 
     @pyqtSlot()
     def recordImages(self):
-        self.qthreadrec.init(self.PWD, 
-                                self.btn,
-                                )
+        # self.qthreadrec.init(self.PWD, 
+        #                         self.btn,
+        #                         )
         self.qthreadrec.start()
         self.qthreadrec.setRun(True)
 
@@ -294,7 +301,7 @@ class QMyMainWindow(QWidget):
                                 min_tracking_confidence=0.5)
 
         self.qthreadrec = qThreadRecord(self.device, self.bodyTracker, self.qScenario, 
-                                    self.PWD, self.imgviwerRGB, self.q_sk, self.e_sk)
+                                    self.PWD, self.imgviwerRGB, self.q_sk, self.e_sk, self.q_answer)
 
     # add 20210107
     def startcamera(self):
@@ -340,6 +347,15 @@ class QMyMainWindow(QWidget):
 
             #self.qScenario.updateSize()            
             QApplication.processEvents()
+
+    def openFileNameDialog(self):
+        # Open file dialog and get the selected file path
+        #options = QFileDialog.Options()
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open File", "", "All Files (*)")
+        if fileName:
+            # Read the file and set its content to the text edit
+            self.qthreadrec.analyze_video(fileName)
+            self.end()
 
     def closeEvent(self, event):
         msgbox     = QMessageBox()

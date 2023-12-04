@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QPushButton, QHBoxLayout, QLabel, QComboBox, QFileDialog)
+from PyQt5.QtWidgets import (QPushButton, QHBoxLayout, QLabel, QComboBox)
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QIcon, QFont
 import os
@@ -33,7 +33,7 @@ class qButtons(QObject):
         
         self.fileopenButton = QPushButton()
         self.fileopenButton.setText("Load video")
-        self.fileopenButton.clicked.connect(self.openFileNameDialog)
+        self.fileopenButton.clicked.connect(self.qmain.openFileNameDialog)
         
         self.empty_space = QLabel()
         self.empty_space.setText('    ')
@@ -68,17 +68,6 @@ class qButtons(QObject):
         self.BtnCalib.clicked.connect(self.qmain.updateOnPlay)
         self.BtnCalib.clicked.connect(self.qmain.calibration2)
         
-    
-    def openFileNameDialog(self):
-        # Open file dialog and get the selected file path
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(self, "Open File", "", "All Files (*);;Text Files (*.txt)", options=options)
-        if fileName:
-            # Read the file and set its content to the text edit
-            with open(fileName, 'r') as file:
-                self.textEdit.setText(file.read())
-
-
     def getLayout(self):
         HBlayoutEdits = QHBoxLayout() 
         HBlayoutEdits.setAlignment(Qt.AlignLeft)
@@ -89,7 +78,7 @@ class qButtons(QObject):
         HBlayoutEdits.addWidget(self.LbFPS)
         # fix 2021/12/23
         HBlayoutEdits.addWidget(self.action_name)
-        #HBlayoutEdits.addWidget(self.action_num)
+        HBlayoutEdits.addWidget(self.action_num)
         # HBlayoutEdits.addWidget(self.score_name)
         # HBlayoutEdits.addWidget(self.score_num)
         HBlayoutEdits.addWidget(self.empty_space)
