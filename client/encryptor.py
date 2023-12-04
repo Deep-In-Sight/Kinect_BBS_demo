@@ -59,7 +59,7 @@ class HEAANEncryptor():
                                 FN_SK="secret.key",
                                 boot=False, 
                                 is_owner=True,
-                                load_sk=False
+                                load_sk=True
                                 )
         
         # self.ctx1 = he.Ciphertext(logp, logq, self.parms.n)
@@ -177,7 +177,7 @@ class HEAANEncryptor():
             skeleton = shift_to_zero(skeleton)
             body = measure_lengths(skeleton)
             skeleton /= body['body'] 
-            pickle.dump(skeleton, open("skeleton_org.pickle", "wb"))
+            # pickle.dump(skeleton, open("skeleton_org.pickle", "wb"))
             #print("rav_sub", rav_sub.min(), rav_sub.max())
             final_skeleton = scaler.transform(rav_sub.reshape(1,-1))[0]
         
