@@ -284,7 +284,7 @@ class QMyMainWindow(QWidget):
         if VERBOSE: print("action changed", self.btn.action_num.currentIndex())
         actionidx = self.btn.action_num.currentIndex() + 1
         
-        self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
+        # self.qScenario.scenarionum.setText(f'Scenario : {actionidx}')
         # self.skimageLabel.setPixmap(load_image(f"imgs/instruct_{actionidx}.png"))
         # self.startcamera()
 

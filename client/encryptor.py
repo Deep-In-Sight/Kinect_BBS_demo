@@ -63,11 +63,6 @@ class HEAANEncryptor():
                                 )
         
         # self.ctx1 = he.Ciphertext(logp, logq, self.parms.n)
-
-        # print("FHE Keys are set", self.work_dir)
-        # if not self.comm.send_keys(self.work_dir):
-        #     raise ConnectionError("Can't send keys to the server")
-                
         if debug: print("[Encryptor] HEAAN is ready")
         self.set_featurizers()
         self.load_scalers()

@@ -188,41 +188,12 @@ class qScenario(QObject):
         HBlayoutMain = QHBoxLayout() 
         HBlayoutMain.setAlignment(Qt.AlignTop)
 
-        # # result label
-        # LayoutInfo = QVBoxLayout()
-        # self.viewInfo = QLabel()
-        # self.viewInfo.setAlignment(Qt.AlignTop)
-        # self.viewInfo.setScaledContents(True)
-        # self.viewInfo.setText(self.showinfo())
-        # self.viewInfo.setMinimumHeight(30)
-        
-        # LayoutInfo.addWidget(self.viewInfo, 10)
-        # HBlayoutMain.addLayout(LayoutInfo,20)
-
-
         HVlayoutMain = QVBoxLayout() 
         HVlayoutMain.setAlignment(Qt.AlignTop)
-
-        # LayoutScenarioNum = QHBoxLayout()
-        # LayoutScenarioNum.setAlignment(Qt.AlignTop)
-        # LayoutScenarioNum.setAlignment(Qt.AlignRight)
-
-        # # scenario update txt label /fix 2021/12/22
-        # self.scenarionum = QLabel()
-        # self.scenarionum.setText(f'Scenario : {self.btn.action_num.currentIndex() + 1}')
-        # LayoutScenarioNum.addWidget(self.scenarionum)
-
-        # # score update txt label /fix 2021/12/22
-        # # self.scorenum = QLabel()
-        # # self.scorenum.setText(f'Score : {self.btn.score_num.currentIndex()}')
-        # # LayoutScenarioNum.addWidget(self.scorenum)
-        # HVlayoutMain.addLayout(LayoutScenarioNum, 2)
-
 
         qlabel_dummy = QLabel()
         HVlayoutMain.addWidget(qlabel_dummy, 10)
         HBlayoutMain.addLayout(HVlayoutMain, 30)
-        
         
         # self.SubjectIDInput.returnPressed.connect(self.setSubjectID)
 
